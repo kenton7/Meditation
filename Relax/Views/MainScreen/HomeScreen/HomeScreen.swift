@@ -1,0 +1,391 @@
+//
+//  HomeScreen.swift
+//  Relax
+//
+//  Created by Илья Кузнецов on 26.06.2024.
+//
+
+import SwiftUI
+import FirebaseAuth
+import FirebaseDatabase
+import FirebaseCore
+import CoreData
+import AVKit
+
+struct HomeScreen: View {
+    //MARK: TODO -- Сделать пожелания в зависимости от суток
+    
+    //@FetchRequest(sortDescriptors: []) var selectedTopics: FetchedResults<Topic>
+    
+    var body: some View {
+        NavigationStack {
+            ScrollView(showsIndicators: false) {
+                VStack {
+                    Text("Сияние души")
+                        .padding()
+                        .foregroundStyle(Color(uiColor: .init(red: 63/255,
+                                                              green: 65/255,
+                                                              blue: 78/255,
+                                                              alpha: 1)))
+                        .font(.system(.title2, design: .rounded)).bold()
+                    
+                    GreetingView()
+                    DailyRecommendations()
+                    DailyThoughts()
+                    RecommendationsScreen()
+                    NightStories()
+                    Spacer()
+                }
+            }
+        }
+        .tint(.white)
+    }
+    
+    
+}
+
+//MARK: - GreetingView
+struct GreetingView: View {
+    
+    @StateObject private var homeScreenViewModel = HomeScreenViewModel()
+    
+    var body: some View {
+        VStack {
+            HStack {
+                VStack(alignment: .leading) {
+                    Text(homeScreenViewModel.greeting + "!")
+                        .padding()
+                        .foregroundStyle(Color(uiColor: .init(red: 63/255,
+                                                              green: 65/255,
+                                                              blue: 78/255,
+                                                              alpha: 1)))
+                        .font(.system(.title, design: .rounded)).bold()
+                        .padding(.vertical, -15)
+                    Text("Желаем тебе хорошего дня")
+                        .padding(.horizontal)
+                        .font(.system(.subheadline, design: .rounded))
+                        .foregroundStyle(Color(uiColor: .init(red: 161/255,
+                                                              green: 164/255,
+                                                              blue: 178/255,
+                                                              alpha: 1)))
+                }
+                Spacer()
+            }
+            .padding(.vertical)
+        }
+    }
+}
+
+//MARK: - DailyRecommendations
+struct DailyRecommendations: View {
+    
+    @StateObject private var playlistAndCourseOfDay = CoursesViewModel()
+    @State private var isCourseTapped: Bool = false
+    @State private var isPlaylistTapped = false
+    @State private var isStoryTapped = false
+    @State private var selectedCourse: CourseAndPlaylistOfDayModel?
+    
+    var body: some View {
+        NavigationStack {
+            VStack {
+                HStack(spacing: 15) {
+                    ForEach(playlistAndCourseOfDay.allCourses, id: \.id) { course in
+                        Button(action: {
+                            isCourseTapped = true
+                            selectedCourse = course
+                        }, label: {
+                            ZStack {
+                                Color(uiColor: .init(red: CGFloat(course.color.red) / 255,
+                                                     green: CGFloat(course.color.green) / 255,
+                                                     blue: CGFloat(course.color.blue) / 255,
+                                                     alpha: 1))
+                                VStack {
+                                    HStack {
+                                        Spacer()
+                                        AsyncImage(url: URL(string: course.imageURL)!)
+                                            .scaledToFit()
+                                            .frame(maxHeight: 200)
+                                    }
+                                    Spacer()
+                                    HStack {
+                                        Text(course.name)
+                                            .padding(.horizontal)
+                                            .foregroundStyle(.white)
+                                            .font(.system(.headline, design: .rounded)).bold()
+                                            .multilineTextAlignment(.leading)
+                                        Spacer()
+                                    }
+                                    HStack {
+                                        Text(course.duration)
+                                            .padding(.horizontal)
+                                            .foregroundStyle(.white)
+                                            .font(.system(size: 12))
+                                        Capsule()
+                                            .fill(Color.white)
+                                            .frame(width: 80, height: 40)
+                                            .padding(10)
+                                        
+                                            .overlay {
+                                                Text("Начать")
+                                                    .foregroundStyle(.black)
+                                            }
+                                    }
+                                }
+                            }
+                        })
+                        .clipShape(.rect(cornerRadius: 20))
+                        .padding(.horizontal, 0)
+                        .frame(width: 180, height: 230)
+                    }
+                }
+                .frame(width: 180, height: 230)
+                .padding(.vertical)
+            }
+        }
+        .navigationDestination(isPresented: $isCourseTapped) {
+            if let selectedCourse = selectedCourse {
+                ReadyCourseDetailView(course: selectedCourse)
+            }
+        }
+        .onAppear {
+            playlistAndCourseOfDay.getCourses(isDaily: true)
+        }
+    }
+}
+
+//MARK: - DailyThoughts
+struct DailyThoughts: View {
+    
+    @State private var isDailyThoughtsTapped = false
+    @State private var selectedCourse: CourseAndPlaylistOfDayModel?
+    @StateObject private var viewModel = CoursesViewModel()
+    
+    var body: some View {
+        NavigationStack {
+            VStack {
+                Button(action: {
+                    //selectedCourse = viewModel.dailyThoughts.first
+                    selectedCourse = viewModel.allCourses.filter { $0.name == "Ежедневные мысли" }.first
+                    print(selectedCourse?.name)
+                    isDailyThoughtsTapped = true
+                }, label: {
+                    ZStack {
+                        Color(uiColor: .init(red: 51/255,
+                                             green: 50/255,
+                                             blue: 66/255,
+                                             alpha: 1))
+                        Image("DailyThoughtsBackground")
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("Ежедневные мысли")
+                                    .foregroundStyle(.white)
+                                    .font(.system(size: 20, design: .rounded)).bold()
+                                Text("МЕДИТАЦИЯ • 10-30 мин")
+                                    .lineLimit(1)
+                                    .foregroundStyle(.white).bold()
+                                    .font(.system(.caption, design: .rounded))
+                            }
+                            .padding()
+                            Spacer()
+                            
+                            Image(systemName: "play.circle.fill")
+                                .foregroundStyle(.white)
+                                .font(.system(size: 35))
+                                .padding()
+                        }
+                    }
+                })
+                .clipShape(.rect(cornerRadius: 20))
+                .padding(.horizontal)
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .navigationDestination(isPresented: $isDailyThoughtsTapped) {
+            if let selectedCourse = selectedCourse {
+                ReadyCourseDetailView(course: selectedCourse)
+            }
+        }
+        .onAppear {
+            viewModel.getCourses(isDaily: false)
+        }
+    }
+}
+
+//MARK: - RecommendationsScreen
+struct RecommendationsScreen: View {
+    
+    @StateObject private var recommendationsViewModel = RecommendationsViewModel()
+    @FetchRequest(
+        entity: Topic.entity(),
+        sortDescriptors: []
+    ) var selectedTopics: FetchedResults<Topic>
+    
+    //let user = Auth.auth().currentUser
+    @State private var isSelected = false
+    @State private var selectedCourse: CourseAndPlaylistOfDayModel?
+    
+    var body: some View {
+        NavigationStack {
+            VStack {
+                HStack {
+                    Text("Рекомендовано для Вас")
+                        .padding()
+                        .foregroundStyle(Color(uiColor: .init(red: 63/255,
+                                                              green: 65/255,
+                                                              blue: 78/255,
+                                                              alpha: 1)))
+                        .font(.system(.title2, design: .rounded)).bold()
+                    Spacer()
+                }
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHGrid(rows: [GridItem(.fixed(150))], spacing: 0, content: {
+                        
+                        ForEach(recommendationsViewModel.recommendations, id: \.name) { course in
+                            Button(action: {
+                                selectedCourse = course
+                                isSelected = true
+                            }, label: {
+                                VStack(alignment: .leading) {
+                                    ZStack {
+                                        Color(uiColor: .init(red: CGFloat(course.color.red) / 255,
+                                                             green: CGFloat(course.color.green) / 255,
+                                                             blue: CGFloat(course.color.blue) / 255,
+                                                             alpha: 1))
+                                        AsyncImage(url: URL(string: course.imageURL))
+                                            .padding()
+                                    }
+                                    .clipShape(.rect(cornerRadius: 10))
+                                    Spacer()
+                                    Text(course.name)
+                                        .foregroundStyle(Color(uiColor: .init(red: 63/255,
+                                                                              green: 65/255,
+                                                                              blue: 78/255,
+                                                                              alpha: 1)))
+                                        .font(.system(.callout, design: .rounded)).bold()
+                                    
+                                    Text(course.type.rawValue)
+                                        .foregroundStyle(Color(uiColor: .init(red: 161/255,
+                                                                              green: 164/255,
+                                                                              blue: 178/255,
+                                                                              alpha: 1)))
+                                        .font(.system(.caption, design: .rounded))
+                                }
+                            })
+                            .padding(.horizontal)
+                        }
+                    })
+                }
+            }
+        }
+        .navigationDestination(isPresented: $isSelected, destination: {
+            if let selectedCourse = selectedCourse {
+                ReadyCourseDetailView(course: selectedCourse)
+            }
+        })
+//        .task {
+//            if let user = user {
+//                let topics = try? await recommendationsViewModel.getTopicWhichUserSelected(user: user)
+//                topics?.forEach { $0.name }
+//            } else {
+//                print("user is nil")
+//            }
+//        }
+    }
+}
+
+//MARK: - NightStories
+struct NightStories: View {
+    
+    @StateObject private var nightStoriesViewModel = NightStoriesViewModel()
+    @State private var isSelected = false
+    @State private var selectedStory: CourseAndPlaylistOfDayModel?
+    
+    var body: some View {
+        NavigationStack {
+            VStack {
+                HStack {
+                    Text("Истории на ночь")
+                        .padding()
+                        .foregroundStyle(Color(uiColor: .init(red: 63/255,
+                                                              green: 65/255,
+                                                              blue: 78/255,
+                                                              alpha: 1)))
+                        .font(.system(.title2, design: .rounded)).bold()
+                    Spacer()
+                }
+                
+                HStack {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        LazyHGrid(rows: [GridItem(.fixed(150))], spacing: 0, content: {
+                            ForEach(nightStoriesViewModel.nightStories, id: \.name) { nightStory in
+                                Button(action: {
+                                    isSelected = true
+                                    selectedStory = nightStory
+                                    //nightStoriesViewModel.playStoryFrom(url: nightStory.audioFemaleURL)
+                                }, label: {
+                                    VStack(alignment: .leading) {
+                                        ZStack {
+                                            Color(uiColor: .init(red: CGFloat(nightStory.color.red) / 255,
+                                                                 green: CGFloat(nightStory.color.green) / 255,
+                                                                 blue: CGFloat(nightStory.color.blue) / 255,
+                                                                 alpha: 1))
+                                            AsyncImage(url: URL(string: nightStory.imageURL)!, scale: 3.4) { image in
+                                                image.resizable()
+                                                image.scaledToFill()
+                                            } placeholder: {
+                                                ProgressView()
+                                            }
+                                            .padding()
+                                            .frame(width: 200, height: 150)
+                                        }
+                                        .clipShape(.rect(cornerRadius: 10))
+                                        Spacer()
+                                        Text(nightStory.name)
+                                            .foregroundStyle(Color(uiColor: .init(red: 63/255,
+                                                                                  green: 65/255,
+                                                                                  blue: 78/255,
+                                                                                  alpha: 1)))
+                                            .font(.system(.callout, design: .rounded)).bold()
+                                    }
+                                })
+                                .padding(.horizontal)
+                            }
+                            Button(action: {
+                                
+                            }, label: {
+                                ZStack {
+                                    Circle()
+                                        .frame(width: 70, height: 70)
+                                        .foregroundStyle(Color.indigo)
+                                    Text("См. \nвсё")
+                                        .foregroundStyle(.white)
+                                        .font(.system(size: 15, design: .rounded)).bold()
+                                }
+                            })
+                            .padding(.horizontal)
+                        })
+                    }
+                }
+                Spacer()
+            }
+        }
+        .navigationDestination(isPresented: $isSelected) {
+            if let selectedStory = selectedStory {
+                ReadyCourseDetailView(course: selectedStory)
+            }
+        }
+    }
+}
+
+#Preview {
+    HomeScreen()
+}
+
+#Preview("RecommendationsScreen") {
+    RecommendationsScreen()
+}
+
+#Preview("Night Stories") {
+    NightStories()
+}

@@ -1,0 +1,80 @@
+//
+//  HeaderDetailCourse.swift
+//  Relax
+//
+//  Created by Илья Кузнецов on 04.07.2024.
+//
+
+import SwiftUI
+
+class HeaderDetailCourse: ObservableObject {
+    
+    @Published var offsetY: CGFloat = .zero
+    
+    @ViewBuilder
+    func createHeaderView(course: CourseAndPlaylistOfDayModel, size: CGSize, safeArea: EdgeInsets) -> some View {
+        let headerHeight = (size.height * 0.30) + safeArea.top
+        let minimumHeaderHeight = 64 + safeArea.top
+        let progress = max(min(-offsetY / (headerHeight - minimumHeaderHeight), 1), 0)
+        
+        GeometryReader { _ in
+            ZStack {
+                if course.type == .story {
+                    Color(uiColor: .init(red: 3/255, green: 23/255, blue: 76/255, alpha: 1)).ignoresSafeArea()
+                }
+                Rectangle()
+                    .fill(Color(uiColor: .init(red: CGFloat(course.color.red) / 255,
+                                               green: CGFloat(course.color.green) / 255,
+                                               blue: CGFloat(course.color.blue) / 255,
+                                               alpha: 1)))
+                    .clipShape(.rect(topLeadingRadius: 0,
+                                     bottomLeadingRadius: 12,
+                                     bottomTrailingRadius: 12,
+                                     topTrailingRadius: 0,
+                                     style: .continuous))
+                    .shadow(color: .gray, radius: 5, x: 0, y: 3)
+
+                
+                VStack(spacing: 15) {
+                    GeometryReader {
+                        let rect = $0.frame(in: .global)
+                        
+                        let halfScaledHeight = (rect.height * 0.2) * 0.5
+                        let midY = rect.midY
+                        
+                        let bottomPadding: CGFloat = 16
+                        let resizedOffsetY = (midY - (minimumHeaderHeight - halfScaledHeight - bottomPadding))
+                        
+                        AsyncImage(url: URL(string: course.imageURL)) { image in
+                            image.resizable()
+                                .frame(width: rect.width, height: rect.height)
+                                .clipShape(.circle)
+                                .scaleEffect(1 - (progress * 0.5), anchor: .leading)
+                                .offset(x: -(rect.minX - 16) * progress, y: -resizedOffsetY * progress - (progress * 16))
+                        } placeholder: {
+                            ProgressView()
+                        }
+                    }
+                    .frame(width: headerHeight * 0.5, height: headerHeight * 0.5)
+                }
+                .padding(.top, safeArea.top)
+                .padding(.bottom)
+                
+            }
+            .shadow(color: .black.opacity(0.2), radius: 25)
+            .frame(height: max((headerHeight + self.offsetY), minimumHeaderHeight), alignment: .bottom)
+            
+        }
+        .frame(height: headerHeight, alignment: .bottom)
+        .offset(y: -offsetY)
+    }
+    
+    //данная функция создает эффект "инерции"
+    func needToScroll(offset: CGFloat, velocity: CGFloat, safeArea: EdgeInsets, size: CGSize) -> Bool {
+        let headerHeight = (size.height * 0.15) + safeArea.top
+        let minimumHeaderHeight = 64 + safeArea.top
+        let targetEnd = offset + (velocity * 45)
+        return targetEnd < (headerHeight - minimumHeaderHeight)  && targetEnd > 0
+    }
+}
+
