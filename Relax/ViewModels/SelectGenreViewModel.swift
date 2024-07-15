@@ -9,10 +9,7 @@ import Foundation
 import SwiftUI
 
 class SelectGenreViewModel: ObservableObject {
-    
-    private var nightStoriesVM = NightStoriesViewModel()
-    @Published var filteredResults = [CourseAndPlaylistOfDayModel]()
-    
+        
     @Published var genres = [
         StoryGenresModel(genre: "Всё", isSelected: true, image: "headphones"),
         StoryGenresModel(genre: "Любимое", isSelected: false, image: "heart"),

@@ -16,8 +16,12 @@ struct HomeScreen: View {
     //MARK: TODO -- Сделать пожелания в зависимости от суток
     
     //@FetchRequest(sortDescriptors: []) var selectedTopics: FetchedResults<Topic>
+    @StateObject private var viewModel = CoursesViewModel()
+    @StateObject private var recommendationsViewModel = RecommendationsViewModel()
+    @StateObject private var nightStoriesViewModel = NightStoriesViewModel()
     
     var body: some View {
+        
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack {
@@ -39,6 +43,12 @@ struct HomeScreen: View {
             }
         }
         .tint(.white)
+        .refreshable {
+            viewModel.getCourses(isDaily: true)
+            viewModel.getCourses(isDaily: false)
+            recommendationsViewModel.fetchRecommendations()
+            nightStoriesViewModel.fetchNightStories()
+        }
     }
     
     
@@ -61,7 +71,7 @@ struct GreetingView: View {
                                                               alpha: 1)))
                         .font(.system(.title, design: .rounded)).bold()
                         .padding(.vertical, -15)
-                    Text("Желаем тебе хорошего дня")
+                    Text(homeScreenViewModel.secondaryGreeting)
                         .padding(.horizontal)
                         .font(.system(.subheadline, design: .rounded))
                         .foregroundStyle(Color(uiColor: .init(red: 161/255,
@@ -283,14 +293,6 @@ struct RecommendationsScreen: View {
                 ReadyCourseDetailView(course: selectedCourse)
             }
         })
-//        .task {
-//            if let user = user {
-//                let topics = try? await recommendationsViewModel.getTopicWhichUserSelected(user: user)
-//                topics?.forEach { $0.name }
-//            } else {
-//                print("user is nil")
-//            }
-//        }
     }
 }
 
@@ -370,6 +372,7 @@ struct NightStories: View {
                 Spacer()
             }
         }
+        .padding(.bottom)
         .navigationDestination(isPresented: $isSelected) {
             if let selectedStory = selectedStory {
                 ReadyCourseDetailView(course: selectedStory)

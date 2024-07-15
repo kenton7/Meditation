@@ -11,21 +11,6 @@ import FirebaseStorage
 import FirebaseAuth
 import SwiftUI
 
-struct LikedPlaylistsModel: Codable {
-    var id: String?
-    var name: String?
-    var imageURL: String?
-    var color: ButtonColor?
-    var duration: String?
-    var description: String?
-    var listenedCount: Int?
-    var type: Types?
-    var isDaily: Bool?
-    var likes: Int?
-    var genre: String?
-    var isLiked: Bool?
-}
-
 class NightStoriesViewModel: ObservableObject {
     
     @StateObject private var databaseVM = ChangeDataInDatabase()
@@ -39,7 +24,7 @@ class NightStoriesViewModel: ObservableObject {
         fetchNightStories()
     }
     
-    private func fetchNightStories() {
+    func fetchNightStories() {
         databaseRef.observe(.value) { snapshot in
             var newFiles: [CourseAndPlaylistOfDayModel] = []
             for child in snapshot.children {
@@ -73,10 +58,12 @@ class NightStoriesViewModel: ObservableObject {
                         if let likedPlaylists = snapshot.value as? [String: Bool] {
                             DispatchQueue.main.async {
                                 let likedObjects = self.nightStories.filter { story in
-                                    if story.type == .story {
-                                        return likedPlaylists.keys.contains(story.name)
-                                    } else {
-                                        return false
+                                    withAnimation {
+                                        if story.type == .story {
+                                            return likedPlaylists.keys.contains(story.name)
+                                        } else {
+                                            return false
+                                        }
                                     }
                                 }
                                 self.filteredStories = likedObjects
@@ -86,7 +73,7 @@ class NightStoriesViewModel: ObservableObject {
                 }
             }
         } else {
-            filteredStories = nightStories.filter { $0.genre == genre }
+            filteredStories = nightStories.filter {  $0.genre == genre }
         }
     }
         

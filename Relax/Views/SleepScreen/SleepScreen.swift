@@ -8,24 +8,29 @@
 import SwiftUI
 
 struct SleepScreen: View {
+    @EnvironmentObject var nightStoriesVM: NightStoriesViewModel
+    
     var body: some View {
         NavigationStack {
-            ScrollView(.vertical, showsIndicators: false) {
-                ZStack {
-                    Color(uiColor: .init(red: 3/255,
-                                         green: 23/255,
-                                         blue: 76/255,
-                                         alpha: 1))
-                    .ignoresSafeArea()
-                    
+            ZStack {
+                Color(uiColor: .init(red: 3/255,
+                                     green: 23/255,
+                                     blue: 76/255,
+                                     alpha: 1))
+                .ignoresSafeArea()
+                
+                ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 20) {
                         HeaderView()
-                        StoryGenresView()
+                        StoryGenresView(type: .story)
                         AllStoriesView()
                     }
                 }
+                .ignoresSafeArea()
             }
-            .ignoresSafeArea()
+        }
+        .refreshable {
+            nightStoriesVM.fetchNightStories()
         }
     }
 }
@@ -34,23 +39,23 @@ struct SleepScreen: View {
 //MARK: - HeaderView
 struct HeaderView: View {
     var body: some View {
-            VStack {
-                ZStack {
-                    Image("SleepScreenHeaderBackground")
-                    Image("OnSleepScreenHeaderLayer")
-                    VStack {
-                        Text("Истории на ночь")
-                            .padding()
-                            .foregroundStyle(.white)
-                            .font(.system(.title, design: .rounded, weight: .bold))
-                        Text("Успокаивающие сказки на ночь помогут вам погрузиться в глубокий и естественный сон")
-                            .foregroundStyle(.white)
-                            .font(.system(.headline, design: .rounded, weight: .light))
-                            .multilineTextAlignment(.center)
-                    }
+        VStack {
+            ZStack {
+                Image("SleepScreenHeaderBackground")
+                Image("OnSleepScreenHeaderLayer")
+                VStack {
+                    Text("Истории на ночь")
+                        .padding()
+                        .foregroundStyle(.white)
+                        .font(.system(.title, design: .rounded, weight: .bold))
+                    Text("Успокаивающие сказки на ночь помогут вам погрузиться в глубокий и естественный сон")
+                        .foregroundStyle(.white)
+                        .font(.system(.headline, design: .rounded, weight: .light))
+                        .multilineTextAlignment(.center)
                 }
             }
-            .ignoresSafeArea()
+        }
+        .ignoresSafeArea()
     }
 }
 
@@ -60,16 +65,19 @@ struct StoryGenresView: View {
     @State private var isSelected = false
     @StateObject private var selectGenreVM = SelectGenreViewModel()
     @EnvironmentObject var nightStoriesVM: NightStoriesViewModel
+    @EnvironmentObject var meditationVM: CoursesViewModel
+    let type: Types
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHGrid(rows: [GridItem(.flexible())], content: {
-            HStack {
-                ForEach(selectGenreVM.genres.indices, id: \.self) { index in
+                HStack {
+                    ForEach(selectGenreVM.genres.indices, id: \.self) { index in
                         Button(action: {
-                            withAnimation(.easeInOut) {
+                            withAnimation(.easeInOut(duration: 0.6)) {
                                 selectGenreVM.selectGenre(at: index)
                                 nightStoriesVM.filterResults(by: selectGenreVM.selectedGenre)
+                                type == .story ? nightStoriesVM.filterResults(by: selectGenreVM.selectedGenre) : meditationVM.filterResults(by: selectGenreVM.selectedGenre)
                             }
                         }, label: {
                             VStack {
@@ -87,14 +95,17 @@ struct StoryGenresView: View {
                                         .font(.system(size: 25))
                                 }
                                 Text(selectGenreVM.genres[index].genre)
-                                    .foregroundStyle(selectGenreVM.genres[index].isSelected ? .white : .gray)
+                                
+                                    .foregroundStyle(
+                                        (type == .story && selectGenreVM.genres[index].isSelected) ? .white : (type == .meditation && selectGenreVM.genres[index].isSelected ? .black : .gray)
+                                    )
                                     .bold()
                             }
                         })
                         .padding(.horizontal)
+                    }
                 }
-            }
-            .padding()
+                .padding()
             })
             .padding(.horizontal)
             .frame(height: 100)
@@ -102,7 +113,9 @@ struct StoryGenresView: View {
         .padding(.top, -30)
         .padding(.bottom)
         .onAppear {
-            selectGenreVM.selectGenre(at: 0)
+            withAnimation {
+                selectGenreVM.selectGenre(at: 0)
+            }
         }
     }
 }
@@ -133,6 +146,7 @@ struct AllStoriesView: View {
                             } placeholder: {
                                 ProgressView()
                             }
+                            .padding()
                             
                             VStack {
                                 HStack {

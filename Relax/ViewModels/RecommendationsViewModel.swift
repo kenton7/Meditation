@@ -20,7 +20,7 @@ class RecommendationsViewModel: ObservableObject {
         fetchRecommendations()
     }
     
-    private func fetchRecommendations() {
+    func fetchRecommendations() {
         databaseRef.observe(.value) { snapshot in
             var newFiles: [CourseAndPlaylistOfDayModel] = []
             var likesCount: Int = 0

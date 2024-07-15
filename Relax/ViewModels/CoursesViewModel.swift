@@ -8,6 +8,7 @@
 import Foundation
 import AVKit
 import FirebaseDatabase
+import FirebaseAuth
 import Combine
 
 
@@ -32,6 +33,7 @@ class CoursesViewModel: ObservableObject {
     @Published var lessons: [Lesson] = []
     @Published var isPlaying: Bool = false
     @Published var likesCount = 0
+    @Published var filteredStories: [CourseAndPlaylistOfDayModel] = []
     private var playerViewModel = PlayerViewModel.shared
     private var cancellables = Set<AnyCancellable>()
     private let databaseRef = Database.database(url: .databaseURL).reference().child("courseAndPlaylistOfDay")
@@ -71,7 +73,9 @@ class CoursesViewModel: ObservableObject {
                         }
                     }
                 }
-                self.lessons = newFiles
+                DispatchQueue.main.async {
+                    self.lessons = newFiles
+                }
             }
         case .story:
             pathToLesson = Database.database(url: .databaseURL).reference().child("nightStories").child(courseID).child("lessons")
@@ -93,7 +97,9 @@ class CoursesViewModel: ObservableObject {
                         }
                     }
                 }
-                self.lessons = newFiles
+                DispatchQueue.main.async {
+                    self.lessons = newFiles
+                }
             }
         }
         
@@ -120,8 +126,45 @@ class CoursesViewModel: ObservableObject {
                     }
                 }
             }
-            self.allCourses = courses
-            self.likesCount = likes
+            DispatchQueue.main.async {
+                self.allCourses = courses
+                self.filteredStories = courses
+                self.likesCount = likes
+            }
+        }
+    }
+    
+    func filterResults(by genre: String) {
+        if genre == "Всё" {
+            getCourses(isDaily: false)
+            DispatchQueue.main.async {
+                self.filteredStories = self.allCourses
+            }
+        } else if genre == "Любимое" {
+            if let user = Auth.auth().currentUser {
+                Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("likedPlaylists").getData { error, snapshot in
+                    if let snapshot {
+                        if let likedPlaylists = snapshot.value as? [String: Bool] {
+                            DispatchQueue.main.async {
+                                let likedObjects = self.allCourses.filter { story in
+                                    if story.type == .meditation {
+                                        return likedPlaylists.keys.contains(story.name)
+                                    } else {
+                                        return false
+                                    }
+                                }
+                                DispatchQueue.main.async {
+                                    self.filteredStories = likedObjects
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            DispatchQueue.main.async {
+                self.filteredStories = self.allCourses.filter { $0.genre == genre }
+            }
         }
     }
 

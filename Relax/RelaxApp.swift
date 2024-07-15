@@ -34,6 +34,7 @@ struct RelaxApp: App {
     @StateObject private var authViewModel = AuthWithEmailViewModel()
     @StateObject private var playerViewModel = PlayerViewModel.shared
     @StateObject private var nightStoriesVM = NightStoriesViewModel()
+    @StateObject private var meditationViewModel = CoursesViewModel()
     let persistenceController = PersistenceController.shared
     
     var body: some Scene {
@@ -42,6 +43,7 @@ struct RelaxApp: App {
                 .environmentObject(authViewModel)
                 .environmentObject(playerViewModel)
                 .environmentObject(nightStoriesVM)
+                .environmentObject(meditationViewModel)
                 .environment(\.colorScheme, .light)
         }
         .environment(\.managedObjectContext, persistenceController.container.viewContext)

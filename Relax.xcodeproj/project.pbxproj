@@ -38,6 +38,7 @@
 		0920C7D92C2BDF4500AE9FAC /* CoreDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0920C7D82C2BDF4500AE9FAC /* CoreDataService.swift */; };
 		0924CBDA2C3EF265008DADC2 /* StoryGenresModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0924CBD92C3EF265008DADC2 /* StoryGenresModel.swift */; };
 		0924CBDC2C3EF6EA008DADC2 /* SelectGenreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0924CBDB2C3EF6EA008DADC2 /* SelectGenreViewModel.swift */; };
+		0929D0C62C4424A60026CF9E /* EmergencyMeditationsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0929D0C52C4424A60026CF9E /* EmergencyMeditationsViewModel.swift */; };
 		094E467E2C3D959100AE2FE8 /* SleepScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094E467D2C3D959100AE2FE8 /* SleepScreen.swift */; };
 		096130432C2C15B700C681B0 /* MainScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 096130422C2C15B700C681B0 /* MainScreen.swift */; };
 		096130462C2C82E200C681B0 /* NotificationsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 096130452C2C82E200C681B0 /* NotificationsService.swift */; };
@@ -102,6 +103,7 @@
 		0920C7D82C2BDF4500AE9FAC /* CoreDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataService.swift; sourceTree = "<group>"; };
 		0924CBD92C3EF265008DADC2 /* StoryGenresModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryGenresModel.swift; sourceTree = "<group>"; };
 		0924CBDB2C3EF6EA008DADC2 /* SelectGenreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectGenreViewModel.swift; sourceTree = "<group>"; };
+		0929D0C52C4424A60026CF9E /* EmergencyMeditationsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyMeditationsViewModel.swift; sourceTree = "<group>"; };
 		094E467D2C3D959100AE2FE8 /* SleepScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepScreen.swift; sourceTree = "<group>"; };
 		096130422C2C15B700C681B0 /* MainScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainScreen.swift; sourceTree = "<group>"; };
 		096130452C2C82E200C681B0 /* NotificationsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsService.swift; sourceTree = "<group>"; };
@@ -349,6 +351,7 @@
 				098352062C36AC6A0092DAB7 /* HeaderDetailCourse.swift */,
 				098352082C36B10C0092DAB7 /* ChangeDataInDatabase.swift */,
 				0924CBDB2C3EF6EA008DADC2 /* SelectGenreViewModel.swift */,
+				0929D0C52C4424A60026CF9E /* EmergencyMeditationsViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -517,6 +520,7 @@
 				0972C62F2C257646005ECB08 /* Persistence.swift in Sources */,
 				09E871DB2C384E15002CEB54 /* ReadyCourseDetailView.swift in Sources */,
 				0909C8112C2C9DE60049744F /* HomeScreen.swift in Sources */,
+				0929D0C62C4424A60026CF9E /* EmergencyMeditationsViewModel.swift in Sources */,
 				0972C6282C257644005ECB08 /* ContentView.swift in Sources */,
 				0909C8222C2D7B940049744F /* CourseAndPlaylistOfDayModel.swift in Sources */,
 				0909C82A2C2FDF090049744F /* Color+Extensions.swift in Sources */,
