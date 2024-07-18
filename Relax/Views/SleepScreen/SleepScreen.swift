@@ -41,7 +41,15 @@ struct HeaderView: View {
     var body: some View {
         VStack {
             ZStack {
+                Rectangle()
+                    .fill(Color(uiColor: .init(red: 30/255,
+                                               green: 38/255,
+                                               blue: 94/255,
+                                               alpha: 1)))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .offset(y: -100)
                 Image("SleepScreenHeaderBackground")
+                    .scaleEffect(CGSize(width: 1.2, height: 1.0))
                 Image("OnSleepScreenHeaderLayer")
                 VStack {
                     Text("Истории на ночь")
@@ -77,7 +85,15 @@ struct StoryGenresView: View {
                             withAnimation(.easeInOut(duration: 0.6)) {
                                 selectGenreVM.selectGenre(at: index)
                                 nightStoriesVM.filterResults(by: selectGenreVM.selectedGenre)
-                                type == .story ? nightStoriesVM.filterResults(by: selectGenreVM.selectedGenre) : meditationVM.filterResults(by: selectGenreVM.selectedGenre)
+                                if type == .story {
+                                    Task.detached {
+                                        await nightStoriesVM.filterResults(by: selectGenreVM.selectedGenre)
+                                    }
+                                } else {
+                                    Task.detached {
+                                        await meditationVM.filterResults(by: selectGenreVM.selectedGenre)
+                                    }
+                                }
                             }
                         }, label: {
                             VStack {
@@ -174,7 +190,7 @@ struct AllStoriesView: View {
                     })
                 }
             }
-                               .padding(.horizontal, 20)
+                               .padding(.horizontal)
                                .padding(.bottom, 110)
                                .onAppear {
                                    nightStoriesVM.filterResults(by: "Всё")

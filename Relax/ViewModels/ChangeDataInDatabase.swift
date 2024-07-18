@@ -7,7 +7,9 @@
 
 import Foundation
 import FirebaseDatabase
+import FirebaseStorage
 import FirebaseAuth
+import SwiftUI
 
 class ChangeDataInDatabase: ObservableObject {
     
@@ -21,8 +23,54 @@ class ChangeDataInDatabase: ObservableObject {
     @Published var listeners = 0
     @Published var storyURL = ""
     @Published var isTutorialViewed = false
+    @Published var isDownloadStarted = false
+    @Published var downloadProgress = 0.0
+    private var coursesViewModel = CoursesViewModel()
+    @State private var downloadURL: URL?
     
-    func userLiked(course: CourseAndPlaylistOfDayModel, type: IncrementDecrementLike, isLiked: Bool, user: User, courseType: Types, isDaily: Bool) {
+    func download(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool, lesson: Lesson) {
+        
+        let storage = Storage.storage()
+        let storageRef = storage.reference()
+        var localURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        
+        switch courseType {
+        case .playlist:
+            break
+        case .meditation:
+            let lessonRef = storageRef.child("meditations/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
+            localURL.append(path: "\(course.name)/\(lesson.name)", directoryHint: .isDirectory)
+            localURL.appendPathExtension(for: .mp3)
+            print(lessonRef)
+            let downloadTask = lessonRef.write(toFile: localURL) { url, error in
+                self.isDownloadStarted = true
+                if let error = error {
+                    print("Ошибка загрузки: \(error.localizedDescription)")
+                    self.isDownloadStarted = false
+                    return
+                }
+                print("Файл загружен в: \(url!.path)")
+                DispatchQueue.main.async {
+                    self.downloadURL = url
+                    self.isDownloadStarted = false
+                }
+            }
+            
+            downloadTask.observe(.progress) { snapshot in
+                let percentComplete = 100 * Double(snapshot.progress!.completedUnitCount) / Double(snapshot.progress!.totalUnitCount)
+                print("Загрузка: \(percentComplete)% завершено")
+                self.downloadProgress = percentComplete
+            }
+        case .story:
+            break
+            //referecne = storage.reference(forURL: .databaseURL + "\(isFemale ? lesson.audioFemaleURL : lesson.audioMaleURL)")
+        case .emergency:
+            break
+            //referecne = storage.reference(forURL: .databaseURL + "\(isFemale ? lesson.audioFemaleURL : lesson.audioMaleURL)")
+        }
+    }
+    
+    func userLiked(course: CourseAndPlaylistOfDayModel, type: IncrementDecrementLike, isLiked: Bool, user: User, courseType: Types) {
         
         var likesCount = likes
         
@@ -38,130 +86,141 @@ class ChangeDataInDatabase: ObservableObject {
             Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("likedPlaylists").child(course.name).removeValue()
         }
         
-        if isDaily {
-            Database.database(url: .databaseURL).reference().child("courseAndPlaylistOfDay").child(course.id).updateChildValues(["likes": likesCount])
-        } else {
-            switch courseType {
-            case .playlist:
-                Database.database(url: .databaseURL).reference().child("music").child(course.id).updateChildValues(["likes": likesCount])
-            case .meditation:
-                Database.database(url: .databaseURL).reference().child("courses").child(course.id).updateChildValues(["likes": likesCount])
-            case .story:
-                Database.database(url: .databaseURL).reference().child("nightStories").child(course.id).updateChildValues(["likes": likesCount])
-            }
-        }
-        //Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("likedPlaylists").updateChildValues([course.name: self.isLiked])
-    }
-    
-    func updateListeners(course: CourseAndPlaylistOfDayModel, type: Types, isDaily: Bool) {
-        var listenersCount = self.listeners
-        listenersCount += 1
-                
-        if isDaily {
-            Database.database(url: .databaseURL).reference().child("courseAndPlaylistOfDay").child(course.id).updateChildValues(["listenedCount": listenersCount])
-        } else {
-            switch type {
-            case .playlist:
-                Database.database(url: .databaseURL).reference().child("music").child(course.id).updateChildValues(["listenedCount": listenersCount])
-            case .meditation:
-                Database.database(url: .databaseURL).reference().child("courses").child(course.id).updateChildValues(["listenedCount": listenersCount])
-            case .story:
-                Database.database(url: .databaseURL).reference().child("nightStories").child(course.id).updateChildValues(["listenedCount": listenersCount])
-            }
+        switch courseType {
+        case .playlist:
+            Database.database(url: .databaseURL).reference().child("music").child(course.id).updateChildValues(["likes": likesCount])
+        case .meditation:
+            Database.database(url: .databaseURL).reference().child("courses").child(course.id).updateChildValues(["likes": likesCount])
+        case .story:
+            Database.database(url: .databaseURL).reference().child("nightStories").child(course.id).updateChildValues(["likes": likesCount])
+        case .emergency:
+            Database.database(url: .databaseURL).reference().child("emergencyMeditation").child(course.id).updateChildValues(["likes": likesCount])
         }
     }
     
-    func getListenersIn(course: CourseAndPlaylistOfDayModel, courseType: Types, isDaily: Bool) {
+    func updateListeners(course: CourseAndPlaylistOfDayModel, type: Types) {
         
-        if isDaily {
-            Database.database(url: .databaseURL).reference().child("courseAndPlaylistOfDay").child(course.id).child("listenedCount").observe(.value) { snapshot in
+        var reference: DatabaseReference
+        self.listeners += 1
+                        
+        switch type {
+        case .playlist:
+            reference = Database.database(url: .databaseURL).reference().child("music").child(course.id)
+        case .meditation:
+            reference = Database.database(url: .databaseURL).reference().child("courses").child(course.id)
+        case .story:
+            reference = Database.database(url: .databaseURL).reference().child("nightStories").child(course.id)
+        case .emergency:
+            reference = Database.database(url: .databaseURL).reference().child("emergencyMeditation").child(course.id)
+        }
+        
+        // Загружаем текущее значение
+            reference.child("listenedCount").observeSingleEvent(of: .value) { snapshot in
+                var currentListeners = snapshot.value as? Int ?? 0
+                currentListeners += 1
+                
+                // Сохраняем увеличенное значение обратно в базу данных
+                reference.updateChildValues(["listenedCount": currentListeners]) { error, _ in
+                    if let error = error {
+                        print("Ошибка при обновлении listenedCount: \(error)")
+                    } else {
+                        DispatchQueue.main.async {
+                            self.listeners = currentListeners
+                            print("Обновляем прослушивания. Стало: \(self.listeners)")
+                        }
+                    }
+                }
+            }
+    }
+    
+    func getListenersIn(course: CourseAndPlaylistOfDayModel, courseType: Types) {
+        
+        switch courseType {
+        case .playlist:
+            Database.database(url: .databaseURL).reference().child("music").child(course.id).child("listenedCount").observeSingleEvent(of: .value) { snapshot in
                 if let listenersCount = snapshot.value as? Int {
                     DispatchQueue.main.async {
                         self.listeners = listenersCount
                     }
                 } else {
-                    print("Значение не найдено")
+                    print("Значение не найдено для \(course.id) в music")
                 }
             }
-        } else {
-            switch courseType {
-            case .playlist:
-                Database.database(url: .databaseURL).reference().child("music").child(course.id).child("listenedCount").observe(.value) { snapshot in
-                    if let listenersCount = snapshot.value as? Int {
-                        DispatchQueue.main.async {
-                            self.listeners = listenersCount
-                        }
-                    } else {
-                        print("Значение не найдено")
+        case .meditation:
+            Database.database(url: .databaseURL).reference().child("courses").child(course.id).child("listenedCount").observeSingleEvent(of: .value) { snapshot in
+                if let listenersCount = snapshot.value as? Int {
+                    DispatchQueue.main.async {
+                        self.listeners = listenersCount
                     }
+                } else {
+                    print("Значение не найдено для \(course.id) в meditation")
                 }
-            case .meditation:
-                Database.database(url: .databaseURL).reference().child("courses").child(course.id).child("listenedCount").observeSingleEvent(of: .value) { snapshot in
-                    if let listenersCount = snapshot.value as? Int {
-                        DispatchQueue.main.async {
-                            self.listeners = listenersCount
-                        }
-                    } else {
-                        print("Значение не найдено")
+            }
+        case .story:
+            Database.database(url: .databaseURL).reference().child("nightStories").child(course.id).child("listenedCount").observeSingleEvent(of: .value) { snapshot in
+                if let listenersCount = snapshot.value as? Int {
+                    DispatchQueue.main.async {
+                        self.listeners = listenersCount
                     }
+                } else {
+                    print("Значение не найдено для \(course.id) в story")
                 }
-            case .story:
-                Database.database(url: .databaseURL).reference().child("nightStories").child(course.id).child("listenedCount").observeSingleEvent(of: .value) { snapshot in
-                    if let listenersCount = snapshot.value as? Int {
-                        DispatchQueue.main.async {
-                            self.listeners = listenersCount
-                        }
-                    } else {
-                        print("Значение не найдено")
+            }
+        case .emergency:
+            print("emergency")
+            Database.database(url: .databaseURL).reference().child("emergencyMeditation").child(course.id).child("listenedCount").observeSingleEvent(of: .value) { snapshot in
+                if let listenersCount = snapshot.value as? Int {
+                    DispatchQueue.main.async {
+                        self.listeners = listenersCount
                     }
+                } else {
+                    print("Значение не найдено для \(course.id) в emergency")
                 }
             }
         }
     }
 
-    func getLikesIn(course: CourseAndPlaylistOfDayModel, courseType: Types, isDaily: Bool) {
+    func getLikesIn(course: CourseAndPlaylistOfDayModel, courseType: Types) {
                 
-        if isDaily {
-            Database.database(url: .databaseURL).reference().child("courseAndPlaylistOfDay").child(course.id).child("likes").observe(.value) { snapshot in
+        switch courseType {
+        case .playlist:
+            Database.database(url: .databaseURL).reference().child("music").child(course.id).child("likes").observe(.value) { snapshot in
                 if let likesValue = snapshot.value as? Int {
                     DispatchQueue.main.async {
                         self.likes = likesValue
                     }
                 } else {
-                    print("Значение не найдено")
+                    print("Значение не найдено для \(course.id) в music")
                 }
             }
-        } else {
-            switch courseType {
-            case .playlist:
-                Database.database(url: .databaseURL).reference().child("music").child(course.id).child("likes").observe(.value) { snapshot in
-                    if let likesValue = snapshot.value as? Int {
-                        DispatchQueue.main.async {
-                            self.likes = likesValue
-                        }
-                    } else {
-                        print("Значение не найдено")
+        case .meditation:
+            Database.database(url: .databaseURL).reference().child("courses").child(course.id).child("likes").observeSingleEvent(of: .value) { snapshot in
+                if let likesValue = snapshot.value as? Int {
+                    DispatchQueue.main.async {
+                        self.likes = likesValue
                     }
+                } else {
+                    print("Значение не найдено для \(course.id) в meditation")
                 }
-            case .meditation:
-                Database.database(url: .databaseURL).reference().child("courses").child(course.id).child("likes").observeSingleEvent(of: .value) { snapshot in
-                    if let likesValue = snapshot.value as? Int {
-                        DispatchQueue.main.async {
-                            self.likes = likesValue
-                        }
-                    } else {
-                        print("Значение не найдено")
+            }
+        case .story:
+            Database.database(url: .databaseURL).reference().child("nightStories").child(course.id).child("likes").observeSingleEvent(of: .value) { snapshot in
+                if let likesValue = snapshot.value as? Int {
+                    DispatchQueue.main.async {
+                        self.likes = likesValue
                     }
+                } else {
+                    print("Значение не найдено для \(course.id) в story")
                 }
-            case .story:
-                Database.database(url: .databaseURL).reference().child("nightStories").child(course.id).child("likes").observeSingleEvent(of: .value) { snapshot in
-                    if let likesValue = snapshot.value as? Int {
-                        DispatchQueue.main.async {
-                            self.likes = likesValue
-                        }
-                    } else {
-                        print("Значение не найдено")
+            }
+        case .emergency:
+            Database.database(url: .databaseURL).reference().child("emergencyMeditation").child(course.id).child("likes").observeSingleEvent(of: .value) { snapshot in
+                if let likesValue = snapshot.value as? Int {
+                    DispatchQueue.main.async {
+                        self.likes = likesValue
                     }
+                } else {
+                    print("Значение не найдено для \(course.id) в emergency")
                 }
             }
         }

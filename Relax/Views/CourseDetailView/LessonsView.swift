@@ -31,7 +31,7 @@ struct LessonsView: View {
                             if viewModel.isPlaying(urlString: url) {
                                 viewModel.pause()
                             } else {
-                                databaseViewModel.updateListeners(course: course, type: course.type, isDaily: course.isDaily)
+                                databaseViewModel.updateListeners(course: course, type: course.type)
                                 viewModel.playCourse(from: isFemale ? file.audioFemaleURL : file.audioMaleURL, playlist: viewModel.lessons)
                             }
                         }, label: {
@@ -58,6 +58,7 @@ struct LessonsView: View {
                                         isTappedOnName = true
                                         url = isFemale ? file.audioFemaleURL : file.audioMaleURL
                                         viewModel.playCourse(from: url, playlist: viewModel.lessons)
+                                        databaseViewModel.updateListeners(course: course, type: course.type)
                                         self.lesson = file
                                     }
                                 Spacer()
@@ -85,7 +86,7 @@ struct LessonsView: View {
         }
         .padding()
         .onAppear {
-            viewModel.fetchCourseDetails(type: course.type, courseID: course.id, isDaily: course.isDaily)
+            viewModel.fetchCourseDetails(type: course.type, courseID: course.id)
         }
     }
 }

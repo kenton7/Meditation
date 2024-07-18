@@ -57,11 +57,10 @@ struct CourseDetailView: View {
                 }
             }
         }
-        .tint(.white)
         .onAppear {
-            databaseViewModel.getLikesIn(course: course, courseType: course.type, isDaily: course.isDaily)
+            databaseViewModel.getLikesIn(course: course, courseType: course.type)
             databaseViewModel.checkIfUserLiked(user: user!, course: course)
-            databaseViewModel.getListenersIn(course: course, courseType: course.type, isDaily: course.isDaily)
+            databaseViewModel.getListenersIn(course: course, courseType: course.type)
             databaseViewModel.storyInfo(course: course, isFemale: isFemale)
         }
     }
@@ -92,15 +91,13 @@ struct CourseDetailView: View {
                                                             type: .increment,
                                                             isLiked: isLiked,
                                                             user: user!,
-                                                            courseType: course.type,
-                                                            isDaily: course.isDaily)
+                                                            courseType: course.type)
                             } else {
                                 databaseViewModel.userLiked(course: course, 
                                                             type: .decrement,
                                                             isLiked: isLiked,
                                                             user: user!,
-                                                            courseType: course.type,
-                                                            isDaily: course.isDaily)
+                                                            courseType: course.type)
                             }
                         }, label: {
                             Image(systemName: databaseViewModel.isLiked ? "heart.fill" : "heart")
@@ -123,7 +120,8 @@ struct CourseDetailView: View {
                         })
                         
                         Button(action: {
-                            
+                            //MARK: - TODO - Реализовать скачивание
+                            //databaseViewModel.download(course: course, courseType: course.type, isFemale: isFemale)
                         }, label: {
                             Image(systemName: "arrow.down")
                                 .bold()
@@ -205,11 +203,9 @@ struct CourseDetailView: View {
                             .font(.system(.title2, design: .rounded)).bold()
                         Spacer()
                     }
-                    
                     ChangeSpeakersButtons(course: course, isFemale: $isFemale)
                 }
             }
-            
             LessonsView(isFemale: $isFemale, course: course)
             Spacer()
         }

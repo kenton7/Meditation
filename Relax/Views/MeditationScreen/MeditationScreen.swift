@@ -26,8 +26,10 @@ struct MeditationScreen: View {
             meditationsVM.filteredStories.removeAll()
             emergencyVM.emergencyMeditations.removeAll()
             emergencyVM.fetchEmergencyMeditations()
-            meditationsVM.getCourses(isDaily: false)
-            meditationsVM.filterResults(by: "Всё")
+            Task.detached {
+                await meditationsVM.getCourses(isDaily: false)
+                await meditationsVM.filterResults(by: "Всё")
+            }
         }
     }
 }
@@ -128,51 +130,53 @@ struct AllMeditationsView: View {
                 
                 
                 
-                LazyVGrid(columns: [GridItem(.flexible()),
-                                    GridItem(.flexible())
-                                   ], spacing: 20,
-                          content: {
-                    ForEach(meditationsViewModel.filteredStories) { course in
-                        Button(action: {
-                            isSelected = true
-                            selectedCourse = course
-                        }, label: {
-                            VStack {
-                                AsyncImage(url: URL(string: course.imageURL)) { image in
-                                    image.resizable()
-                                        .scaledToFit()
-                                        .clipShape(.rect(cornerRadius: 16))
-                                        .overlay {
-                                            ZStack {
-                                                VStack {
-                                                    Spacer()
-                                                    Rectangle()
-                                                        .fill(Color(uiColor: .init(red: CGFloat(course.color.red) / 255,
-                                                                                   green: CGFloat(course.color.green) / 255,
-                                                                                   blue: CGFloat(course.color.blue) / 255,
-                                                                                   alpha: 1)))
-                                                        .frame(maxWidth: .infinity, maxHeight: 40)
-                                                        .clipShape(.rect(bottomLeadingRadius: 16, 
-                                                                         bottomTrailingRadius: 16,
-                                                                         style: .continuous))
-                                                        .overlay {
-                                                            Text(course.name)
-                                                                .foregroundStyle(.white)
-                                                                .font(.system(size: 14, 
-                                                                              weight: .bold,
-                                                                              design: .rounded))
-                                                        }
+                ScrollView {
+                    LazyVGrid(columns: [GridItem(.flexible()),
+                                        GridItem(.flexible())
+                                       ], spacing: 20,
+                              content: {
+                        ForEach(meditationsViewModel.filteredStories) { course in
+                            Button(action: {
+                                isSelected = true
+                                selectedCourse = course
+                            }, label: {
+                                VStack {
+                                    AsyncImage(url: URL(string: course.imageURL)) { image in
+                                        image.resizable()
+                                            .scaledToFit()
+                                            .clipShape(.rect(cornerRadius: 16))
+                                            .overlay {
+                                                ZStack {
+                                                    VStack {
+                                                        Spacer()
+                                                        Rectangle()
+                                                            .fill(Color(uiColor: .init(red: CGFloat(course.color.red) / 255,
+                                                                                       green: CGFloat(course.color.green) / 255,
+                                                                                       blue: CGFloat(course.color.blue) / 255,
+                                                                                       alpha: 1)))
+                                                            .frame(maxWidth: .infinity, maxHeight: 40)
+                                                            .clipShape(.rect(bottomLeadingRadius: 16, 
+                                                                             bottomTrailingRadius: 16,
+                                                                             style: .continuous))
+                                                            .overlay {
+                                                                Text(course.name)
+                                                                    .foregroundStyle(.white)
+                                                                    .font(.system(size: 14, 
+                                                                                  weight: .bold,
+                                                                                  design: .rounded))
+                                                            }
+                                                    }
                                                 }
                                             }
-                                        }
-                                } placeholder: {
-                                    ProgressView()
+                                    } placeholder: {
+                                        ProgressView()
+                                    }
+                                    .padding()
                                 }
-                                .padding()
-                            }
-                        })
-                    }
-                })
+                            })
+                        }
+                    })
+                }
             }
         }
         .navigationDestination(isPresented: $isSelected) {
@@ -180,9 +184,14 @@ struct AllMeditationsView: View {
                 ReadyCourseDetailView(course: course)
             }
         }
-        .onAppear {
-            meditationsViewModel.filterResults(by: "Всё")
+        .task {
+            await meditationsViewModel.filterResults(by: "Всё")
         }
+//        .onAppear {
+//            Task.detached {
+//                await meditationsViewModel.filterResults(by: "Всё")
+//            }
+//        }
     }
 }
 

@@ -11,6 +11,7 @@ enum Types: String, Codable {
     case playlist = "ПЛЕЙЛИСТ"
     case meditation = "МЕДИТАЦИЯ"
     case story = "ИСТОРИЯ"
+    case emergency = "СРОЧНАЯ ПОМОЩЬ"
 }
 
 struct CourseAndPlaylistOfDayModel: Identifiable, Codable {
@@ -40,4 +41,5 @@ struct Lesson: Codable {
     var audioFemaleURL: String
     var name: String
     let duration: String
+    var lessonID: String
 }

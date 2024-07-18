@@ -10,7 +10,7 @@ import FirebaseDatabase
 import AVFoundation
 
 class MusicFilesViewModel: ObservableObject {
-    @Published var files: [MusicFileDataModel] = []
+    @Published var files: [CourseAndPlaylistOfDayModel] = []
     
     private let databaseRef = Database.database(url: .databaseURL).reference().child("music")
     
@@ -20,14 +20,14 @@ class MusicFilesViewModel: ObservableObject {
     
     private func fetchFiles() {
         databaseRef.observe(.value) { snapshot in
-            var newFiles: [MusicFileDataModel] = []
+            var newFiles: [CourseAndPlaylistOfDayModel] = []
             for child in snapshot.children {
                 
                 if let snapshot = child as? DataSnapshot {
                     if let data = snapshot.value as? [String: Any] {
                         do {
                             let jsonData = try JSONSerialization.data(withJSONObject: data)
-                            let fileData = try JSONDecoder().decode(MusicFileDataModel.self, from: jsonData)
+                            let fileData = try JSONDecoder().decode(CourseAndPlaylistOfDayModel.self, from: jsonData)
                             newFiles.append(fileData)
                         } catch {
                             print("Error decoding snapshot: \(error.localizedDescription)")

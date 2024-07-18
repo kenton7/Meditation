@@ -13,9 +13,7 @@ import CoreData
 import AVKit
 
 struct HomeScreen: View {
-    //MARK: TODO -- Сделать пожелания в зависимости от суток
     
-    //@FetchRequest(sortDescriptors: []) var selectedTopics: FetchedResults<Topic>
     @StateObject private var viewModel = CoursesViewModel()
     @StateObject private var recommendationsViewModel = RecommendationsViewModel()
     @StateObject private var nightStoriesViewModel = NightStoriesViewModel()
@@ -44,8 +42,10 @@ struct HomeScreen: View {
         }
         .tint(.white)
         .refreshable {
-            viewModel.getCourses(isDaily: true)
-            viewModel.getCourses(isDaily: false)
+            Task.detached {
+                await viewModel.getCourses(isDaily: true)
+                await viewModel.getCourses(isDaily: false)
+            }
             recommendationsViewModel.fetchRecommendations()
             nightStoriesViewModel.fetchNightStories()
         }
@@ -95,11 +95,38 @@ struct DailyRecommendations: View {
     @State private var isStoryTapped = false
     @State private var selectedCourse: CourseAndPlaylistOfDayModel?
     
+    private var currentDate: String = {
+        let date = Date()
+        let df = DateFormatter()
+        df.dateFormat = "dd.MM"
+        return df.string(from: date)
+    }()
+
+    
     var body: some View {
         NavigationStack {
             VStack {
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text("Практика дня")
+                            .foregroundStyle(.black)
+                            .font(.system(.title2, design: .rounded, weight: .bold))
+                            .multilineTextAlignment(.leading)
+                        
+                        Text("Обновляется ежедневно")
+                            .font(.system(.subheadline, design: .rounded))
+                            .foregroundStyle(Color(uiColor: .init(red: 161/255,
+                                                                  green: 164/255,
+                                                                  blue: 178/255,
+                                                                  alpha: 1)))
+                            .multilineTextAlignment(.leading)
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal)
+                
                 HStack(spacing: 15) {
-                    ForEach(playlistAndCourseOfDay.allCourses, id: \.id) { course in
+                    ForEach(playlistAndCourseOfDay.dailyCourses, id: \.id) { course in
                         Button(action: {
                             isCourseTapped = true
                             selectedCourse = course
@@ -109,35 +136,58 @@ struct DailyRecommendations: View {
                                                      green: CGFloat(course.color.green) / 255,
                                                      blue: CGFloat(course.color.blue) / 255,
                                                      alpha: 1))
+                                .overlay {
+                                    VStack {
+                                        HStack {
+                                            ZStack {
+                                                Capsule()
+                                                    .fill(Color.red)
+                                                    .padding(.horizontal)
+                                                    .frame(maxWidth: 100, maxHeight: 40)
+                                                    .shadow(radius: 5)
+                                                Text(currentDate).bold()
+                                                    .padding()
+                                            }
+                                            Spacer()
+                                        }
+                                        Spacer()
+                                    }
+                                }
                                 VStack {
                                     HStack {
                                         Spacer()
-                                        AsyncImage(url: URL(string: course.imageURL)!)
-                                            .scaledToFit()
-                                            .frame(maxHeight: 200)
+                                        AsyncImage(url: URL(string: course.imageURL)) { image in
+                                            image.resizable()
+                                                .scaledToFit()
+                                                //.frame(maxWidth: 400, maxHeight: 300)
+                                                .frame(width: 200, height: 150)
+                                        } placeholder: {
+                                            ProgressView()
+                                        }
                                     }
                                     Spacer()
                                     HStack {
                                         Text(course.name)
                                             .padding(.horizontal)
                                             .foregroundStyle(.white)
-                                            .font(.system(.headline, design: .rounded)).bold()
+                                            .font(.system(.title3, design: .rounded)).bold()
                                             .multilineTextAlignment(.leading)
                                         Spacer()
                                     }
                                     HStack {
-                                        Text(course.duration)
+                                        Spacer()
+                                        Text(course.duration + " " + "мин.")
                                             .padding(.horizontal)
                                             .foregroundStyle(.white)
-                                            .font(.system(size: 12))
+                                            .font(.system(size: 15, design: .rounded))
                                         Capsule()
                                             .fill(Color.white)
                                             .frame(width: 80, height: 40)
                                             .padding(10)
-                                        
                                             .overlay {
                                                 Text("Начать")
                                                     .foregroundStyle(.black)
+                                                    .font(.system(size: 18, design: .rounded))
                                             }
                                     }
                                 }
@@ -145,11 +195,13 @@ struct DailyRecommendations: View {
                         })
                         .clipShape(.rect(cornerRadius: 20))
                         .padding(.horizontal, 0)
-                        .frame(width: 180, height: 230)
+                        //.frame(width: 180, height: 230)
+                        .frame(maxWidth: .infinity, maxHeight: 230)
                     }
                 }
-                .frame(width: 180, height: 230)
-                .padding(.vertical)
+                .frame(maxWidth: .infinity, maxHeight: 230)
+                //.frame(width: 180, height: 230)
+                .padding()
             }
         }
         .navigationDestination(isPresented: $isCourseTapped) {
@@ -157,8 +209,8 @@ struct DailyRecommendations: View {
                 ReadyCourseDetailView(course: selectedCourse)
             }
         }
-        .onAppear {
-            playlistAndCourseOfDay.getCourses(isDaily: true)
+        .task {
+            await playlistAndCourseOfDay.getCourses(isDaily: true)
         }
     }
 }
@@ -215,9 +267,15 @@ struct DailyThoughts: View {
                 ReadyCourseDetailView(course: selectedCourse)
             }
         }
-        .onAppear {
-            viewModel.getCourses(isDaily: false)
+        .task {
+            await viewModel.getCourses(isDaily: false)
         }
+//        .onAppear {
+//            Task.detached {
+//                await viewModel.getCourses(isDaily: false)
+//            }
+//            //viewModel.getCourses(isDaily: false)
+//        }
     }
 }
 
@@ -262,11 +320,18 @@ struct RecommendationsScreen: View {
                                                              green: CGFloat(course.color.green) / 255,
                                                              blue: CGFloat(course.color.blue) / 255,
                                                              alpha: 1))
-                                        AsyncImage(url: URL(string: course.imageURL))
-                                            .padding()
+                                        
+                                        AsyncImage(url: URL(string: course.imageURL)) { image in
+                                            image.resizable()
+                                                .scaledToFit()
+                                                .frame(width: 200, height: 150)
+                                        } placeholder: {
+                                            ProgressView()
+                                        }
                                     }
                                     .clipShape(.rect(cornerRadius: 10))
                                     Spacer()
+                                    
                                     Text(course.name)
                                         .foregroundStyle(Color(uiColor: .init(red: 63/255,
                                                                               green: 65/255,
@@ -353,9 +418,9 @@ struct NightStories: View {
                                 })
                                 .padding(.horizontal)
                             }
-                            Button(action: {
-                                
-                            }, label: {
+                            NavigationLink {
+                                SleepScreen()
+                            } label: {
                                 ZStack {
                                     Circle()
                                         .frame(width: 70, height: 70)
@@ -364,7 +429,7 @@ struct NightStories: View {
                                         .foregroundStyle(.white)
                                         .font(.system(size: 15, design: .rounded)).bold()
                                 }
-                            })
+                            }
                             .padding(.horizontal)
                         })
                     }

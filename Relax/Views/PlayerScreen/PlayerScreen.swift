@@ -47,17 +47,35 @@ struct PlayerScreen: View {
                     HStack {
                         Spacer()
                         Button(action: {
+                            //MARK: - TODO: реализовать проверку лайкнуто или нет и куда-то перемещать лайкнутый урок
                             isLiked.toggle()
                         }, label: {
                             Image(isLiked ? "LikeButton_fill" : "LikeButton")
                         })
                         
                         Button(action: {
-                            
+                            if let lesson {
+                                databaseVM.download(course: course, 
+                                                    courseType: course.type,
+                                                    isFemale: isFemale,
+                                                    lesson: lesson)
+                            }
                         }, label: {
                             Image("DownloadButton")
                         })
                         .padding()
+                        .overlay {
+                            ZStack {
+                                Circle()
+                                    .stroke(Color.gray, lineWidth: 4)
+                                    .padding()
+                                Circle()
+                                    .trim(from: 0, to: databaseVM.downloadProgress)
+                                    .stroke(Color.green, lineWidth: 4)
+                                    .padding()
+                                    .rotationEffect(.degrees(-90))
+                            }
+                        }
                     }
                 }
                 
@@ -141,9 +159,13 @@ struct PlayerScreen: View {
                             self.sliderValue = newValue.seconds / playerViewModel.duration.seconds
                         }
                         
-                        if playerViewModel.currentTime >= playerViewModel.duration {
+                        if playerViewModel.currentPlayingURL == nil {
                             dismiss()
                         }
+                        
+//                        if playerViewModel.currentTime >= playerViewModel.duration {
+//                            dismiss()
+//                        }
                     }
                     
                     HStack {
@@ -161,7 +183,6 @@ struct PlayerScreen: View {
                     .padding(.horizontal)
                     Spacer()
                 }
-                
                 Spacer()
             }
         }

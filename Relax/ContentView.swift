@@ -16,6 +16,7 @@ struct ContentView: View {
     @Environment(\.managedObjectContext) private var managedObjectContext
     
     var body: some View {
+        
         NavigationStack {
             if authViewModel.signedIn && !authViewModel.userID.isEmpty {
                 MainScreen()
@@ -23,12 +24,13 @@ struct ContentView: View {
                 OnboardingScreen()
             }
         }
+        .tint(.white)
         .onAppear {
             authViewModel.signedIn = authViewModel.isUserLoggedIn
-            print("onAppear - signedIn: \(authViewModel.signedIn), userID: \(authViewModel.userID)")
         }
         .onChange(of: authViewModel.signedIn) { signedIn in
             print("signedIn changed: \(signedIn)")
         }
     }
 }
+

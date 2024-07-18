@@ -7,6 +7,20 @@
 
 import SwiftUI
 
+struct AnyShape: Shape {
+    private let path: (CGRect) -> Path
+    
+    init<S: Shape>(_ wrapped: S) {
+        self.path = { rect in
+            wrapped.path(in: rect)
+        }
+    }
+    
+    func path(in rect: CGRect) -> Path {
+        path(rect)
+    }
+}
+
 class HeaderDetailCourse: ObservableObject {
     
     @Published var offsetY: CGFloat = .zero
@@ -48,17 +62,24 @@ class HeaderDetailCourse: ObservableObject {
                         AsyncImage(url: URL(string: course.imageURL)) { image in
                             image.resizable()
                                 .frame(width: rect.width, height: rect.height)
-                                .clipShape(.circle)
-                                .scaleEffect(1 - (progress * 0.5), anchor: .leading)
-                                .offset(x: -(rect.minX - 16) * progress, y: -resizedOffsetY * progress - (progress * 16))
+                                .clipShape(self.offsetY < 0 ? AnyShape(.circle) : AnyShape(.rect(bottomLeadingRadius: 12, bottomTrailingRadius: 12, style: .circular)))
+                                .scaleEffect(1 - (progress * 0.5), anchor: .trailing)
+                                .offset(x: (rect.minX - 16) * progress, y: -resizedOffsetY * progress - (progress * 16))
+                                .animation(.easeInOut, value: self.offsetY)
                         } placeholder: {
                             ProgressView()
                         }
                     }
-                    .frame(width: headerHeight * 0.5, height: headerHeight * 0.5)
+                    .onChange(of: progress) { newValue in
+                        if self.offsetY > 0 {
+                            self.offsetY = .zero
+                        }
+                    }
+                
+                    //.frame(width: headerHeight * 0.5, height: headerHeight * 0.5)
                 }
-                .padding(.top, safeArea.top)
-                .padding(.bottom)
+                //.padding(.top, safeArea.top)
+                //.padding(.bottom)
                 
             }
             .shadow(color: .black.opacity(0.2), radius: 25)

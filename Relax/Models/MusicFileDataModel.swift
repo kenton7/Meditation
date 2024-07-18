@@ -9,9 +9,10 @@ import Foundation
 import Firebase
 
 struct MusicFileDataModel: Identifiable, Codable {
-    var id: String = UUID().uuidString
+    var id: String
     var name: String
     var url: String
     var listenedCount: Int
     var likes: Int
+    var imageURL: String
 }

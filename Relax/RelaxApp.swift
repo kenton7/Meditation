@@ -36,6 +36,7 @@ struct RelaxApp: App {
     @StateObject private var nightStoriesVM = NightStoriesViewModel()
     @StateObject private var meditationViewModel = CoursesViewModel()
     let persistenceController = PersistenceController.shared
+
     
     var body: some Scene {
         WindowGroup {
