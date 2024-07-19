@@ -27,6 +27,7 @@ struct CourseAndPlaylistOfDayModel: Identifiable, Codable {
     var likes: Int
     var genre: String?
     var isLiked: Bool?
+    var isSelected: Bool?
     //var lessons: [Lesson]
 }
 
@@ -42,4 +43,5 @@ struct Lesson: Codable {
     var name: String
     let duration: String
     var lessonID: String
+    let trackIndex: Int?
 }

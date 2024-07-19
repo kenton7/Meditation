@@ -10,28 +10,61 @@ import FirebaseDatabase
 import FirebaseStorage
 import FirebaseAuth
 
+struct UserSelectedTopicsModel: Codable {
+    let name: String
+}
+
 class RecommendationsViewModel: ObservableObject {
     @Published var recommendations: [CourseAndPlaylistOfDayModel] = []
-    @Published var usersTopics: [RecommendationModel] = []
+    @Published var usersTopics: [UserSelectedTopicsModel] = []
     
-    private let databaseRef = Database.database(url: .databaseURL).reference().child("recommendedMeditations")
+    private let databaseRef = Database.database(url: .databaseURL).reference().child("courses")
+    private let userSelectedTopicsRef = Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser!.uid).child("selectedTopics")
     
     init() {
-        fetchRecommendations()
+        getTopicsWhichUserSelected()
+        //fetchRecommendations()
     }
     
-    func fetchRecommendations() {
-        databaseRef.observe(.value) { snapshot in
-            var newFiles: [CourseAndPlaylistOfDayModel] = []
-            var likesCount: Int = 0
+    func getTopicsWhichUserSelected() {
+        userSelectedTopicsRef.observe(.value) { snapshot in
+            var topics: [UserSelectedTopicsModel] = []
             for child in snapshot.children {
                 if let snapshot = child as? DataSnapshot {
                     if let data = snapshot.value as? [String: Any] {
                         do {
                             let jsonData = try JSONSerialization.data(withJSONObject: data)
-                            let fileData = try JSONDecoder().decode(CourseAndPlaylistOfDayModel.self, from: jsonData)
-                            newFiles.append(fileData)
-                            likesCount = fileData.listenedCount
+                            let fileData = try JSONDecoder().decode(UserSelectedTopicsModel.self, from: jsonData)
+                            topics.append(fileData)
+                        } catch {
+                            print("Error decoding snapshot: \(error.localizedDescription)")
+                        }
+                    } else {
+                        print("Failed to convert snapshot to dictionary")
+                    }
+                }
+            }
+            DispatchQueue.main.async {
+                self.usersTopics = topics
+            }
+            self.fetchRecommendations()
+        }
+    }
+    
+    func fetchRecommendations() {
+        databaseRef.observe(.value) { snapshot in
+            var newFiles: [CourseAndPlaylistOfDayModel] = []
+            for child in snapshot.children {
+                if let snapshot = child as? DataSnapshot {
+                    if let data = snapshot.value as? [String: Any] {
+                        do {
+                            let jsonData = try JSONSerialization.data(withJSONObject: data)
+                            let fileData = try JSONDecoder().decode(CourseAndPlaylistOfDayModel.self, from: jsonData)                            
+                            self.usersTopics.forEach {
+                                if $0.name == fileData.name {
+                                    newFiles.append(fileData)
+                                }
+                            }
                         } catch {
                             print("Error decoding snapshot: \(error.localizedDescription)")
                         }
@@ -43,55 +76,4 @@ class RecommendationsViewModel: ObservableObject {
             self.recommendations = newFiles
         }
     }
-    
-    func uploadTopicData(topic: TopicsModel) {
-        guard let imageData = topic.image else {
-            print("No image data to upload")
-            return
-        }
-        
-        let storageRef = Storage.storage().reference().child("selectedTopicsByUser/\(topic.topicName)")
-        
-        storageRef.putData(imageData, metadata: nil) { metadata, error in
-            if let error = error {
-                print("Failed to upload image: \(error.localizedDescription)")
-                return
-            }
-            
-            storageRef.downloadURL { url, error in
-                if let error = error {
-                    print("Failed to get download URL: \(error.localizedDescription)")
-                    return
-                }
-            }
-        }
-    }
-    
-    func getTopicWhichUserSelected(user: User) async throws -> [UserSelectedTopics] {
-        
-        var topics: [UserSelectedTopics] = []
-        
-        let topicsSnapshot = try await Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? "").child("selectedTopics").getData()
-        
-        for child in topicsSnapshot.children {
-            if let snapshot = child as? DataSnapshot {
-                if let topicData = snapshot.value as? [String: Any] {
-                    do {
-                        let jsonData = try JSONSerialization.data(withJSONObject: topicData)
-                        let topicsFile = try JSONDecoder().decode(UserSelectedTopics.self, from: jsonData)
-                        topics.append(topicsFile)
-                    } catch {
-                        print("Error decoding snapshot: \(error.localizedDescription)")
-                    }
-                } else {
-                    print("Failed to convert snapshot to dictionary")
-                }
-            }
-        }
-        return topics
-    }
-}
-
-struct UserSelectedTopics: Codable {
-    let name: String
 }

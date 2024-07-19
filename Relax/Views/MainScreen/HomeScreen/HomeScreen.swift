@@ -23,7 +23,7 @@ struct HomeScreen: View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack {
-                    Text("Сияние души")
+                    Text("Серотоника")
                         .padding()
                         .foregroundStyle(Color(uiColor: .init(red: 63/255,
                                                               green: 65/255,
@@ -58,6 +58,7 @@ struct HomeScreen: View {
 struct GreetingView: View {
     
     @StateObject private var homeScreenViewModel = HomeScreenViewModel()
+    @State private var isShowing = false
     
     var body: some View {
         VStack {
@@ -82,6 +83,11 @@ struct GreetingView: View {
                 Spacer()
             }
             .padding(.vertical)
+            .offset(y: isShowing ? 0 : -200)
+            .animation(.easeInOut, value: isShowing)
+        }
+        .onAppear {
+            isShowing = true
         }
     }
 }
@@ -94,6 +100,7 @@ struct DailyRecommendations: View {
     @State private var isPlaylistTapped = false
     @State private var isStoryTapped = false
     @State private var selectedCourse: CourseAndPlaylistOfDayModel?
+    @State private var isShowing = false
     
     private var currentDate: String = {
         let date = Date()
@@ -124,6 +131,8 @@ struct DailyRecommendations: View {
                     Spacer()
                 }
                 .padding(.horizontal)
+                .offset(y: isShowing ? 0 : -200)
+                .animation(.easeInOut, value: isShowing)
                 
                 HStack(spacing: 15) {
                     ForEach(playlistAndCourseOfDay.dailyCourses, id: \.id) { course in
@@ -200,8 +209,9 @@ struct DailyRecommendations: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: 230)
-                //.frame(width: 180, height: 230)
                 .padding()
+                .offset(x: isShowing ? 0 : 300)
+                .animation(.bouncy, value: isShowing)
             }
         }
         .navigationDestination(isPresented: $isCourseTapped) {
@@ -212,6 +222,9 @@ struct DailyRecommendations: View {
         .task {
             await playlistAndCourseOfDay.getCourses(isDaily: true)
         }
+        .onAppear {
+            isShowing = true
+        }
     }
 }
 
@@ -221,6 +234,7 @@ struct DailyThoughts: View {
     @State private var isDailyThoughtsTapped = false
     @State private var selectedCourse: CourseAndPlaylistOfDayModel?
     @StateObject private var viewModel = CoursesViewModel()
+    @State private var isShowing = false
     
     var body: some View {
         NavigationStack {
@@ -228,7 +242,6 @@ struct DailyThoughts: View {
                 Button(action: {
                     //selectedCourse = viewModel.dailyThoughts.first
                     selectedCourse = viewModel.allCourses.filter { $0.name == "Ежедневные мысли" }.first
-                    print(selectedCourse?.name)
                     isDailyThoughtsTapped = true
                 }, label: {
                     ZStack {
@@ -260,6 +273,8 @@ struct DailyThoughts: View {
                 .clipShape(.rect(cornerRadius: 20))
                 .padding(.horizontal)
                 .frame(maxWidth: .infinity)
+                .offset(x: isShowing ? 0 : -300)
+                .animation(.bouncy, value: isShowing)
             }
         }
         .navigationDestination(isPresented: $isDailyThoughtsTapped) {
@@ -269,6 +284,9 @@ struct DailyThoughts: View {
         }
         .task {
             await viewModel.getCourses(isDaily: false)
+        }
+        .onAppear {
+            isShowing = true
         }
 //        .onAppear {
 //            Task.detached {
@@ -291,6 +309,7 @@ struct RecommendationsScreen: View {
     //let user = Auth.auth().currentUser
     @State private var isSelected = false
     @State private var selectedCourse: CourseAndPlaylistOfDayModel?
+    @State private var isShowing = false
     
     var body: some View {
         NavigationStack {
@@ -307,8 +326,7 @@ struct RecommendationsScreen: View {
                 }
                 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHGrid(rows: [GridItem(.fixed(150))], spacing: 0, content: {
-                        
+                    LazyHGrid(rows: [GridItem(.fixed(200))], spacing: 0, content: {
                         ForEach(recommendationsViewModel.recommendations, id: \.name) { course in
                             Button(action: {
                                 selectedCourse = course
@@ -352,12 +370,17 @@ struct RecommendationsScreen: View {
                     })
                 }
             }
+            .offset(x: isShowing ? 0 : 500)
+            .animation(.easeInOut, value: isShowing)
         }
         .navigationDestination(isPresented: $isSelected, destination: {
             if let selectedCourse = selectedCourse {
                 ReadyCourseDetailView(course: selectedCourse)
             }
         })
+        .onAppear {
+            isShowing = true
+        }
     }
 }
 
@@ -367,6 +390,7 @@ struct NightStories: View {
     @StateObject private var nightStoriesViewModel = NightStoriesViewModel()
     @State private var isSelected = false
     @State private var selectedStory: CourseAndPlaylistOfDayModel?
+    @State private var isShowing = false
     
     var body: some View {
         NavigationStack {
@@ -436,12 +460,17 @@ struct NightStories: View {
                 }
                 Spacer()
             }
+            .offset(x: isShowing ? 0 : -300)
+            .animation(.bouncy, value: isShowing)
         }
         .padding(.bottom)
         .navigationDestination(isPresented: $isSelected) {
             if let selectedStory = selectedStory {
                 ReadyCourseDetailView(course: selectedStory)
             }
+        }
+        .onAppear {
+            isShowing = true
         }
     }
 }

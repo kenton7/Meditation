@@ -45,6 +45,7 @@ struct RegisterView: View {
                             Image("Google")
                                 .frame(width: 20, height: 20)
                             Text("Войти через Google")
+                                .foregroundStyle(.black)
                                 .bold()
                         }
                     }
@@ -105,6 +106,7 @@ struct RegisterView: View {
                             
                         }, label: {
                             Text("политику конфиденциальности")
+                                .foregroundStyle(.blue)
                                 .font(.system(size: 10, weight: .light, design: .rounded))
                         })
                         Text("и согласен с условиями")

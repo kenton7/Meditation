@@ -55,9 +55,9 @@ class CoreDataService {
     // Сохранение тем
     func saveTopic(_ topic: TopicsModel) {
         let topicEntity = Topic(context: viewContext)
-        topicEntity.topicName = topic.topicName
+        topicEntity.topicName = topic.name
         topicEntity.isSelected = topic.isSelected
-        topicEntity.image = topic.image
+        //topicEntity.image = topic.image
         // topicEntity.color = topic.color (если требуется сохранять цвет)
         
         do {
@@ -69,7 +69,7 @@ class CoreDataService {
     
     func deleteTopic(topic: TopicsModel) {
         let fetchRequest: NSFetchRequest<Topic> = Topic.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "topicName == %@", topic.topicName)
+        fetchRequest.predicate = NSPredicate(format: "topicName == %@", topic.name)
         
         do {
             let results = try viewContext.fetch(fetchRequest)
@@ -80,7 +80,7 @@ class CoreDataService {
             
             viewContext.delete(topicToDelete)
             try viewContext.save()
-            print("Тема \(topic.topicName) успешно удалена")
+            print("Тема \(topic.name) успешно удалена")
         } catch {
             print("Ошибка при удалении темы: \(error.localizedDescription)")
         }

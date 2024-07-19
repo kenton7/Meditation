@@ -74,7 +74,7 @@ struct CourseDetailView: View {
                                                                                            green: 65/255,
                                                                                            blue: 78/255,
                                                                                            alpha: 1)))
-                    .font(.system(.title, design: .rounded)).bold()
+                    .font(.system(.title2, design: .rounded)).bold()
                 
                 Spacer()
                 

@@ -13,10 +13,11 @@ struct PlayerScreen: View {
     
     @Environment(\.dismiss) private var dismiss
     @State private var isLiked = false
-    @StateObject private var playerViewModel = PlayerViewModel.shared
     @State private var sliderValue: Double = 0.0
-    @StateObject private var fetchDatabaseVM = CoursesViewModel()
+    @ObservedObject private var fetchDatabaseVM = CoursesViewModel()
     @StateObject private var databaseVM = ChangeDataInDatabase()
+    @StateObject private var playerViewModel = PlayerViewModel.shared
+    @State private var trackName = ""
     
     let lesson: Lesson?
     let isFemale: Bool
@@ -55,7 +56,7 @@ struct PlayerScreen: View {
                         
                         Button(action: {
                             if let lesson {
-                                databaseVM.download(course: course, 
+                                databaseVM.download(course: course,
                                                     courseType: course.type,
                                                     isFemale: isFemale,
                                                     lesson: lesson)
@@ -82,7 +83,7 @@ struct PlayerScreen: View {
                 Spacer()
                 VStack {
                     Spacer()
-                    Text(lesson?.name ?? course.name)
+                    Text(playerViewModel.lessonName == "" ? lesson!.name : playerViewModel.lessonName)
                         .foregroundStyle(course.type == .story ? .white : .black)
                         .font(.system(.title, design: .rounded, weight: .bold))
                         .multilineTextAlignment(.center)
@@ -94,55 +95,67 @@ struct PlayerScreen: View {
                                                               alpha: 1)))
                         .multilineTextAlignment(.center)
                 }
-                    .padding()
-                
-                VStack {
-                HStack(spacing: 60) {
-                    
-                    Button(action: {
-                        playerViewModel.seek(by: -15)
-                    }, label: {
-                        Image(systemName: "gobackward.15")
-                            .font(.system(size: 35))
-                            .foregroundStyle(course.type == .story ? .white : .gray)
-                    })
-                    
-                    Button(action: {
-                        guard let lesson = lesson else { return }
-                        if playerViewModel.isPlaying(urlString: isFemale ? lesson.audioFemaleURL : lesson.audioMaleURL) {
-                            playerViewModel.pause()
-                        } else {
-                            playerViewModel.playAudio(from: isFemale ? lesson.audioFemaleURL : lesson.audioMaleURL, playlist: fetchDatabaseVM.lessons)
-                        }
-                    }, label: {
-                            if let lesson {
-                                Image(systemName: playerViewModel.isPlaying(urlString: isFemale ? lesson.audioFemaleURL : lesson.audioMaleURL) ? "pause.circle.fill" : "play.circle.fill")
-                                    .font(.system(size: 85))
-                                    .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                                                                           green: 65/255,
-                                                                                                           blue: 78/255,
-                                                                                                           alpha: 1)))
-                            }
-                    })
-                    .overlay {
-                        Circle()
-                            .stroke(Color(uiColor: .init(red: 160/255,
-                                                         green: 163/255,
-                                                         blue: 177/255,
-                                                         alpha: 1)).opacity(0.7),
-                                    lineWidth: 12)
-                    }
-                    
-                    Button(action: {
-                        playerViewModel.seek(by: 15)
-                    }, label: {
-                        Image(systemName: "goforward.15")
-                            .foregroundStyle(course.type == .story ? .white : .gray)
-                            .font(.system(size: 35))
-                    })
-                }
                 .padding()
                 
+                VStack {
+                    HStack(spacing: 60) {
+                        
+                        Button(action: {
+                            playerViewModel.seek(by: -15)
+                        }, label: {
+                            Image(systemName: "gobackward.15")
+                                .font(.system(size: 35))
+                                .foregroundStyle(course.type == .story ? .white : .gray)
+                        })
+                        
+                        Button(action: {
+                            guard let lesson = lesson else { return }
+                            let url = isFemale ? lesson.audioFemaleURL : lesson.audioMaleURL
+                            Task {
+                                let lessons = await fetchDatabaseVM.fetchCourseDetails(type: course.type, courseID: course.id)
+                                DispatchQueue.main.async {
+                                    fetchDatabaseVM.lessons = lessons
+                                    print(fetchDatabaseVM.lessons)
+                                    if playerViewModel.isAudioPlaying() {
+                                        playerViewModel.pause()
+                                    } else {
+                                        playerViewModel.playAudio(from: url,
+                                                                  playlist: fetchDatabaseVM.lessons,
+                                                                  trackIndex: lesson.trackIndex,
+                                                                  type: course.type,
+                                                                  isFemale: isFemale)
+                                    }
+                                }
+                            }
+                        }, label: {
+                            if let lesson {
+                                Image(systemName: playerViewModel.isAudioPlaying() ? "pause.circle.fill" : "play.circle.fill")
+                                    .font(.system(size: 85))
+                                    .foregroundStyle(Color(uiColor: .init(red: 63/255,
+                                                                          green: 65/255,
+                                                                          blue: 78/255,
+                                                                          alpha: 1)))
+                            }
+                        })
+                        .overlay {
+                            Circle()
+                                .stroke(Color(uiColor: .init(red: 160/255,
+                                                             green: 163/255,
+                                                             blue: 177/255,
+                                                             alpha: 1)).opacity(0.7),
+                                        lineWidth: 12)
+                        }
+                        
+                        Button(action: {
+                            playerViewModel.seek(by: 15)
+                        }, label: {
+                            Image(systemName: "goforward.15")
+                                .foregroundStyle(course.type == .story ? .white : .gray)
+                                .font(.system(size: 35))
+                        })
+                    }
+                    .padding()
+                    
                     
                     Slider(value: Binding(get: {
                         self.sliderValue
@@ -159,13 +172,10 @@ struct PlayerScreen: View {
                             self.sliderValue = newValue.seconds / playerViewModel.duration.seconds
                         }
                         
-                        if playerViewModel.currentPlayingURL == nil {
-                            dismiss()
-                        }
+                        //                        if playerViewModel.currentPlayingURL == nil {
+                        //                            dismiss()
+                        //                        }
                         
-//                        if playerViewModel.currentTime >= playerViewModel.duration {
-//                            dismiss()
-//                        }
                     }
                     
                     HStack {
@@ -173,7 +183,7 @@ struct PlayerScreen: View {
                             .foregroundStyle(course.type == .story ? .white : .black)
                         Spacer()
                         if playerViewModel.duration != .zero {
-                           Text(playerViewModel.formatTime(time: playerViewModel.duration))
+                            Text(playerViewModel.formatTime(time: playerViewModel.duration))
                                 .foregroundStyle(course.type == .story ? .white : .black)
                         } else {
                             ProgressView()
@@ -185,6 +195,9 @@ struct PlayerScreen: View {
                 }
                 Spacer()
             }
+        }
+        .onAppear {
+            print("lesson: \(playerViewModel.lessonName)")
         }
     }
 }

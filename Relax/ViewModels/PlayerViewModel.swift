@@ -15,22 +15,20 @@ class PlayerViewModel: ObservableObject {
     
     var player: AVPlayer?
     var playerItem: AVPlayerItem?
-    var currentUrl: String?
     var timeObserver: Any?
     var endObserver: Any?
+    
     @Published var isPlaying: Bool = false
     @Published var currentPlayingURL: String? = nil
-    private var audioSession = AVAudioSession.sharedInstance()
     @Published var currentTime: CMTime = .zero
     @Published var duration: CMTime = .zero
-    private var cancellables = Set<AnyCancellable>()
-    private var observers: [NSKeyValueObservation] = []
-    private var playlist: [Lesson] = []
     @Published var currentTrackIndex: Int = 0
-    @Published var audioName = ""
-    var isAudioPlaying: Bool {
-        player?.rate != 0
-    }
+    @Published var lessonName: String = ""
+    @Published private var playlist: [Lesson] = []
+    @Published private var isFemale = true
+    
+    private var audioSession = AVAudioSession.sharedInstance()
+    private var observers: [NSKeyValueObservation] = []
     
     private init() {
         setupNotifications()
@@ -39,7 +37,8 @@ class PlayerViewModel: ObservableObject {
     
     private func configureAudioSession() {
         do {
-            try audioSession.setCategory(.playback, mode: .default, options: [.allowAirPlay, .allowBluetooth, .allowBluetoothA2DP])
+            try audioSession.setCategory(.playback, mode: .default, 
+                                         options: [.allowAirPlay, .allowBluetooth, .allowBluetoothA2DP])
             try audioSession.setActive(true)
         } catch {
             print("Failed to configure AVAudioSession: \(error.localizedDescription)")
@@ -51,27 +50,47 @@ class PlayerViewModel: ObservableObject {
         removeEndObserver()
     }
     
-    func playAudio(from urlString: String, playlist: [Lesson]) {
+    func autoPlayingNextTrack(playlist: [Lesson], trackIndex: Int) {
+            currentTrackIndex += 1
+            if currentTrackIndex < playlist.count {
+                let nextAudioURL = isFemale ? playlist[currentTrackIndex].audioFemaleURL : playlist[currentTrackIndex].audioMaleURL
+                playAudio(from: nextAudioURL, playlist: playlist, trackIndex: currentTrackIndex, type: .playlist, isFemale: isFemale)
+            } else {
+                currentTrackIndex = 0
+                currentPlayingURL = nil
+            }
+    }
+    
+    func playAudio(from urlString: String, playlist: [Lesson], trackIndex: Int?, type: Types, isFemale: Bool) {
         guard let url = URL(string: urlString) else {
             print("Invalid URL")
             return
         }
         
+        self.isFemale = isFemale
         self.playlist = playlist
         
+        if let trackIndex {
+            self.currentTrackIndex = trackIndex
+            lessonName = playlist[currentTrackIndex].name
+        }
+        
         if currentPlayingURL != urlString {
-            removeTimeObserver() // Удалить предыдущий timeObserver
+            removeTimeObserver()
             playerItem = AVPlayerItem(url: url)
             player = AVPlayer(playerItem: playerItem)
             currentPlayingURL = urlString
             currentTime = .zero
-            
             setupTimeObserver()
             observePlayerItemStatus()
         }
         
         player?.play()
         isPlaying = true
+    }
+    
+    func isAudioPlaying() -> Bool {
+        return player?.rate != 0
     }
     
     func isPlaying(urlString: String) -> Bool {
@@ -100,9 +119,13 @@ class PlayerViewModel: ObservableObject {
     }
     
     @objc private func playerDidFinishPlaying(notification: NSNotification) {
-        isPlaying = false
-        currentTime = .zero
-        currentPlayingURL = nil
+//        isPlaying = false
+//        currentTime = .zero
+//        currentPlayingURL = nil
+        
+        
+        autoPlayingNextTrack(playlist: self.playlist, trackIndex: currentTrackIndex)
+        //currentPlayingURL = playlist[currentTrackIndex].audioFemaleURL
     }
     
     @objc private func handleInterruption(notification: Notification) {

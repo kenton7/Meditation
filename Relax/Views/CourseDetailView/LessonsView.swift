@@ -19,11 +19,13 @@ struct LessonsView: View {
     @State private var isTappedOnName = false
     @State private var lesson: Lesson?
     @State private var url: String = ""
+    @StateObject private var playerVM = PlayerViewModel.shared
+    @State private var lessons = [Lesson]()
     
     var body: some View {
         NavigationStack {
             VStack {
-                ForEach(viewModel.lessons, id: \.name) { file in
+                ForEach(lessons, id: \.name) { file in
                     HStack(spacing: 10) {
                         Button(action: {
                             url = isFemale ? file.audioFemaleURL : file.audioMaleURL
@@ -32,7 +34,11 @@ struct LessonsView: View {
                                 viewModel.pause()
                             } else {
                                 databaseViewModel.updateListeners(course: course, type: course.type)
-                                viewModel.playCourse(from: isFemale ? file.audioFemaleURL : file.audioMaleURL, playlist: viewModel.lessons)
+                                playerVM.playAudio(from: url, 
+                                                   playlist: lessons,
+                                                   trackIndex: file.trackIndex,
+                                                   type: course.type,
+                                                   isFemale: isFemale)
                             }
                         }, label: {
                             ZStack {
@@ -57,7 +63,11 @@ struct LessonsView: View {
                                     .onTapGesture {
                                         isTappedOnName = true
                                         url = isFemale ? file.audioFemaleURL : file.audioMaleURL
-                                        viewModel.playCourse(from: url, playlist: viewModel.lessons)
+                                        playerVM.playAudio(from: url, 
+                                                           playlist: lessons,
+                                                           trackIndex: file.trackIndex,
+                                                           type: course.type,
+                                                           isFemale: isFemale)
                                         databaseViewModel.updateListeners(course: course, type: course.type)
                                         self.lesson = file
                                     }
@@ -85,8 +95,8 @@ struct LessonsView: View {
             }
         }
         .padding()
-        .onAppear {
-            viewModel.fetchCourseDetails(type: course.type, courseID: course.id)
+        .task {
+            lessons = await viewModel.fetchCourseDetails(type: course.type, courseID: course.id)
         }
     }
 }

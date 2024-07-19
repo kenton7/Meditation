@@ -76,8 +76,4 @@ class NightStoriesViewModel: ObservableObject {
             filteredStories = nightStories.filter {  $0.genre == genre }
         }
     }
-        
-        func playStoryFrom(url: String) {
-            playerViewModel.playAudio(from: url, playlist: [])
-        }
 }

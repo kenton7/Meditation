@@ -12,10 +12,11 @@ import FirebaseStorage
 
 struct UserInterestsTopicScreen: View {
     
-    @State private var topics = TopicsModel.getTopics()
-    @State private var selectedTopics: [TopicsModel] = []
+    //@State private var topics = TopicsModel.getTopics()
+    @State private var selectedTopics: [CourseAndPlaylistOfDayModel] = []
     @State private var isContinueTapped = false
     private let topicDataService = CoreDataService.shared
+    @StateObject private var coursesVM = CoursesViewModel()
     
     private let firebaseUser = Auth.auth().currentUser
     
@@ -50,16 +51,18 @@ struct UserInterestsTopicScreen: View {
                         .padding(.horizontal)
                         
                         Spacer()
-                        LazyVGrid(columns: columns, alignment: .center, spacing: 20, content: {
-                            ForEach($topics, id: \.id) { $topic in
-                                TopicButton(topic: $topic, selectedTopics: $selectedTopics)
-//                                    .onChange(of: topic.isSelected) { _ in
-//                                        print("selected")
-//                                        topicDataService.saveTopic(topic)
-//                                    }
-                            }
-                        })
-                        .padding()
+                        ScrollView {
+                            LazyVGrid(columns: columns, alignment: .center, spacing: 20, content: {
+                                ForEach($coursesVM.allCourses, id: \.id) { $topic in
+                                    TopicButton(topic: $topic, selectedTopics: $selectedTopics)
+    //                                    .onChange(of: topic.isSelected) { _ in
+    //                                        print("selected")
+    //                                        topicDataService.saveTopic(topic)
+    //                                    }
+                                }
+                            })
+                            .padding()
+                        }
                         
                         Button(action: {
                             isContinueTapped = true
@@ -80,35 +83,38 @@ struct UserInterestsTopicScreen: View {
         .navigationDestination(isPresented: $isContinueTapped, destination: {
             RemindersScreen()
         })
+        .task {
+            await coursesVM.getCourses(isDaily: false)
+        }
         .navigationBarBackButtonHidden()
     }
 }
 
 struct TopicButton: View {
-    @Binding var topic: TopicsModel
-    @Binding var selectedTopics: [TopicsModel]
+    @Binding var topic: CourseAndPlaylistOfDayModel
+    @Binding var selectedTopics: [CourseAndPlaylistOfDayModel]
     private let topicDataService = CoreDataService.shared
-    @StateObject private var recommendationsViewModel = RecommendationsViewModel()
+    //@StateObject private var recommendationsViewModel = RecommendationsViewModel()
     
     var body: some View {
         Button(action: {
             withAnimation {
-                if !selectedTopics.contains(where: { $0.topicName == topic.topicName }) {
+                if !selectedTopics.contains(where: { $0.name == topic.name }) {
                     selectedTopics.append(topic)
                     topic.isSelected = true
-                    let topicDict = ["name": topic.topicName]
-                    Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? "").child("selectedTopics").child(topic.topicName).setValue(topicDict)
-                    
-                    topicDataService.saveTopic(topic)
+                    let topicDict = ["name": topic.name]
+                    Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? "").child("selectedTopics").child(topic.name).setValue(topicDict)
+                    //topicDataService.saveTopic(topic)
                 } else {
-                    selectedTopics.removeAll(where: { $0.topicName == topic.topicName })
+                    selectedTopics.removeAll(where: { $0.name == topic.name })
                     topic.isSelected = false
-                    topicDataService.deleteTopic(topic: topic)
-                    do {
-                        try topicDataService.viewContext.save()
-                    } catch {
-                        print(error)
-                    }
+                    Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? "").child("selectedTopics").child(topic.name).removeValue()
+                    //topicDataService.deleteTopic(topic: topic)
+//                    do {
+//                        try topicDataService.viewContext.save()
+//                    } catch {
+//                        print(error)
+//                    }
                 }
             }
         }, label: {
@@ -119,14 +125,35 @@ struct TopicButton: View {
                                      blue: CGFloat(topic.color.blue) / 255,
                                      alpha: 1))
                 VStack {
-                    Image(uiImage: topic.imageView)
-                        .padding(.vertical, 0)
-                    Spacer()
+                    AsyncImage(url: URL(string: topic.imageURL)) { image in
+                        image.resizable()
+                            .scaledToFit()
+                            .clipShape(.rect(cornerRadius: 16))
+                            .overlay {
+                                ZStack {
+                                    VStack {
+                                        Spacer()
+                                        Rectangle()
+                                            .fill(Color(uiColor: .init(red: CGFloat(topic.color.red) / 255,
+                                                                       green: CGFloat(topic.color.green) / 255,
+                                                                       blue: CGFloat(topic.color.blue) / 255,
+                                                                       alpha: 1)))
+                                            .frame(maxWidth: .infinity, maxHeight: 40)
+                                            .clipShape(.rect(bottomLeadingRadius: 16,
+                                                             bottomTrailingRadius: 16,
+                                                             style: .continuous))
+                                    }
+                                }
+                            }
+                    } placeholder: {
+                        ProgressView()
+                    }
+                    .padding()
                 }
                 VStack {
                     Spacer()
                     HStack {
-                        Text(topic.topicName)
+                        Text(topic.name)
                             .padding()
                             .font(.system(size: 15, design: .rounded))
                             .foregroundStyle(.white).bold()
@@ -139,13 +166,10 @@ struct TopicButton: View {
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
-                    .stroke(topic.isSelected ? Color.green : Color.clear, lineWidth: 3)
+                    .stroke(topic.isSelected == true ? Color.green : Color.clear, lineWidth: 3)
             )
         })
         .padding(.horizontal)
-        .onAppear {
-            print(selectedTopics.isEmpty)
-        }
 //        .onChange(of: topic.isSelected) { newValue in
 //            topicDataService.saveTopic(topic)
 //        }

@@ -42,8 +42,8 @@ class HeaderDetailCourse: ObservableObject {
                                                blue: CGFloat(course.color.blue) / 255,
                                                alpha: 1)))
                     .clipShape(.rect(topLeadingRadius: 0,
-                                     bottomLeadingRadius: 12,
-                                     bottomTrailingRadius: 12,
+                                     bottomLeadingRadius: 16,
+                                     bottomTrailingRadius: 16,
                                      topTrailingRadius: 0,
                                      style: .continuous))
                     .shadow(color: .gray, radius: 5, x: 0, y: 3)
@@ -53,19 +53,20 @@ class HeaderDetailCourse: ObservableObject {
                     GeometryReader {
                         let rect = $0.frame(in: .global)
                         
-                        let halfScaledHeight = (rect.height * 0.2) * 0.5
-                        let midY = rect.midY
-                        
-                        let bottomPadding: CGFloat = 16
-                        let resizedOffsetY = (midY - (minimumHeaderHeight - halfScaledHeight - bottomPadding))
+//                        let halfScaledHeight = (rect.height * 0.2) * 0.5
+//                        let midY = rect.midY
+//                        
+//                        let bottomPadding: CGFloat = 16
+                        //let resizedOffsetY = (midY - (minimumHeaderHeight - halfScaledHeight - bottomPadding))
                         
                         AsyncImage(url: URL(string: course.imageURL)) { image in
                             image.resizable()
                                 .frame(width: rect.width, height: rect.height)
-                                .clipShape(self.offsetY < 0 ? AnyShape(.circle) : AnyShape(.rect(bottomLeadingRadius: 12, bottomTrailingRadius: 12, style: .circular)))
-                                .scaleEffect(1 - (progress * 0.5), anchor: .trailing)
-                                .offset(x: (rect.minX - 16) * progress, y: -resizedOffsetY * progress - (progress * 16))
-                                .animation(.easeInOut, value: self.offsetY)
+                                .clipShape(self.offsetY < 0 ? AnyShape(.circle) : AnyShape(.rect(bottomLeadingRadius: 16, bottomTrailingRadius: 16, style: .circular)))
+                                .scaleEffect(1 - (progress * 0.5), anchor: .center)
+                                .padding(.top, self.offsetY < 0 ? 16 : 0)
+                                //.offset(x: (rect.minX - 16) * progress, y: -resizedOffsetY * progress - (progress * 16))
+                                .animation(.bouncy, value: self.offsetY)
                         } placeholder: {
                             ProgressView()
                         }

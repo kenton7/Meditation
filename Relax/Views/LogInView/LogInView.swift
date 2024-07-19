@@ -40,7 +40,7 @@ struct LogInView: View {
                             Image("Google")
                                 .frame(width: 20, height: 20)
                             Text("Войти через Google")
-                                .bold()
+                                .foregroundStyle(.black).bold()
                         }
                     }
                     .padding()
@@ -66,7 +66,9 @@ struct LogInView: View {
                             .stroke(Color(uiColor: .black), lineWidth: 3)
                     )
                     .padding()
+                    
                     Divider()
+                    
                     Text("ИЛИ ВОЙТИ С ПОМОЩЬЮ EMAIL")
                         .font(.system(size: 15))
                         .foregroundStyle(.gray)

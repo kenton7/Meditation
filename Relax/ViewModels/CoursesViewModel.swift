@@ -20,7 +20,7 @@ class CoursesViewModel: ObservableObject {
     }
     
     enum Paths: String {
-//        case playlistOfDay = "playlistOfDay"
+        //        case playlistOfDay = "playlistOfDay"
         case playlistOfDay = "courseAndPlaylistOfDay"
         case meditationOfDay = "courseOfDay"
         case allCourses = "courses"
@@ -35,6 +35,7 @@ class CoursesViewModel: ObservableObject {
     @Published var likesCount = 0
     @Published var filteredStories: [CourseAndPlaylistOfDayModel] = []
     @Published var dailyCourses: [CourseAndPlaylistOfDayModel] = []
+    @Published var isSelected = false
     private var playerViewModel = PlayerViewModel.shared
     private var cancellables = Set<AnyCancellable>()
     private let databaseRef = Database.database(url: .databaseURL).reference().child("courseAndPlaylistOfDay")
@@ -50,82 +51,22 @@ class CoursesViewModel: ObservableObject {
         lastUpdate = UserDefaults.standard.object(forKey: "lastUpdate") as? Date
     }
     
-    func fetchCourseDetails(type: Types, courseID: String) {
+    func fetchCourseDetails(type: Types, courseID: String) async -> [Lesson] {
         var pathToLesson: DatabaseReference = Database.database(url: .databaseURL).reference().child("courses").child(courseID).child("lessons")
+        
         switch type {
         case .meditation:
-            pathToLesson.observe(.value) { snapshot in
-                var newFiles: [Lesson] = []
-                for child in snapshot.children {
-                    if let snapshot = child as? DataSnapshot {
-                        if let data = snapshot.value as? [String: Any] {
-                            do {
-                                let jsonData = try JSONSerialization.data(withJSONObject: data)
-                                let fileData = try JSONDecoder().decode(Lesson.self, from: jsonData)
-                                newFiles.append(fileData)
-                            } catch {
-                                print("Error decoding snapshot: \(error)")
-                            }
-                        } else {
-                            print("Failed to convert snapshot to dictionary")
-                        }
-                    }
-                }
-                DispatchQueue.main.async {
-                    self.lessons = newFiles
-                }
-            }
+            pathToLesson = Database.database(url: .databaseURL).reference().child("courses").child(courseID).child("lessons")
         case .story:
             pathToLesson = Database.database(url: .databaseURL).reference().child("nightStories").child(courseID).child("lessons")
-            pathToLesson.observe(.value) { snapshot in
-                var newFiles: [Lesson] = []
-                //var likesCount = 0
-                for child in snapshot.children {
-                    if let snapshot = child as? DataSnapshot {
-                        if let data = snapshot.value as? [String: Any] {
-                            do {
-                                let jsonData = try JSONSerialization.data(withJSONObject: data)
-                                let fileData = try JSONDecoder().decode(Lesson.self, from: jsonData)
-                                newFiles.append(fileData)
-                            } catch {
-                                print("Error decoding snapshot: \(error)")
-                            }
-                        } else {
-                            print("Failed to convert snapshot to dictionary")
-                        }
-                    }
-                }
-                DispatchQueue.main.async {
-                    self.lessons = newFiles
-                }
-            }
         case .emergency:
             pathToLesson = Database.database(url: .databaseURL).reference().child("emergencyMeditation").child(courseID).child("lessons")
-            pathToLesson.observe(.value) { snapshot in
-                var newFiles: [Lesson] = []
-                //var likesCount = 0
-                for child in snapshot.children {
-                    if let snapshot = child as? DataSnapshot {
-                        if let data = snapshot.value as? [String: Any] {
-                            do {
-                                let jsonData = try JSONSerialization.data(withJSONObject: data)
-                                let fileData = try JSONDecoder().decode(Lesson.self, from: jsonData)
-                                newFiles.append(fileData)
-                            } catch {
-                                print("Error decoding snapshot: \(error)")
-                            }
-                        } else {
-                            print("Failed to convert snapshot to dictionary")
-                        }
-                    }
-                }
-                DispatchQueue.main.async {
-                    self.lessons = newFiles
-                }
-            }
         case .playlist:
             pathToLesson = Database.database(url: .databaseURL).reference().child("music").child(courseID).child("lessons")
-            pathToLesson.observe(.value) { snapshot in
+        }
+        
+        return await withCheckedContinuation { continuation in
+            pathToLesson.observeSingleEvent(of: .value) { snapshot in
                 var newFiles: [Lesson] = []
                 for child in snapshot.children {
                     if let snapshot = child as? DataSnapshot {
@@ -142,48 +83,47 @@ class CoursesViewModel: ObservableObject {
                         }
                     }
                 }
-                DispatchQueue.main.async {
-                    self.lessons = newFiles
+                continuation.resume(returning: newFiles)
+            }
+        }
+    }
+
+
+    
+    @MainActor
+    func getCourses(isDaily: Bool) async {
+        //let databaseURL = Database.database(url: .databaseURL).reference().child(isDaily ? "courseAndPlaylistOfDay" : "courses")
+        let databaseURL = Database.database(url: .databaseURL).reference().child("courses")
+        let snapshot = try? await databaseURL.getData()
+        
+        guard let snapshot = snapshot else { return }
+        
+        var localCourses: [CourseAndPlaylistOfDayModel] = []
+        var localLikes = 0
+        
+        for child in snapshot.children {
+            if let snapshot = child as? DataSnapshot, let data = snapshot.value as? [String: Any] {
+                do {
+                    let jsonData = try JSONSerialization.data(withJSONObject: data)
+                    let courseData = try JSONDecoder().decode(CourseAndPlaylistOfDayModel.self, from: jsonData)
+                    localCourses.append(courseData)
+                    localLikes = courseData.likes
+                } catch {
+                    print("Error decoding snapshot: \(error)")
                 }
             }
         }
         
-    }
-    
-    @MainActor
-        func getCourses(isDaily: Bool) async {
-            //let databaseURL = Database.database(url: .databaseURL).reference().child(isDaily ? "courseAndPlaylistOfDay" : "courses")
-            let databaseURL = Database.database(url: .databaseURL).reference().child("courses")
-            let snapshot = try? await databaseURL.getData()
-
-            guard let snapshot = snapshot else { return }
-
-            var localCourses: [CourseAndPlaylistOfDayModel] = []
-            var localLikes = 0
-
-            for child in snapshot.children {
-                if let snapshot = child as? DataSnapshot, let data = snapshot.value as? [String: Any] {
-                    do {
-                        let jsonData = try JSONSerialization.data(withJSONObject: data)
-                        let courseData = try JSONDecoder().decode(CourseAndPlaylistOfDayModel.self, from: jsonData)
-                        localCourses.append(courseData)
-                        localLikes = courseData.likes
-                    } catch {
-                        print("Error decoding snapshot: \(error)")
-                    }
-                }
-            }
-            
-            if isDaily {
-                self.allCourses = localCourses
-                self.dailyCourses = allCourses.filter { $0.isDaily == true }
-                //randomDailyCourse()
-            } else {
-                self.allCourses = localCourses
-                self.filteredStories = localCourses
-                self.likesCount = localLikes
-            }
+        if isDaily {
+            self.allCourses = localCourses
+            self.dailyCourses = allCourses.filter { $0.isDaily == true }
+            //randomDailyCourse()
+        } else {
+            self.allCourses = localCourses
+            self.filteredStories = localCourses
+            self.likesCount = localLikes
         }
+    }
     
     func randomDailyCourse() {
         if let lastUpdate {
@@ -213,29 +153,29 @@ class CoursesViewModel: ObservableObject {
     }
     
     @MainActor
-        func filterResults(by genre: String) async {
-            if genre == "Всё" {
-                await getCourses(isDaily: false)
-            } else if genre == "Любимое" {
-                if let user = Auth.auth().currentUser {
-                    let snapshot = try? await Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("likedPlaylists").getData()
-
-                    guard let snapshot = snapshot, let likedPlaylists = snapshot.value as? [String: Bool] else { return }
-
-                    let likedObjects = self.allCourses.filter { story in
-                        return story.type == .meditation && likedPlaylists.keys.contains(story.name)
-                    }
-
-                    self.filteredStories = likedObjects
+    func filterResults(by genre: String) async {
+        if genre == "Всё" {
+            await getCourses(isDaily: false)
+        } else if genre == "Любимое" {
+            if let user = Auth.auth().currentUser {
+                let snapshot = try? await Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("likedPlaylists").getData()
+                
+                guard let snapshot = snapshot, let likedPlaylists = snapshot.value as? [String: Bool] else { return }
+                
+                let likedObjects = self.allCourses.filter { story in
+                    return story.type == .meditation && likedPlaylists.keys.contains(story.name)
                 }
-            } else {
-                self.filteredStories = self.allCourses.filter { $0.genre == genre }
+                self.filteredStories = likedObjects
             }
+        } else {
+            self.filteredStories = self.allCourses.filter { $0.genre == genre }
         }
-
-    func playCourse(from urlString: String, playlist: [Lesson]) {
-        playerViewModel.playAudio(from: urlString, playlist: playlist)
     }
+    
+    
+//    func playCourse(from urlString: String, playlist: [Lesson], trackIndex: Int?, type: Types) {
+//        playerViewModel.playAudio(from: urlString, playlist: playlist, trackIndex: trackIndex, type: type, isFemale: <#T##Bool#>)
+//    }
     
     func pause() {
         playerViewModel.pause()
@@ -244,7 +184,7 @@ class CoursesViewModel: ObservableObject {
     func isPlaying(urlString: String) -> Bool {
         return playerViewModel.isPlaying(urlString: urlString)
     }
-    
+
 }
 
 
