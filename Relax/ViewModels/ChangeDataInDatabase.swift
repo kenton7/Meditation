@@ -26,6 +26,7 @@ class ChangeDataInDatabase: ObservableObject {
     @Published var isDownloadStarted = false
     @Published var downloadProgress = 0.0
     private var coursesViewModel = CoursesViewModel()
+    private var authViewModel = AuthWithEmailViewModel()
     @State private var downloadURL: URL?
     
     func download(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool, lesson: Lesson) {
@@ -102,7 +103,7 @@ class ChangeDataInDatabase: ObservableObject {
         
         var reference: DatabaseReference
         self.listeners += 1
-                        
+        
         switch type {
         case .playlist:
             reference = Database.database(url: .databaseURL).reference().child("music").child(course.id)
@@ -115,22 +116,22 @@ class ChangeDataInDatabase: ObservableObject {
         }
         
         // Загружаем текущее значение
-            reference.child("listenedCount").observeSingleEvent(of: .value) { snapshot in
-                var currentListeners = snapshot.value as? Int ?? 0
-                currentListeners += 1
-                
-                // Сохраняем увеличенное значение обратно в базу данных
-                reference.updateChildValues(["listenedCount": currentListeners]) { error, _ in
-                    if let error = error {
-                        print("Ошибка при обновлении listenedCount: \(error)")
-                    } else {
-                        DispatchQueue.main.async {
-                            self.listeners = currentListeners
-                            print("Обновляем прослушивания. Стало: \(self.listeners)")
-                        }
+        reference.child("listenedCount").observeSingleEvent(of: .value) { snapshot in
+            var currentListeners = snapshot.value as? Int ?? 0
+            currentListeners += 1
+            
+            // Сохраняем увеличенное значение обратно в базу данных
+            reference.updateChildValues(["listenedCount": currentListeners]) { error, _ in
+                if let error = error {
+                    print("Ошибка при обновлении listenedCount: \(error)")
+                } else {
+                    DispatchQueue.main.async {
+                        self.listeners = currentListeners
+                        print("Обновляем прослушивания. Стало: \(self.listeners)")
                     }
                 }
             }
+        }
     }
     
     func getListenersIn(course: CourseAndPlaylistOfDayModel, courseType: Types) {
@@ -179,9 +180,9 @@ class ChangeDataInDatabase: ObservableObject {
             }
         }
     }
-
+    
     func getLikesIn(course: CourseAndPlaylistOfDayModel, courseType: Types) {
-                
+        
         switch courseType {
         case .playlist:
             Database.database(url: .databaseURL).reference().child("music").child(course.id).child("likes").observe(.value) { snapshot in
@@ -261,7 +262,7 @@ class ChangeDataInDatabase: ObservableObject {
     func writeToDatabaseIfUserViewedTutorial(user: User, isViewed: Bool) {
         Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("isTutorialViewed").setValue(isViewed)
     }
-
+    
     func checkIfUserViewedTutorial(user: User) async {
         Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("isTutorialViewed").observeSingleEvent(of: .value) { snapshot in
             if let isViewed = snapshot.value as? Bool {
@@ -273,6 +274,60 @@ class ChangeDataInDatabase: ObservableObject {
             }
         }
     }
+    
+    func updateDisplayName(newDisplayName: String) {
+        guard let user = Auth.auth().currentUser else {
+            print("No user is signed in.")
+            //completion(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No user is signed in."]))
+            return
+        }
+        
+        let changeRequest = user.createProfileChangeRequest()
+        changeRequest.displayName = newDisplayName
+        changeRequest.commitChanges { error in
+            if let error = error {
+                print("Error updating display name: \(error.localizedDescription)")
+            } else {
+                print("Display name updated successfully to \(newDisplayName)")
+            }
+            //completion(error)
+        }
+    }
+    
+    func changeEmail(newEmail: String) async throws {
+        guard let user = Auth.auth().currentUser else {
+            print("No user is signed in.")
+            return
+        }
+        try await user.sendEmailVerification(beforeUpdatingEmail: newEmail)
+    }
+    
+    func updatePassword(newPassword: String, currentPassword: String) {
+        guard let user = Auth.auth().currentUser else {
+                    print("Пользователь не найден")
+                    return
+                }
 
+                // Для повторной аутентификации используем метод EmailAuthProvider
+                let credential = EmailAuthProvider.credential(withEmail: user.email ?? "", password: currentPassword)
+
+                user.reauthenticate(with: credential) { result, error in
+                    if let error = error {
+                        print("Ошибка аутентификации: \(error.localizedDescription)")
+                        return
+                    }
+
+                    // Повторная аутентификация успешна, теперь можно обновить пароль
+                    user.updatePassword(to: newPassword) { [weak self] error in
+                        if let error = error {
+                            print(error.localizedDescription)
+                        } else {
+                            print("Пароль успешно обновлен. Вы будете перенаправлены на экран входа.")
+                            self?.authViewModel.signOut()
+                        }
+                    }
+                }
+    }
+    
     
 }

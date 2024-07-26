@@ -40,6 +40,9 @@
 		0924CBDC2C3EF6EA008DADC2 /* SelectGenreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0924CBDB2C3EF6EA008DADC2 /* SelectGenreViewModel.swift */; };
 		0929D0C62C4424A60026CF9E /* EmergencyMeditationsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0929D0C52C4424A60026CF9E /* EmergencyMeditationsViewModel.swift */; };
 		0929D0C82C4671B60026CF9E /* UserDefaults+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0929D0C72C4671B60026CF9E /* UserDefaults+Extension.swift */; };
+		0929D0CA2C53B4D50026CF9E /* PremiumAnimation.json in Resources */ = {isa = PBXBuildFile; fileRef = 0929D0C92C53B4D50026CF9E /* PremiumAnimation.json */; };
+		0929D0CC2C53B50E0026CF9E /* AccountScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0929D0CB2C53B50E0026CF9E /* AccountScreen.swift */; };
+		0929D0CE2C53B8520026CF9E /* View+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0929D0CD2C53B8520026CF9E /* View+Extension.swift */; };
 		094E467E2C3D959100AE2FE8 /* SleepScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094E467D2C3D959100AE2FE8 /* SleepScreen.swift */; };
 		096130432C2C15B700C681B0 /* MainScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 096130422C2C15B700C681B0 /* MainScreen.swift */; };
 		096130462C2C82E200C681B0 /* NotificationsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 096130452C2C82E200C681B0 /* NotificationsService.swift */; };
@@ -106,6 +109,9 @@
 		0924CBDB2C3EF6EA008DADC2 /* SelectGenreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectGenreViewModel.swift; sourceTree = "<group>"; };
 		0929D0C52C4424A60026CF9E /* EmergencyMeditationsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyMeditationsViewModel.swift; sourceTree = "<group>"; };
 		0929D0C72C4671B60026CF9E /* UserDefaults+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefaults+Extension.swift"; sourceTree = "<group>"; };
+		0929D0C92C53B4D50026CF9E /* PremiumAnimation.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = PremiumAnimation.json; path = ../../../../Downloads/PremiumAnimation.json; sourceTree = "<group>"; };
+		0929D0CB2C53B50E0026CF9E /* AccountScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountScreen.swift; sourceTree = "<group>"; };
+		0929D0CD2C53B8520026CF9E /* View+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
 		094E467D2C3D959100AE2FE8 /* SleepScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepScreen.swift; sourceTree = "<group>"; };
 		096130422C2C15B700C681B0 /* MainScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainScreen.swift; sourceTree = "<group>"; };
 		096130452C2C82E200C681B0 /* NotificationsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsService.swift; sourceTree = "<group>"; };
@@ -196,6 +202,7 @@
 			isa = PBXGroup;
 			children = (
 				0909C83A2C348D060049744F /* ProfileScreen.swift */,
+				0929D0CB2C53B50E0026CF9E /* AccountScreen.swift */,
 			);
 			path = ProfileScreen;
 			sourceTree = "<group>";
@@ -240,6 +247,7 @@
 				098352052C36A55B0092DAB7 /* Info.plist */,
 				0909C8342C31CA180049744F /* Representable */,
 				0972C6402C257CCC005ECB08 /* OnboadringRelaxAnimation.json */,
+				0929D0C92C53B4D50026CF9E /* PremiumAnimation.json */,
 				0920C7C72C2AEC2F00AE9FAC /* UserLearningAnimation.json */,
 				0972C6562C259B7D005ECB08 /* TextFields */,
 				0972C6422C257D2B005ECB08 /* LottieAnimations */,
@@ -328,6 +336,7 @@
 				0909C8292C2FDF090049744F /* Color+Extensions.swift */,
 				0909C8372C32DC120049744F /* AVPlayer+Extansion.swift */,
 				0929D0C72C4671B60026CF9E /* UserDefaults+Extension.swift */,
+				0929D0CD2C53B8520026CF9E /* View+Extension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -496,6 +505,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0929D0CA2C53B4D50026CF9E /* PremiumAnimation.json in Resources */,
 				0920C7C82C2AEC2F00AE9FAC /* UserLearningAnimation.json in Resources */,
 				0972C62D2C257646005ECB08 /* Preview Assets.xcassets in Resources */,
 				0972C6492C258523005ECB08 /* GoogleService-Info.plist in Resources */,
@@ -537,8 +547,10 @@
 				0920C7D92C2BDF4500AE9FAC /* CoreDataService.swift in Sources */,
 				0920C7D42C2B248100AE9FAC /* RemindersScreen.swift in Sources */,
 				0972C6472C258443005ECB08 /* RegisterView.swift in Sources */,
+				0929D0CE2C53B8520026CF9E /* View+Extension.swift in Sources */,
 				098352072C36AC6A0092DAB7 /* HeaderDetailCourse.swift in Sources */,
 				096130462C2C82E200C681B0 /* NotificationsService.swift in Sources */,
+				0929D0CC2C53B50E0026CF9E /* AccountScreen.swift in Sources */,
 				0909C81A2C2D56300049744F /* MusicScreen.swift in Sources */,
 				0920C7D72C2BDE9300AE9FAC /* CoreDataModel.xcdatamodeld in Sources */,
 				0920C7CD2C2AEE4C00AE9FAC /* UserInterestsTopicScreen.swift in Sources */,

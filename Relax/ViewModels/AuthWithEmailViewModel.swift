@@ -136,4 +136,16 @@ class AuthWithEmailViewModel: ObservableObject {
         }
         print("User signed out")
     }
+    
+    func deleteAccount() {
+        do {
+            try Auth.auth().currentUser?.delete()
+            DispatchQueue.main.async {
+                self.signedIn = false
+                self.userID = ""
+            }
+        } catch {
+            print("Ошибка при удалении аккаунта")
+        }
+    }
 }
