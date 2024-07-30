@@ -22,7 +22,7 @@ struct SleepScreen: View {
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 20) {
                         HeaderView()
-                        StoryGenresView(type: .story)
+                        //StoryGenresView(type: .story)
                         AllStoriesView()
                     }
                 }
@@ -38,6 +38,9 @@ struct SleepScreen: View {
 
 //MARK: - HeaderView
 struct HeaderView: View {
+    
+    @State private var isShowing = false
+    
     var body: some View {
         VStack {
             ZStack {
@@ -61,9 +64,17 @@ struct HeaderView: View {
                         .font(.system(.headline, design: .rounded, weight: .light))
                         .multilineTextAlignment(.center)
                 }
+                .offset(y: isShowing ? 0 : -1000)
+                .animation(.easeInOut, value: isShowing)
             }
         }
         .ignoresSafeArea()
+        .onAppear {
+            isShowing = true
+        }
+        .onDisappear {
+            isShowing = false
+        }
     }
 }
 
@@ -75,6 +86,7 @@ struct StoryGenresView: View {
     @EnvironmentObject var nightStoriesVM: NightStoriesViewModel
     @EnvironmentObject var meditationVM: CoursesViewModel
     let type: Types
+    @State private var isShowing = false
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -125,6 +137,8 @@ struct StoryGenresView: View {
             })
             .padding(.horizontal)
             .frame(height: 100)
+            .offset(x: isShowing ? 0 : 1000)
+            .animation(.easeInOut, value: isShowing)
         }
         .padding(.top, -30)
         .padding(.bottom)
@@ -132,6 +146,10 @@ struct StoryGenresView: View {
             withAnimation {
                 selectGenreVM.selectGenre(at: 0)
             }
+            isShowing = true
+        }
+        .onDisappear {
+            isShowing = false
         }
     }
 }
@@ -143,6 +161,7 @@ struct AllStoriesView: View {
     @EnvironmentObject var nightStoriesVM: NightStoriesViewModel
     @State private var isSelected = false
     @State var selectedStory: CourseAndPlaylistOfDayModel?
+    @State private var isShowing = false
     
     var body: some View {
         NavigationStack {
@@ -192,14 +211,20 @@ struct AllStoriesView: View {
             }
                                .padding(.horizontal)
                                .padding(.bottom, 110)
+                               .offset(x: isShowing ? 0 : -1000)
+                               .animation(.easeInOut, value: isShowing)
                                .onAppear {
                                    nightStoriesVM.filterResults(by: "Всё")
+                                   isShowing = true
                                }
         }
         .navigationDestination(isPresented: $isSelected) {
             if let selectedStory {
                 ReadyCourseDetailView(course: selectedStory)
             }
+        }
+        .onDisappear {
+            isShowing = false
         }
     }
 }

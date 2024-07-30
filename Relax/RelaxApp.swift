@@ -19,6 +19,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
     
     private func setupAudioSession() {
+        UIApplication.shared.beginReceivingRemoteControlEvents()
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.allowAirPlay, .allowBluetooth, .allowBluetoothA2DP])
             try AVAudioSession.sharedInstance().setActive(true)

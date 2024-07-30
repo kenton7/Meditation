@@ -15,7 +15,7 @@ struct MeditationScreen: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
                     MeditationHeaderView()
-                    StoryGenresView(type: .meditation)
+                    //StoryGenresView(type: .meditation)
                     EmergencyHelp()
                     AllMeditationsView()
                 }
@@ -28,7 +28,7 @@ struct MeditationScreen: View {
             emergencyVM.fetchEmergencyMeditations()
             Task.detached {
                 await meditationsVM.getCourses(isDaily: false)
-                await meditationsVM.filterResults(by: "Всё")
+                //await meditationsVM.filterResults(by: "Всё")
             }
         }
     }
@@ -185,13 +185,9 @@ struct AllMeditationsView: View {
             }
         }
         .task {
-            await meditationsViewModel.filterResults(by: "Всё")
+            //await meditationsViewModel.filterResults(by: "Всё")
+            await meditationsViewModel.getCourses(isDaily: false)
         }
-//        .onAppear {
-//            Task.detached {
-//                await meditationsViewModel.filterResults(by: "Всё")
-//            }
-//        }
     }
 }
 

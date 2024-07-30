@@ -89,6 +89,9 @@ struct GreetingView: View {
         .onAppear {
             isShowing = true
         }
+        .onDisappear {
+            isShowing = false
+        }
     }
 }
 
@@ -225,6 +228,9 @@ struct DailyRecommendations: View {
         .onAppear {
             isShowing = true
         }
+        .onDisappear {
+            isShowing = false
+        }
     }
 }
 
@@ -288,12 +294,9 @@ struct DailyThoughts: View {
         .onAppear {
             isShowing = true
         }
-//        .onAppear {
-//            Task.detached {
-//                await viewModel.getCourses(isDaily: false)
-//            }
-//            //viewModel.getCourses(isDaily: false)
-//        }
+        .onDisappear {
+            isShowing = false
+        }
     }
 }
 
@@ -380,6 +383,9 @@ struct RecommendationsScreen: View {
         })
         .onAppear {
             isShowing = true
+        }
+        .onDisappear {
+            isShowing = false
         }
     }
 }
@@ -471,6 +477,9 @@ struct NightStories: View {
         }
         .onAppear {
             isShowing = true
+        }
+        .onDisappear {
+            isShowing = false
         }
     }
 }

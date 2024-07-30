@@ -29,7 +29,6 @@ struct ProfileScreen: View {
     
     var body: some View {
         NavigationStack {
-            
             VStack {
                 HStack {
                     if let user = currentUser {
@@ -99,8 +98,8 @@ struct ProfileScreen: View {
                         Button(action: {
                             //writeToDeveloperPressed = true
                             openMail(emailTo: "support@gmail.com",
-                                         subject: "App feedback",
-                                         body: "Huston, we have a problem!\n\n...")
+                                         subject: "Серотоника",
+                                         body: nil)
                         }, label: {
                             HStack {
                                 Image("email")
@@ -144,8 +143,8 @@ struct ProfileScreen: View {
         }
     }
     
-    func openMail(emailTo:String, subject: String, body: String) {
-        if let url = URL(string: "mailto:\(emailTo)?subject=\(subject.fixToBrowserString())&body=\(body.fixToBrowserString())"),
+    func openMail(emailTo: String, subject: String, body: String?) {
+        if let url = URL(string: "mailto:\(emailTo)?subject=\(subject.fixToBrowserString())&body=\(String(describing: body?.fixToBrowserString()))"),
            UIApplication.shared.canOpenURL(url)
         {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
@@ -155,6 +154,6 @@ struct ProfileScreen: View {
     }
 }
 
-#Preview {
-    ProfileScreen()
-}
+//#Preview {
+//    ProfileScreen()
+//}

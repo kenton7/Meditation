@@ -17,7 +17,7 @@ struct MusicScreen: View {
             ScrollView(showsIndicators: false) {
                 MusicHeaderView()
                 AllMusicPlaylists()
-            }
+           }
         }
         .padding(.bottom)
     }
@@ -53,20 +53,18 @@ struct AllMusicPlaylists: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
-                
                 ScrollView {
                     LazyVGrid(columns: [
                         GridItem(.flexible()),
                         GridItem(.flexible())
                     ], spacing: 20, content: {
-                        ForEach(musicViewModel.files) { file in
+                        ForEach(musicViewModel.files, id: \.name) { file in
                             Button(action: {
                                 isSelected = true
                                 selectedPlaylist = file
                             }, label: {
-                                VStack {
-                                    AsyncImage(url: URL(string: file.imageURL)) { image in
+                                LazyVStack {
+                                    AsyncImage(url: URL(string: file.imageURL), scale: 2.0) { image in
                                         image.resizable()
                                             .scaledToFit()
                                             .clipShape(.rect(cornerRadius: 16))
@@ -94,20 +92,15 @@ struct AllMusicPlaylists: View {
                         }
                 })
                 }
-            }
         }
         .navigationDestination(isPresented: $isSelected) {
             if let selectedPlaylist {
                 ReadyCourseDetailView(course: selectedPlaylist)
             }
         }
-       
     }
 }
 
-#Preview {
-    MusicScreen()
-}
 
 #Preview("AllMusic") {
     AllMusicPlaylists()

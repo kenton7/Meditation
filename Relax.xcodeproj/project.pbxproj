@@ -278,15 +278,16 @@
 		0972C6382C25766A005ECB08 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				09D9B3BB2C3FC3320082295A /* MeditationScreen */,
-				09D9B3B82C3FB5920082295A /* CustomTabBar */,
+				0972C65E2C25A6CE005ECB08 /* MainScreen */,
 				094E467C2C3D958600AE2FE8 /* SleepScreen */,
+				09D9B3BB2C3FC3320082295A /* MeditationScreen */,
+				0909C8182C2D56200049744F /* MusicScreen */,
+				09D9B3B82C3FB5920082295A /* CustomTabBar */,
 				0983520A2C37C7F00092DAB7 /* PlayerScreen */,
 				0909C8392C348CFA0049744F /* ProfileScreen */,
 				0909C8332C31B74E0049744F /* CourseDetailView */,
 				0972C66A2C261A4F005ECB08 /* ForgotPasswordView */,
 				0972C6672C2604C0005ECB08 /* LogInView */,
-				0972C65E2C25A6CE005ECB08 /* MainScreen */,
 				0972C6452C258430005ECB08 /* RegisterView */,
 				0972C6392C257676005ECB08 /* Onboarding */,
 			);
@@ -371,7 +372,6 @@
 		0972C65E2C25A6CE005ECB08 /* MainScreen */ = {
 			isa = PBXGroup;
 			children = (
-				0909C8182C2D56200049744F /* MusicScreen */,
 				096130422C2C15B700C681B0 /* MainScreen.swift */,
 				0909C80D2C2C9DD20049744F /* HomeScreen */,
 			);

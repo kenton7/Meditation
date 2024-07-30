@@ -92,36 +92,27 @@ class CoursesViewModel: ObservableObject {
     
     @MainActor
     func getCourses(isDaily: Bool) async {
-        //let databaseURL = Database.database(url: .databaseURL).reference().child(isDaily ? "courseAndPlaylistOfDay" : "courses")
         let databaseURL = Database.database(url: .databaseURL).reference().child("courses")
-        let snapshot = try? await databaseURL.getData()
-        
-        guard let snapshot = snapshot else { return }
-        
-        var localCourses: [CourseAndPlaylistOfDayModel] = []
-        var localLikes = 0
-        
-        for child in snapshot.children {
-            if let snapshot = child as? DataSnapshot, let data = snapshot.value as? [String: Any] {
-                do {
+        do {
+            let snapshot = try await databaseURL.getData()
+            var localCourses: [CourseAndPlaylistOfDayModel] = []
+            for child in snapshot.children {
+                if let snapshot = child as? DataSnapshot, let data = snapshot.value as? [String: Any] {
                     let jsonData = try JSONSerialization.data(withJSONObject: data)
                     let courseData = try JSONDecoder().decode(CourseAndPlaylistOfDayModel.self, from: jsonData)
                     localCourses.append(courseData)
-                    localLikes = courseData.likes
-                } catch {
-                    print("Error decoding snapshot: \(error)")
                 }
             }
-        }
-        
-        if isDaily {
-            self.allCourses = localCourses
-            self.dailyCourses = allCourses.filter { $0.isDaily == true }
-            //randomDailyCourse()
-        } else {
-            self.allCourses = localCourses
-            self.filteredStories = localCourses
-            self.likesCount = localLikes
+            if isDaily {
+                self.allCourses = localCourses
+                self.dailyCourses = allCourses.filter { $0.isDaily == true }
+            } else {
+                self.allCourses = localCourses
+                self.filteredStories = localCourses
+                self.likesCount = localCourses.reduce(0) { $0 + $1.likes }
+            }
+        } catch {
+            print("Error decoding snapshot: \(error)")
         }
     }
     

@@ -15,7 +15,6 @@ struct CourseDetailView: View {
     var course: CourseAndPlaylistOfDayModel
     var size: CGSize
     var safeArea: EdgeInsets
-    @Environment(\.dismiss) var dismiss
     @State private var likesCount: Int?
     @State private var isLiked = false
     @StateObject private var headerViewModel = HeaderDetailCourse()

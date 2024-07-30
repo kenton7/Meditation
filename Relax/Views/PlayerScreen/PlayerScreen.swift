@@ -115,7 +115,6 @@ struct PlayerScreen: View {
                                 let lessons = await fetchDatabaseVM.fetchCourseDetails(type: course.type, courseID: course.id)
                                 DispatchQueue.main.async {
                                     fetchDatabaseVM.lessons = lessons
-                                    print(fetchDatabaseVM.lessons)
                                     if playerViewModel.isAudioPlaying() {
                                         playerViewModel.pause()
                                     } else {
@@ -123,7 +122,8 @@ struct PlayerScreen: View {
                                                                   playlist: fetchDatabaseVM.lessons,
                                                                   trackIndex: lesson.trackIndex,
                                                                   type: course.type,
-                                                                  isFemale: isFemale)
+                                                                  isFemale: isFemale,
+                                        course: course)
                                     }
                                 }
                             }

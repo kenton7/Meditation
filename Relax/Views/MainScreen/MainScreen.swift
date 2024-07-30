@@ -13,14 +13,14 @@ struct MainScreen: View {
     @StateObject private var viewModel = AuthWithEmailViewModel()
     
     var body: some View {
-        NavigationStack {
+        //NavigationStack {
             if viewModel.isUserLoggedIn, !viewModel.userID.isEmpty {
                 CustomTabBar()
             } else {
                 OnboardingScreen()
             }
-        }
-        .navigationBarBackButtonHidden()
+//        }
+//        .navigationBarBackButtonHidden()
     }
 }
 

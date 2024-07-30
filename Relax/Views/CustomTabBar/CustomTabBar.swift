@@ -48,6 +48,7 @@ enum TabbedItems: Int, CaseIterable {
 struct CustomTabBar: View {
     
     @State private var selectedTab = 0
+    private let musicViewModel = MusicFilesViewModel()
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -63,31 +64,32 @@ struct CustomTabBar: View {
                 
                 MusicScreen()
                     .tag(3)
+                    .environmentObject(musicViewModel)
                 
                 ProfileScreen()
                     .tag(4)
             }
             
             HStack(spacing: 10) {
-                    ForEach(TabbedItems.allCases, id: \.self) { item in
-                        Button {
-                            withAnimation {
-                                selectedTab = item.rawValue
-                            }
-                        } label: {
-                            customTabItem(imageName: item.iconName,
-                                          title: item.title,
-                                          isActive: (selectedTab == item.rawValue)
-                            )
+                ForEach(TabbedItems.allCases, id: \.self) { item in
+                    Button {
+                        withAnimation {
+                            selectedTab = item.rawValue
                         }
-                        .frame(maxWidth: .infinity)
+                    } label: {
+                        customTabItem(imageName: item.iconName,
+                                      title: item.title,
+                                      isActive: (selectedTab == item.rawValue)
+                        )
                     }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(height: 65)
-                .background(selectedTab == 1 ? Color(uiColor: .init(red: 3/255,
-                                                                    green: 23/255,
-                                                                    blue: 77/255,
-                                                                    alpha: 1)) : .white)
+            }
+            .frame(height: 65)
+            .background(selectedTab == 1 ? Color(uiColor: .init(red: 3/255,
+                                                                green: 23/255,
+                                                                blue: 77/255,
+                                                                alpha: 1)) : .white)
         }
         .shadow(color: selectedTab == 1 ? .white.opacity(0.4) : .black.opacity(0.4), radius: 10, x: 0, y: 5)
     }
@@ -115,11 +117,11 @@ extension CustomTabBar {
             Text(title)
                 .padding(.horizontal, 0)
                 .foregroundStyle((isActive && selectedTab == 1) ? .white
-                                 : (isActive && selectedTab != 1 ? 
+                                 : (isActive && selectedTab != 1 ?
                                     Color(uiColor: .init(red: 142/255,
-                                                                                        green: 151/255,
-                                                                                        blue: 253/255,
-                                                                                        alpha: 1)) 
+                                                         green: 151/255,
+                                                         blue: 253/255,
+                                                         alpha: 1))
                                     : .gray))
                 .font(.system(size: 11, weight: .bold, design: .rounded))
         }

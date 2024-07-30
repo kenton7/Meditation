@@ -302,9 +302,10 @@ class ChangeDataInDatabase: ObservableObject {
         try await user.sendEmailVerification(beforeUpdatingEmail: newEmail)
     }
     
-    func updatePassword(newPassword: String, currentPassword: String) {
+    func updatePassword(newPassword: String, currentPassword: String, completion: @escaping (Error?) -> Void) {
         guard let user = Auth.auth().currentUser else {
                     print("Пользователь не найден")
+            completion(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No user is signed in."]))
                     return
                 }
 
@@ -314,6 +315,7 @@ class ChangeDataInDatabase: ObservableObject {
                 user.reauthenticate(with: credential) { result, error in
                     if let error = error {
                         print("Ошибка аутентификации: \(error.localizedDescription)")
+                        completion(error)
                         return
                     }
 
@@ -321,6 +323,7 @@ class ChangeDataInDatabase: ObservableObject {
                     user.updatePassword(to: newPassword) { [weak self] error in
                         if let error = error {
                             print(error.localizedDescription)
+                            completion(error)
                         } else {
                             print("Пароль успешно обновлен. Вы будете перенаправлены на экран входа.")
                             self?.authViewModel.signOut()

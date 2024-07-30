@@ -17,7 +17,7 @@ struct ContentView: View {
     
     var body: some View {
         
-        NavigationStack {
+        Group {
             if authViewModel.signedIn && !authViewModel.userID.isEmpty {
                 MainScreen()
             } else {

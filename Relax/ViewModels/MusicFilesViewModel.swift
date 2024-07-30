@@ -22,7 +22,6 @@ class MusicFilesViewModel: ObservableObject {
         databaseRef.observe(.value) { snapshot in
             var newFiles: [CourseAndPlaylistOfDayModel] = []
             for child in snapshot.children {
-                
                 if let snapshot = child as? DataSnapshot {
                     if let data = snapshot.value as? [String: Any] {
                         do {

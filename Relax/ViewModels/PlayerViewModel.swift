@@ -8,6 +8,7 @@
 import Foundation
 import AVFoundation
 import Combine
+import MediaPlayer
 
 class PlayerViewModel: ObservableObject {
     
@@ -17,6 +18,7 @@ class PlayerViewModel: ObservableObject {
     var playerItem: AVPlayerItem?
     var timeObserver: Any?
     var endObserver: Any?
+    var timer: Timer?
     
     @Published var isPlaying: Bool = false
     @Published var currentPlayingURL: String? = nil
@@ -25,14 +27,18 @@ class PlayerViewModel: ObservableObject {
     @Published var currentTrackIndex: Int = 0
     @Published var lessonName: String = ""
     @Published private var playlist: [Lesson] = []
+    @Published private var course: CourseAndPlaylistOfDayModel?
     @Published private var isFemale = true
+    private let contentItem = MPContentItem()
     
     private var audioSession = AVAudioSession.sharedInstance()
     private var observers: [NSKeyValueObservation] = []
     
+    
     private init() {
         setupNotifications()
         configureAudioSession()
+        createRemoteControlActions()
     }
     
     private func configureAudioSession() {
@@ -50,18 +56,129 @@ class PlayerViewModel: ObservableObject {
         removeEndObserver()
     }
     
+    func createRemoteControlActions() {
+        let commandCenter = MPRemoteCommandCenter.shared()
+        
+        //Play on Lock Screen
+        commandCenter.playCommand.addTarget { [unowned self] event in
+            if self.player?.rate == 0.0 {
+                self.player?.play()
+                return .success
+            }
+            return .commandFailed
+        }
+        
+        //Pause on Lock Screen
+        commandCenter.pauseCommand.addTarget { [unowned self] event in
+            if self.player?.rate != 0.0 {
+                self.player?.pause()
+                return .success
+            }
+            return .commandFailed
+        }
+        
+        //Next Track
+        commandCenter.nextTrackCommand.addTarget { [unowned self] event in
+            currentTrackIndex += 1
+            if currentTrackIndex < self.playlist.count {
+                let nextAudioURL = isFemale ? playlist[currentTrackIndex].audioFemaleURL : playlist[currentTrackIndex].audioMaleURL
+                self.playAudio(from: nextAudioURL, playlist: playlist, trackIndex: currentTrackIndex, type: .playlist, isFemale: isFemale, course: course!)
+                currentPlayingURL = nextAudioURL
+                return .success
+            } else {
+                currentTrackIndex = 0
+                let nextAudioURL = isFemale ? playlist[currentTrackIndex].audioFemaleURL : playlist[currentTrackIndex].audioMaleURL
+                self.playAudio(from: nextAudioURL, playlist: playlist, trackIndex: currentTrackIndex, type: .playlist, isFemale: isFemale, course: course!)
+                currentPlayingURL = nextAudioURL
+                return .success
+            }
+        }
+        
+        //Previous Track
+        commandCenter.previousTrackCommand.addTarget { [unowned self] event in
+            currentTrackIndex -= 1
+            if currentTrackIndex < 0 {
+                currentTrackIndex = self.playlist.last!.trackIndex!
+            }
+            
+            if currentTrackIndex < self.playlist.count {
+                let nextAudioURL = isFemale ? playlist[currentTrackIndex].audioFemaleURL : playlist[currentTrackIndex].audioMaleURL
+                self.playAudio(from: nextAudioURL, playlist: playlist, trackIndex: currentTrackIndex, type: .playlist, isFemale: isFemale, course: course!)
+                currentPlayingURL = nextAudioURL
+                return .success
+            } else {
+                currentTrackIndex = 0
+                let nextAudioURL = isFemale ? playlist[currentTrackIndex].audioFemaleURL : playlist[currentTrackIndex].audioMaleURL
+                self.playAudio(from: nextAudioURL, playlist: playlist, trackIndex: currentTrackIndex, type: .playlist, isFemale: isFemale, course: course!)
+                currentPlayingURL = nextAudioURL
+                return .success
+            }
+        }
+    }
+    
+    func setupNowPlaying() async {
+        guard let player = player, let playerItem = player.currentItem else { return }
+
+        var nowPlayingInfo = [String: Any]()
+        nowPlayingInfo[MPMediaItemPropertyTitle] = playlist[currentTrackIndex].name
+        
+        do {
+            let duration = try await playerItem.asset.load(.duration)
+            nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = CMTimeGetSeconds(duration) as NSNumber
+        } catch {
+            print(error.localizedDescription)
+        }
+        
+        if let artworkURL = URL(string: course!.imageURL) {
+            if let data = try? Data(contentsOf: artworkURL), let image = UIImage(data: data) {
+                let artwork = MPMediaItemArtwork(boundsSize: image.size) { size in
+                    return image
+                }
+                nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
+            }
+        }
+        
+        let currentTime = CMTimeGetSeconds(player.currentTime())
+        
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime as NSNumber
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate as NSNumber
+
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    func startTimer() {
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self?.updateNowPlaying()
+        }
+    }
+    
+    func stopTimer() {
+            timer?.invalidate()
+            timer = nil
+        }
+    
+    @objc func updateNowPlaying() {
+           guard let player = player else { return }
+
+           var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [String: Any]()
+           nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(player.currentTime()) as NSNumber
+           nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate as NSNumber
+
+           MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+       }
+    
     func autoPlayingNextTrack(playlist: [Lesson], trackIndex: Int) {
             currentTrackIndex += 1
             if currentTrackIndex < playlist.count {
                 let nextAudioURL = isFemale ? playlist[currentTrackIndex].audioFemaleURL : playlist[currentTrackIndex].audioMaleURL
-                playAudio(from: nextAudioURL, playlist: playlist, trackIndex: currentTrackIndex, type: .playlist, isFemale: isFemale)
+                playAudio(from: nextAudioURL, playlist: playlist, trackIndex: currentTrackIndex, type: .playlist, isFemale: isFemale, course: course!)
             } else {
                 currentTrackIndex = 0
                 currentPlayingURL = nil
             }
     }
     
-    func playAudio(from urlString: String, playlist: [Lesson], trackIndex: Int?, type: Types, isFemale: Bool) {
+    func playAudio(from urlString: String, playlist: [Lesson], trackIndex: Int?, type: Types, isFemale: Bool, course: CourseAndPlaylistOfDayModel) {
         guard let url = URL(string: urlString) else {
             print("Invalid URL")
             return
@@ -69,6 +186,7 @@ class PlayerViewModel: ObservableObject {
         
         self.isFemale = isFemale
         self.playlist = playlist
+        self.course = course
         
         if let trackIndex {
             self.currentTrackIndex = trackIndex
@@ -87,6 +205,11 @@ class PlayerViewModel: ObservableObject {
         
         player?.play()
         isPlaying = true
+        contentItem.title = self.playlist[currentTrackIndex].name
+        Task.detached {
+            await self.setupNowPlaying()
+        }
+        startTimer()
     }
     
     func isAudioPlaying() -> Bool {

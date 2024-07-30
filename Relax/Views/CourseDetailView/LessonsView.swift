@@ -34,11 +34,12 @@ struct LessonsView: View {
                                 viewModel.pause()
                             } else {
                                 databaseViewModel.updateListeners(course: course, type: course.type)
-                                playerVM.playAudio(from: url, 
+                                playerVM.playAudio(from: url,
                                                    playlist: lessons,
                                                    trackIndex: file.trackIndex,
                                                    type: course.type,
-                                                   isFemale: isFemale)
+                                                   isFemale: isFemale,
+                                                   course: course)
                             }
                         }, label: {
                             ZStack {
@@ -63,11 +64,12 @@ struct LessonsView: View {
                                     .onTapGesture {
                                         isTappedOnName = true
                                         url = isFemale ? file.audioFemaleURL : file.audioMaleURL
-                                        playerVM.playAudio(from: url, 
+                                        playerVM.playAudio(from: url,
                                                            playlist: lessons,
                                                            trackIndex: file.trackIndex,
                                                            type: course.type,
-                                                           isFemale: isFemale)
+                                                           isFemale: isFemale,
+                                                           course: course)
                                         databaseViewModel.updateListeners(course: course, type: course.type)
                                         self.lesson = file
                                     }
