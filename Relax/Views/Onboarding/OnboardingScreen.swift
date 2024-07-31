@@ -17,10 +17,11 @@ struct OnboardingScreen: View {
             ZStack {
                 VStack {
                     Image("Frame").ignoresSafeArea()
+                        .scaleEffect(CGSize(width: 1.2, height: 1.0))
                     Spacer()
                 }
                 VStack {
-                    Text("Сияние души")
+                    Text("Серотоника")
                         .font(.system(.title, design: .rounded)).bold()
                     OnboardingAnimation()
                     Spacer()
@@ -46,11 +47,7 @@ struct OnboardingScreen: View {
                         Text("Уже есть аккаунт?")
                             .font(.system(.callout, design: .rounded, weight: .light))
                         Button("Войти") {
-                            print(hasAccount)
-                            withAnimation {
-                                hasAccount = true
-                            }
-                            print(hasAccount)
+                            hasAccount = true
                         }
                         .foregroundStyle(.blue)
                     }

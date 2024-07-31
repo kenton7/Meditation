@@ -17,6 +17,7 @@ struct MusicScreen: View {
             ScrollView(showsIndicators: false) {
                 MusicHeaderView()
                 AllMusicPlaylists()
+                    .environmentObject(viewModel)
            }
         }
         .padding(.bottom)
@@ -47,7 +48,7 @@ struct MusicHeaderView: View {
 
 struct AllMusicPlaylists: View {
     
-    @StateObject private var musicViewModel = MusicFilesViewModel()
+    @EnvironmentObject private var musicViewModel: MusicFilesViewModel
     @State private var isSelected = false
     @State var selectedPlaylist: CourseAndPlaylistOfDayModel?
     

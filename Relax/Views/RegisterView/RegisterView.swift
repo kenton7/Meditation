@@ -130,6 +130,7 @@ struct RegisterView: View {
                     
                     Button(action: {
                         isRegistration = true
+                        errorMessage = nil
                         Task.detached {
                             do {
                                 let user = try await viewModel.asyncRegisterWith(name: name, email: email, password: password)
@@ -139,6 +140,7 @@ struct RegisterView: View {
                                         isRegistered = true
                                         viewModel.signedIn = true
                                         isRegistration = false
+                                        self.errorMessage = nil
                                     }
                                 }
                             } catch {

@@ -22,12 +22,12 @@ struct WelcomeScreen: View {
             ZStack {
                 Color(uiColor: .init(red: 140/255, green: 150/255, blue: 255/255, alpha: 1)).ignoresSafeArea()
                 VStack(spacing: 70) {
-                    Text("Сияние души")
+                    Text("Серотоника")
                         .padding()
                         .font(.system(.title2, design: .rounded)).bold()
                         .foregroundStyle(.white)
                     
-                    Text("Привет, \(user?.user?.displayName ?? "")! \nДобро пожаловать \n в Сияние души")
+                    Text("Привет, \(user?.user?.displayName ?? "")! \nДобро пожаловать \n в Серотонику")
                         .padding(.horizontal)
                         .multilineTextAlignment(.center)
                         .textInputAutocapitalization(.words)

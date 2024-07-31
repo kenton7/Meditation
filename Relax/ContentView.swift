@@ -13,7 +13,6 @@ import FirebaseDatabase
 
 struct ContentView: View {
     @EnvironmentObject var authViewModel: AuthWithEmailViewModel
-    @Environment(\.managedObjectContext) private var managedObjectContext
     
     var body: some View {
         
@@ -21,7 +20,9 @@ struct ContentView: View {
             if authViewModel.signedIn && !authViewModel.userID.isEmpty {
                 MainScreen()
             } else {
-                OnboardingScreen()
+                NavigationStack {
+                    OnboardingScreen()
+                }
             }
         }
         .tint(.white)

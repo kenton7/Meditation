@@ -120,7 +120,9 @@ class PlayerViewModel: ObservableObject {
         guard let player = player, let playerItem = player.currentItem else { return }
 
         var nowPlayingInfo = [String: Any]()
-        nowPlayingInfo[MPMediaItemPropertyTitle] = playlist[currentTrackIndex].name
+        if !playlist.isEmpty {
+            nowPlayingInfo[MPMediaItemPropertyTitle] = playlist[currentTrackIndex].name
+        }
         
         do {
             let duration = try await playerItem.asset.load(.duration)
@@ -178,6 +180,34 @@ class PlayerViewModel: ObservableObject {
             }
     }
     
+    func playLocalAudioFrom(url: URL, lessonName: String) {
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            print("Файла не существует по данному пути: \(url.path)")
+            return
+        }
+        
+        let urlString = url.absoluteString
+        let decodedURLString = urlString.decodeURL() ?? ""
+        guard let decodedURL = URL(string: decodedURLString) else {
+            print("Ошибка при декодировании урла")
+            return
+        }
+                        
+        if currentPlayingURL != decodedURLString {
+            removeTimeObserver()
+            playerItem = AVPlayerItem(url: url)
+            player = AVPlayer(playerItem: playerItem)
+            currentPlayingURL = decodedURLString
+            currentTime = .zero
+            setupTimeObserver()
+            observePlayerItemStatus()
+        }
+        player?.play()
+        isPlaying = true
+        self.lessonName = lessonName
+        contentItem.title = self.lessonName
+    }
+    
     func playAudio(from urlString: String, playlist: [Lesson], trackIndex: Int?, type: Types, isFemale: Bool, course: CourseAndPlaylistOfDayModel) {
         guard let url = URL(string: urlString) else {
             print("Invalid URL")
@@ -190,7 +220,9 @@ class PlayerViewModel: ObservableObject {
         
         if let trackIndex {
             self.currentTrackIndex = trackIndex
-            lessonName = playlist[currentTrackIndex].name
+            if !playlist.isEmpty {
+                lessonName = playlist[currentTrackIndex].name
+            }
         }
         
         if currentPlayingURL != urlString {
@@ -214,6 +246,21 @@ class PlayerViewModel: ObservableObject {
     
     func isAudioPlaying() -> Bool {
         return player?.rate != 0
+    }
+    
+    func isPlayingLocal(url: URL) -> Bool {
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            print("Файла не существует по данному пути: \(url.path)")
+            return false
+        }
+        
+        let urlString = url.absoluteString
+        let decodedURLString = urlString.decodeURL() ?? ""
+        guard let decodedURL = URL(string: decodedURLString) else {
+            print("Ошибка при декодировании урла")
+            return false
+        }
+        return player?.rate != 0 && player?.error == nil && currentPlayingURL == decodedURLString
     }
     
     func isPlaying(urlString: String) -> Bool {

@@ -21,6 +21,7 @@ struct LogInView: View {
     @State private var isLogining = false
     @StateObject private var databaseVM = ChangeDataInDatabase()
     
+    
     var body: some View {
         //MARK: - Кнопки авторизации через гугл и Apple
         NavigationStack {
@@ -89,6 +90,7 @@ struct LogInView: View {
                     Spacer()
                     Button(action: {
                         isLogining = true
+                        errorMessage = nil
                         Task.detached {
                             do {
                                 let user = try await viewModel.asyncLogInWith(email: email, password: password)
@@ -146,14 +148,6 @@ struct LogInView: View {
                 WelcomeScreen(user: userModel)
                     .environmentObject(viewModel)
             }
-            
-//            if UserDefaults.standard.bool(forKey: "isTutorialViewed") {
-//                    MainScreen()
-//                        .environmentObject(viewModel)
-//            } else {
-//                WelcomeScreen(user: userModel)
-//                    .environmentObject(viewModel)
-//            }
         }
         .navigationDestination(isPresented: $isForgotPasswordPressed) {
             ForgotPasswordView()

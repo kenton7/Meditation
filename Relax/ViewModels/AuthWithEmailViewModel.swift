@@ -10,7 +10,15 @@ import FirebaseCore
 import FirebaseAuth
 import FirebaseDatabase
 
-class AuthWithEmailViewModel: ObservableObject {
+protocol Authable: AnyObject {
+    func asyncRegisterWith(name: String, email: String, password: String) async throws -> UserModel?
+    func asyncLogInWith(email: String, password: String) async throws -> UserModel?
+    func restorePasswordWith(email: String, completion: @escaping ((Bool, NSError?) -> Void))
+    func signOut()
+    func deleteAccount()
+}
+
+final class AuthWithEmailViewModel: ObservableObject, Authable {
     
     @Published var signedIn = false
     @Published var userID: String = ""
@@ -138,14 +146,10 @@ class AuthWithEmailViewModel: ObservableObject {
     }
     
     func deleteAccount() {
-        do {
-            try Auth.auth().currentUser?.delete()
-            DispatchQueue.main.async {
-                self.signedIn = false
-                self.userID = ""
-            }
-        } catch {
-            print("Ошибка при удалении аккаунта")
+        Auth.auth().currentUser?.delete()
+        DispatchQueue.main.async {
+            self.signedIn = false
+            self.userID = ""
         }
     }
 }

@@ -54,27 +54,30 @@ struct PlayerScreen: View {
                             Image(isLiked ? "LikeButton_fill" : "LikeButton")
                         })
                         
-                        Button(action: {
-                            if let lesson {
-                                databaseVM.download(course: course,
-                                                    courseType: course.type,
-                                                    isFemale: isFemale,
-                                                    lesson: lesson)
-                            }
-                        }, label: {
-                            Image("DownloadButton")
-                        })
-                        .padding()
-                        .overlay {
-                            ZStack {
-                                Circle()
-                                    .stroke(Color.gray, lineWidth: 4)
-                                    .padding()
-                                Circle()
-                                    .trim(from: 0, to: databaseVM.downloadProgress)
-                                    .stroke(Color.green, lineWidth: 4)
-                                    .padding()
-                                    .rotationEffect(.degrees(-90))
+                        if let lesson {
+                            
+                            Button(action: {
+                                //if let lesson {
+                                    databaseVM.download(course: course,
+                                                        courseType: course.type,
+                                                        isFemale: isFemale,
+                                                        lesson: lesson)
+                                //}
+                            }, label: {
+                                Image("DownloadButton")
+                            })
+                            .padding()
+                            .overlay {
+                                ZStack {
+                                    Circle()
+                                        .stroke(Color.gray, lineWidth: 4)
+                                        .padding()
+                                    Circle()
+                                        .trim(from: 0, to: databaseVM.downloadProgress)
+                                        .stroke(Color.green, lineWidth: 4)
+                                        .padding()
+                                        .rotationEffect(.degrees(-90))
+                                }
                             }
                         }
                     }
@@ -83,7 +86,7 @@ struct PlayerScreen: View {
                 Spacer()
                 VStack {
                     Spacer()
-                    Text(playerViewModel.lessonName == "" ? lesson!.name : playerViewModel.lessonName)
+                    Text((playerViewModel.lessonName == "" ? lesson?.name : playerViewModel.lessonName) ?? "")
                         .foregroundStyle(course.type == .story ? .white : .black)
                         .font(.system(.title, design: .rounded, weight: .bold))
                         .multilineTextAlignment(.center)
@@ -109,33 +112,45 @@ struct PlayerScreen: View {
                         })
                         
                         Button(action: {
-                            guard let lesson = lesson else { return }
-                            let url = isFemale ? lesson.audioFemaleURL : lesson.audioMaleURL
-                            Task {
-                                let lessons = await fetchDatabaseVM.fetchCourseDetails(type: course.type, courseID: course.id)
-                                DispatchQueue.main.async {
-                                    fetchDatabaseVM.lessons = lessons
-                                    if playerViewModel.isAudioPlaying() {
-                                        playerViewModel.pause()
-                                    } else {
-                                        playerViewModel.playAudio(from: url,
-                                                                  playlist: fetchDatabaseVM.lessons,
-                                                                  trackIndex: lesson.trackIndex,
-                                                                  type: course.type,
-                                                                  isFemale: isFemale,
-                                        course: course)
+//                            guard let lesson = lesson else { print("no lesson")
+//                                return
+//                            }
+                            
+                            if let lesson {
+                                let url = isFemale ? lesson.audioFemaleURL : lesson.audioMaleURL
+                                Task {
+                                    let lessons = await fetchDatabaseVM.fetchCourseDetails(type: course.type, courseID: course.id)
+                                    DispatchQueue.main.async {
+                                        fetchDatabaseVM.lessons = lessons
+                                        if playerViewModel.isAudioPlaying() {
+                                            playerViewModel.pause()
+                                        } else {
+                                            playerViewModel.playAudio(from: url,
+                                                                      playlist: fetchDatabaseVM.lessons,
+                                                                      trackIndex: lesson.trackIndex,
+                                                                      type: course.type,
+                                                                      isFemale: isFemale,
+                                                                      course: course)
+                                        }
                                     }
+                                }
+                            } else {
+                                if playerViewModel.isAudioPlaying() {
+                                    playerViewModel.pause()
+                                } else {
+                                    guard let url = URL(string: self.url) else { return }
+                                    playerViewModel.playLocalAudioFrom(url: url, lessonName: playerViewModel.lessonName)
                                 }
                             }
                         }, label: {
-                            if let lesson {
+                            //if let lesson {
                                 Image(systemName: playerViewModel.isAudioPlaying() ? "pause.circle.fill" : "play.circle.fill")
                                     .font(.system(size: 85))
                                     .foregroundStyle(Color(uiColor: .init(red: 63/255,
                                                                           green: 65/255,
                                                                           blue: 78/255,
                                                                           alpha: 1)))
-                            }
+                            //}
                         })
                         .overlay {
                             Circle()

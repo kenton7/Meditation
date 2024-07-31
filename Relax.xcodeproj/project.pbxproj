@@ -26,6 +26,8 @@
 		0909C8362C31CA230049744F /* ScrollView+Representable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0909C8352C31CA230049744F /* ScrollView+Representable.swift */; };
 		0909C8382C32DC120049744F /* AVPlayer+Extansion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0909C8372C32DC120049744F /* AVPlayer+Extansion.swift */; };
 		0909C83B2C348D060049744F /* ProfileScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0909C83A2C348D060049744F /* ProfileScreen.swift */; };
+		091DEEFF2C5A17F000184F16 /* DownloadedScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091DEEFE2C5A17F000184F16 /* DownloadedScreen.swift */; };
+		091DEF012C5A1A4800184F16 /* FileManagerSerivce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091DEF002C5A1A4800184F16 /* FileManagerSerivce.swift */; };
 		0920C7C02C29B2CE00AE9FAC /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 0920C7BF2C29B2CE00AE9FAC /* FirebaseDatabase */; };
 		0920C7C22C29B2D400AE9FAC /* FirebaseDatabaseSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 0920C7C12C29B2D400AE9FAC /* FirebaseDatabaseSwift */; };
 		0920C7C42C29BB6000AE9FAC /* AuthErrorCode+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0920C7C32C29BB6000AE9FAC /* AuthErrorCode+Extension.swift */; };
@@ -97,6 +99,8 @@
 		0909C8352C31CA230049744F /* ScrollView+Representable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ScrollView+Representable.swift"; sourceTree = "<group>"; };
 		0909C8372C32DC120049744F /* AVPlayer+Extansion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AVPlayer+Extansion.swift"; sourceTree = "<group>"; };
 		0909C83A2C348D060049744F /* ProfileScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileScreen.swift; sourceTree = "<group>"; };
+		091DEEFE2C5A17F000184F16 /* DownloadedScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadedScreen.swift; sourceTree = "<group>"; };
+		091DEF002C5A1A4800184F16 /* FileManagerSerivce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManagerSerivce.swift; sourceTree = "<group>"; };
 		0920C7C32C29BB6000AE9FAC /* AuthErrorCode+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AuthErrorCode+Extension.swift"; sourceTree = "<group>"; };
 		0920C7C72C2AEC2F00AE9FAC /* UserLearningAnimation.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = UserLearningAnimation.json; sourceTree = "<group>"; };
 		0920C7C92C2AEC4600AE9FAC /* UserLearningAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserLearningAnimation.swift; sourceTree = "<group>"; };
@@ -203,6 +207,7 @@
 			children = (
 				0909C83A2C348D060049744F /* ProfileScreen.swift */,
 				0929D0CB2C53B50E0026CF9E /* AccountScreen.swift */,
+				091DEEFE2C5A17F000184F16 /* DownloadedScreen.swift */,
 			);
 			path = ProfileScreen;
 			sourceTree = "<group>";
@@ -220,6 +225,7 @@
 			children = (
 				0920C7D82C2BDF4500AE9FAC /* CoreDataService.swift */,
 				096130452C2C82E200C681B0 /* NotificationsService.swift */,
+				091DEF002C5A1A4800184F16 /* FileManagerSerivce.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -556,6 +562,7 @@
 				0920C7CD2C2AEE4C00AE9FAC /* UserInterestsTopicScreen.swift in Sources */,
 				0909C8242C2DB69B0049744F /* RecommendationsViewModel.swift in Sources */,
 				0909C82C2C308C910049744F /* NightStoriesViewModel.swift in Sources */,
+				091DEEFF2C5A17F000184F16 /* DownloadedScreen.swift in Sources */,
 				09E871DD2C384E2C002CEB54 /* LessonsView.swift in Sources */,
 				0909C8262C2DB6C50049744F /* RecommendationModel.swift in Sources */,
 				09D9B3BD2C3FC33A0082295A /* MeditationScreen.swift in Sources */,
@@ -573,6 +580,7 @@
 				0972C66C2C261A5E005ECB08 /* ForgotPasswordView.swift in Sources */,
 				0909C8382C32DC120049744F /* AVPlayer+Extansion.swift in Sources */,
 				0909C82E2C308CDB0049744F /* NightStoriesModel.swift in Sources */,
+				091DEF012C5A1A4800184F16 /* FileManagerSerivce.swift in Sources */,
 				0909C8202C2D7B530049744F /* CoursesViewModel.swift in Sources */,
 				0972C6442C257D3C005ECB08 /* OnboardingAnimation.swift in Sources */,
 				0929D0C82C4671B60026CF9E /* UserDefaults+Extension.swift in Sources */,

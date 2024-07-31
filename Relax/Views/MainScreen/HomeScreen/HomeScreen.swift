@@ -18,6 +18,8 @@ struct HomeScreen: View {
     @StateObject private var recommendationsViewModel = RecommendationsViewModel()
     @StateObject private var nightStoriesViewModel = NightStoriesViewModel()
     
+    @State private var isShowing = false
+    
     var body: some View {
         
         NavigationStack {
@@ -30,12 +32,14 @@ struct HomeScreen: View {
                                                               blue: 78/255,
                                                               alpha: 1)))
                         .font(.system(.title2, design: .rounded)).bold()
+                        .offset(y: isShowing ? 0 : -1000)
+                        .animation(.bouncy, value: isShowing)
                     
-                    GreetingView()
-                    DailyRecommendations()
-                    DailyThoughts()
-                    RecommendationsScreen()
-                    NightStories()
+                    GreetingView(isShowing: $isShowing)
+                    DailyRecommendations(isShowing: $isShowing)
+                    DailyThoughts(isShowing: $isShowing)
+                    RecommendationsScreen(isShowing: $isShowing)
+                    NightStories(isShowing: $isShowing)
                     Spacer()
                 }
             }
@@ -49,6 +53,12 @@ struct HomeScreen: View {
             recommendationsViewModel.fetchRecommendations()
             nightStoriesViewModel.fetchNightStories()
         }
+        .onAppear {
+            isShowing = true
+        }
+        .onDisappear {
+            isShowing = false
+        }
     }
     
     
@@ -58,7 +68,7 @@ struct HomeScreen: View {
 struct GreetingView: View {
     
     @StateObject private var homeScreenViewModel = HomeScreenViewModel()
-    @State private var isShowing = false
+    @Binding var isShowing: Bool
     
     var body: some View {
         VStack {
@@ -84,13 +94,7 @@ struct GreetingView: View {
             }
             .padding(.vertical)
             .offset(y: isShowing ? 0 : -200)
-            .animation(.easeInOut, value: isShowing)
-        }
-        .onAppear {
-            isShowing = true
-        }
-        .onDisappear {
-            isShowing = false
+            .animation(.bouncy, value: isShowing)
         }
     }
 }
@@ -98,14 +102,13 @@ struct GreetingView: View {
 //MARK: - DailyRecommendations
 struct DailyRecommendations: View {
     
-    @StateObject private var playlistAndCourseOfDay = CoursesViewModel()
+    //@StateObject private var playlistAndCourseOfDay = CoursesViewModel()
+    @EnvironmentObject var viewModel: CoursesViewModel
     @State private var isCourseTapped: Bool = false
-    @State private var isPlaylistTapped = false
-    @State private var isStoryTapped = false
     @State private var selectedCourse: CourseAndPlaylistOfDayModel?
-    @State private var isShowing = false
+    @Binding var isShowing: Bool
     
-    private var currentDate: String = {
+     var currentDate: String = {
         let date = Date()
         let df = DateFormatter()
         df.dateFormat = "dd.MM"
@@ -134,11 +137,11 @@ struct DailyRecommendations: View {
                     Spacer()
                 }
                 .padding(.horizontal)
-                .offset(y: isShowing ? 0 : -200)
-                .animation(.easeInOut, value: isShowing)
+                .offset(y: isShowing ? 0 : -700)
+                .animation(.bouncy, value: isShowing)
                 
                 HStack(spacing: 15) {
-                    ForEach(playlistAndCourseOfDay.dailyCourses, id: \.id) { course in
+                    ForEach(viewModel.dailyCourses, id: \.id) { course in
                         Button(action: {
                             isCourseTapped = true
                             selectedCourse = course
@@ -207,13 +210,12 @@ struct DailyRecommendations: View {
                         })
                         .clipShape(.rect(cornerRadius: 20))
                         .padding(.horizontal, 0)
-                        //.frame(width: 180, height: 230)
                         .frame(maxWidth: .infinity, maxHeight: 230)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: 230)
                 .padding()
-                .offset(x: isShowing ? 0 : 300)
+                .offset(x: isShowing ? 0 : 700)
                 .animation(.bouncy, value: isShowing)
             }
         }
@@ -223,13 +225,7 @@ struct DailyRecommendations: View {
             }
         }
         .task {
-            await playlistAndCourseOfDay.getCourses(isDaily: true)
-        }
-        .onAppear {
-            isShowing = true
-        }
-        .onDisappear {
-            isShowing = false
+            await viewModel.getCourses(isDaily: true)
         }
     }
 }
@@ -240,13 +236,12 @@ struct DailyThoughts: View {
     @State private var isDailyThoughtsTapped = false
     @State private var selectedCourse: CourseAndPlaylistOfDayModel?
     @StateObject private var viewModel = CoursesViewModel()
-    @State private var isShowing = false
+    @Binding var isShowing: Bool
     
     var body: some View {
         NavigationStack {
             VStack {
                 Button(action: {
-                    //selectedCourse = viewModel.dailyThoughts.first
                     selectedCourse = viewModel.allCourses.filter { $0.name == "Ежедневные мысли" }.first
                     isDailyThoughtsTapped = true
                 }, label: {
@@ -279,7 +274,7 @@ struct DailyThoughts: View {
                 .clipShape(.rect(cornerRadius: 20))
                 .padding(.horizontal)
                 .frame(maxWidth: .infinity)
-                .offset(x: isShowing ? 0 : -300)
+                .offset(x: isShowing ? 0 : -700)
                 .animation(.bouncy, value: isShowing)
             }
         }
@@ -290,12 +285,6 @@ struct DailyThoughts: View {
         }
         .task {
             await viewModel.getCourses(isDaily: false)
-        }
-        .onAppear {
-            isShowing = true
-        }
-        .onDisappear {
-            isShowing = false
         }
     }
 }
@@ -309,10 +298,9 @@ struct RecommendationsScreen: View {
         sortDescriptors: []
     ) var selectedTopics: FetchedResults<Topic>
     
-    //let user = Auth.auth().currentUser
     @State private var isSelected = false
     @State private var selectedCourse: CourseAndPlaylistOfDayModel?
-    @State private var isShowing = false
+    @Binding var isShowing: Bool
     
     var body: some View {
         NavigationStack {
@@ -373,20 +361,14 @@ struct RecommendationsScreen: View {
                     })
                 }
             }
-            .offset(x: isShowing ? 0 : 500)
-            .animation(.easeInOut, value: isShowing)
+            .offset(x: isShowing ? 0 : 700)
+            .animation(.bouncy, value: isShowing)
         }
         .navigationDestination(isPresented: $isSelected, destination: {
             if let selectedCourse = selectedCourse {
                 ReadyCourseDetailView(course: selectedCourse)
             }
         })
-        .onAppear {
-            isShowing = true
-        }
-        .onDisappear {
-            isShowing = false
-        }
     }
 }
 
@@ -396,7 +378,7 @@ struct NightStories: View {
     @StateObject private var nightStoriesViewModel = NightStoriesViewModel()
     @State private var isSelected = false
     @State private var selectedStory: CourseAndPlaylistOfDayModel?
-    @State private var isShowing = false
+    @Binding var isShowing: Bool
     
     var body: some View {
         NavigationStack {
@@ -475,23 +457,17 @@ struct NightStories: View {
                 ReadyCourseDetailView(course: selectedStory)
             }
         }
-        .onAppear {
-            isShowing = true
-        }
-        .onDisappear {
-            isShowing = false
-        }
     }
 }
 
-#Preview {
-    HomeScreen()
-}
-
-#Preview("RecommendationsScreen") {
-    RecommendationsScreen()
-}
-
-#Preview("Night Stories") {
-    NightStories()
-}
+//#Preview {
+//    HomeScreen()
+//}
+//
+//#Preview("RecommendationsScreen") {
+//    RecommendationsScreen()
+//}
+//
+//#Preview("Night Stories") {
+//    NightStories()
+//}

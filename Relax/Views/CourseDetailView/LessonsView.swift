@@ -11,7 +11,7 @@ import SwiftUI
 struct LessonsView: View {
     
     @Binding var isFemale: Bool
-    @StateObject private var viewModel = CoursesViewModel()
+    @EnvironmentObject private var viewModel: CoursesViewModel
     @State private var isPlaying = false
     @State private var playingURL: String? = nil
     let course: CourseAndPlaylistOfDayModel
@@ -19,7 +19,8 @@ struct LessonsView: View {
     @State private var isTappedOnName = false
     @State private var lesson: Lesson?
     @State private var url: String = ""
-    @StateObject private var playerVM = PlayerViewModel.shared
+    //@StateObject private var playerVM = PlayerViewModel.shared
+    @EnvironmentObject private var playerVM: PlayerViewModel
     @State private var lessons = [Lesson]()
     
     var body: some View {

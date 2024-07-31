@@ -26,6 +26,7 @@ struct ProfileScreen: View {
     @State private var isBuyPremiumPressed = false
     @State private var writeToDeveloperPressed = false
     @State private var aboutUsPressed = false
+    let fileManagerService: IFileManagerSerivce = FileManagerSerivce()
     
     var body: some View {
         NavigationStack {
@@ -83,7 +84,7 @@ struct ProfileScreen: View {
                     
                     Section("Материалы") {
                         NavigationLink {
-                            //
+                            DownloadedScreen(fileManagerSerivce: fileManagerService)
                         } label: {
                             HStack {
                                 Image("downloaded")

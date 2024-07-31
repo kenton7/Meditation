@@ -11,12 +11,28 @@ import FirebaseStorage
 import FirebaseAuth
 import SwiftUI
 
-class ChangeDataInDatabase: ObservableObject {
-    
-    enum IncrementDecrementLike {
-        case increment
-        case decrement
-    }
+
+protocol DatabaseChangable: AnyObject {
+    func download(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool, lesson: Lesson)
+    func userLiked(course: CourseAndPlaylistOfDayModel, type: IncrementDecrementLike, isLiked: Bool, user: User, courseType: Types)
+    func updateListeners(course: CourseAndPlaylistOfDayModel, type: Types)
+    func getListenersIn(course: CourseAndPlaylistOfDayModel, courseType: Types)
+    func getLikesIn(course: CourseAndPlaylistOfDayModel, courseType: Types)
+    func storyInfo(course: CourseAndPlaylistOfDayModel, isFemale: Bool)
+    func checkIfUserLiked(user: User, course: CourseAndPlaylistOfDayModel)
+    func writeToDatabaseIfUserViewedTutorial(user: User, isViewed: Bool)
+    func checkIfUserViewedTutorial(user: User) async
+    func updateDisplayName(newDisplayName: String)
+    func changeEmail(newEmail: String) async throws
+    func updatePassword(newPassword: String, currentPassword: String, completion: @escaping (Error?) -> Void)
+}
+
+enum IncrementDecrementLike {
+    case increment
+    case decrement
+}
+
+final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
     
     @Published var likes = 0
     @Published var isLiked = false

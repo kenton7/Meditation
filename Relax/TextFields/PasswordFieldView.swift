@@ -48,6 +48,7 @@ struct PasswordFieldView: View {
                     isSecured.toggle()
                 }) {
                     Image(systemName: isSecured ? "eye.slash" : "eye")
+                        .padding(.horizontal)
                         .foregroundStyle(.gray)
                 }
                 .padding(.horizontal)

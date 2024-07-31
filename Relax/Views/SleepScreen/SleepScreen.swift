@@ -10,6 +10,8 @@ import SwiftUI
 struct SleepScreen: View {
     @EnvironmentObject var nightStoriesVM: NightStoriesViewModel
     
+    @State private var isShowing = false
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -21,9 +23,9 @@ struct SleepScreen: View {
                 
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 20) {
-                        HeaderView()
+                        HeaderView(isShowing: $isShowing)
                         //StoryGenresView(type: .story)
-                        AllStoriesView()
+                        AllStoriesView(isShowing: $isShowing)
                     }
                 }
                 .ignoresSafeArea()
@@ -32,6 +34,12 @@ struct SleepScreen: View {
         .refreshable {
             nightStoriesVM.fetchNightStories()
         }
+        .onAppear {
+            isShowing = true
+        }
+        .onDisappear {
+            isShowing = false
+        }
     }
 }
 
@@ -39,7 +47,7 @@ struct SleepScreen: View {
 //MARK: - HeaderView
 struct HeaderView: View {
     
-    @State private var isShowing = false
+    @Binding var isShowing: Bool
     
     var body: some View {
         VStack {
@@ -65,16 +73,10 @@ struct HeaderView: View {
                         .multilineTextAlignment(.center)
                 }
                 .offset(y: isShowing ? 0 : -1000)
-                .animation(.easeInOut, value: isShowing)
+                .animation(.bouncy, value: isShowing)
             }
         }
         .ignoresSafeArea()
-        .onAppear {
-            isShowing = true
-        }
-        .onDisappear {
-            isShowing = false
-        }
     }
 }
 
@@ -161,7 +163,7 @@ struct AllStoriesView: View {
     @EnvironmentObject var nightStoriesVM: NightStoriesViewModel
     @State private var isSelected = false
     @State var selectedStory: CourseAndPlaylistOfDayModel?
-    @State private var isShowing = false
+    @Binding var isShowing: Bool
     
     var body: some View {
         NavigationStack {
@@ -212,19 +214,15 @@ struct AllStoriesView: View {
                                .padding(.horizontal)
                                .padding(.bottom, 110)
                                .offset(x: isShowing ? 0 : -1000)
-                               .animation(.easeInOut, value: isShowing)
+                               .animation(.bouncy, value: isShowing)
                                .onAppear {
                                    nightStoriesVM.filterResults(by: "Всё")
-                                   isShowing = true
                                }
         }
         .navigationDestination(isPresented: $isSelected) {
             if let selectedStory {
                 ReadyCourseDetailView(course: selectedStory)
             }
-        }
-        .onDisappear {
-            isShowing = false
         }
     }
 }

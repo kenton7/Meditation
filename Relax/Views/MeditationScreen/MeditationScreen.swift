@@ -9,15 +9,18 @@ import SwiftUI
 
 struct MeditationScreen: View {
     @StateObject private var emergencyVM = EmergencyMeditationsViewModel()
-    @State private var meditationsVM = CoursesViewModel()
+    @EnvironmentObject private var meditationsVM: CoursesViewModel
+    @State private var isShowing = false
+    
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
-                    MeditationHeaderView()
+                    MeditationHeaderView(isShowing: $isShowing)
                     //StoryGenresView(type: .meditation)
-                    EmergencyHelp()
-                    AllMeditationsView()
+                    EmergencyHelp(isShowing: $isShowing)
+                        .environmentObject(emergencyVM)
+                    AllMeditationsView(isShowing: $isShowing)
                 }
             }
         }
@@ -28,20 +31,30 @@ struct MeditationScreen: View {
             emergencyVM.fetchEmergencyMeditations()
             Task.detached {
                 await meditationsVM.getCourses(isDaily: false)
-                //await meditationsVM.filterResults(by: "Всё")
             }
+        }
+        .onAppear {
+            isShowing = true
+        }
+        .onDisappear {
+            isShowing = false
         }
     }
 }
 
 //MARK: - MeditationHeaderView
 struct MeditationHeaderView: View {
+    
+    @Binding var isShowing: Bool
+    
     var body: some View {
         VStack {
             Text("Медитации")
                 .padding()
                 .foregroundStyle(.black)
                 .font(.system(.title, design: .rounded, weight: .bold))
+                .offset(y: isShowing ? 0 : -1000)
+                .animation(.bouncy, value: isShowing)
             Text("Погрузитесь в мир осознанности и внутреннего спокойствия с нашими подробными уроками медитации, созданными для всех уровней подготовки.")
                 .padding()
                 .foregroundStyle(Color(uiColor: .init(red: 160/255,
@@ -50,6 +63,8 @@ struct MeditationHeaderView: View {
                                                       alpha: 1)))
                 .font(.system(.headline, design: .rounded, weight: .light))
                 .multilineTextAlignment(.center)
+                .offset(x: isShowing ? 0 : -1000)
+                .animation(.bouncy, value: isShowing)
         }
         .padding(.vertical)
     }
@@ -58,9 +73,11 @@ struct MeditationHeaderView: View {
 //MARK: - EmergencyHelp
 struct EmergencyHelp: View {
     
-    @StateObject private var emergencyVM = EmergencyMeditationsViewModel()
+    @EnvironmentObject private var emergencyViewModel: EmergencyMeditationsViewModel
     @State private var isSelected = false
     @State var selectedCourse: CourseAndPlaylistOfDayModel?
+    
+    @Binding var isShowing: Bool
     
     var body: some View {
         NavigationStack {
@@ -78,7 +95,7 @@ struct EmergencyHelp: View {
                     GridItem(.flexible()),
                     GridItem(.flexible())
                 ], spacing: 20, content: {
-                    ForEach(emergencyVM.emergencyMeditations) { emergencyLesson in
+                    ForEach(emergencyViewModel.emergencyMeditations) { emergencyLesson in
                         Button(action: {
                             isSelected = true
                             selectedCourse = emergencyLesson
@@ -106,6 +123,8 @@ struct EmergencyHelp: View {
                 ReadyCourseDetailView(course: course)
             }
         }
+        .offset(x: isShowing ? 0 : -1000)
+        .animation(.bouncy, value: isShowing)
     }
 }
 
@@ -115,6 +134,8 @@ struct AllMeditationsView: View {
     @EnvironmentObject var meditationsViewModel: CoursesViewModel
     @State private var isSelected = false
     @State var selectedCourse: CourseAndPlaylistOfDayModel?
+    
+    @Binding var isShowing: Bool
     
     var body: some View {
         NavigationStack {
@@ -184,8 +205,9 @@ struct AllMeditationsView: View {
                 ReadyCourseDetailView(course: course)
             }
         }
+        .offset(x: isShowing ? 0 : -1000)
+        .animation(.bouncy, value: isShowing)
         .task {
-            //await meditationsViewModel.filterResults(by: "Всё")
             await meditationsViewModel.getCourses(isDaily: false)
         }
     }

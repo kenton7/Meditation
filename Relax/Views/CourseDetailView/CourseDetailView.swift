@@ -18,8 +18,9 @@ struct CourseDetailView: View {
     @State private var likesCount: Int?
     @State private var isLiked = false
     @StateObject private var headerViewModel = HeaderDetailCourse()
-    @StateObject private var databaseViewModel = ChangeDataInDatabase()
-    //@StateObject private var viewModel = CourseAndPlaylistOfDay(isDaily: false)
+    @EnvironmentObject private var databaseViewModel: ChangeDataInDatabase
+    @EnvironmentObject private var coursesViewModel: CoursesViewModel
+    @EnvironmentObject private var playerViewModel: PlayerViewModel
     private let user = Auth.auth().currentUser
     @State private var isFemale = true
     @State private var isSelected = false
@@ -206,6 +207,8 @@ struct CourseDetailView: View {
                 }
             }
             LessonsView(isFemale: $isFemale, course: course)
+                .environmentObject(coursesViewModel)
+                .environmentObject(playerViewModel)
             Spacer()
         }
         .padding()

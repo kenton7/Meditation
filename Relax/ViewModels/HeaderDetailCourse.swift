@@ -66,7 +66,6 @@ class HeaderDetailCourse: ObservableObject {
                                 .scaleEffect(1 - (progress * 0.5), anchor: .center)
                                 .padding(.top, self.offsetY < 0 ? 16 : 0)
                                 //.offset(x: (rect.minX - 16) * progress, y: -resizedOffsetY * progress - (progress * 16))
-                                .animation(.bouncy, value: self.offsetY)
                         } placeholder: {
                             ProgressView()
                         }
@@ -93,10 +92,10 @@ class HeaderDetailCourse: ObservableObject {
     
     //данная функция создает эффект "инерции"
     func needToScroll(offset: CGFloat, velocity: CGFloat, safeArea: EdgeInsets, size: CGSize) -> Bool {
-        let headerHeight = (size.height * 0.15) + safeArea.top
+        let headerHeight = (size.height * 0.10) + safeArea.top
         let minimumHeaderHeight = 64 + safeArea.top
         let targetEnd = offset + (velocity * 45)
-        return targetEnd < (headerHeight - minimumHeaderHeight)  && targetEnd > 0
+        return targetEnd < (headerHeight - minimumHeaderHeight) && targetEnd > 0
     }
 }
 
