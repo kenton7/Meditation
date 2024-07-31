@@ -14,13 +14,31 @@ struct DownloadedScreen: View {
     
     var body: some View {
         NavigationStack {
-            List(downloadedFiles) { file in
-                NavigationLink {
-                    FolderContentsView(folderURL: file.url, fileManagerSerivce: fileManagerSerivce)
-                } label: {
-                    Text(file.url.lastPathComponent)
+            if downloadedFiles.isEmpty {
+                VStack {
+                    EmptyAnimation()
+//                    Text("Вы пока ничего не скачивали.")
+//                        .foregroundStyle(.black)
+//                        .font(.system(.title2, design: .rounded, weight: .bold))
                 }
-
+            } else {
+                List(downloadedFiles) { file in
+                    NavigationLink {
+                        FolderContentsView(folderURL: file.url, fileManagerSerivce: fileManagerSerivce)
+                    } label: {
+                        Text(file.url.lastPathComponent)
+                    }
+                    .swipeActions {
+                        Button {
+                            if fileManagerSerivce.deleteFile(at: file.url) {
+                                downloadedFiles.removeAll { $0.id == file.id }
+                            }
+                        } label: {
+                            Label("Удалить", systemImage: "trash")
+                        }
+                        .tint(.red)
+                    }
+                }
             }
         }
         .onAppear {
@@ -59,6 +77,16 @@ struct FolderContentsView: View {
                 }
             })
             .padding(.vertical)
+            .swipeActions {
+                Button {
+                    if fileManagerSerivce.deleteFile(at: item.url) {
+                        contents.removeAll { $0.id == item.id }
+                    }
+                } label: {
+                    Label("Удалить", systemImage: "trash")
+                }
+                .tint(.red)
+            }
         }
         .navigationTitle(folderURL.lastPathComponent)
         .onAppear {

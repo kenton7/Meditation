@@ -45,23 +45,22 @@ struct PlayerScreen: View {
                     .padding()
                     Spacer()
                     
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            //MARK: - TODO: реализовать проверку лайкнуто или нет и куда-то перемещать лайкнутый урок
-                            isLiked.toggle()
-                        }, label: {
-                            Image(isLiked ? "LikeButton_fill" : "LikeButton")
-                        })
-                        
-                        if let lesson {
+                    if let lesson {
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                //MARK: - TODO: реализовать проверку лайкнуто или нет и куда-то перемещать лайкнутый урок
+                                isLiked.toggle()
+                            }, label: {
+                                Image(isLiked ? "LikeButton_fill" : "LikeButton")
+                            })
                             
                             Button(action: {
                                 //if let lesson {
-                                    databaseVM.download(course: course,
-                                                        courseType: course.type,
-                                                        isFemale: isFemale,
-                                                        lesson: lesson)
+                                databaseVM.download(course: course,
+                                                    courseType: course.type,
+                                                    isFemale: isFemale,
+                                                    lesson: lesson)
                                 //}
                             }, label: {
                                 Image("DownloadButton")
@@ -112,9 +111,9 @@ struct PlayerScreen: View {
                         })
                         
                         Button(action: {
-//                            guard let lesson = lesson else { print("no lesson")
-//                                return
-//                            }
+                            //                            guard let lesson = lesson else { print("no lesson")
+                            //                                return
+                            //                            }
                             
                             if let lesson {
                                 let url = isFemale ? lesson.audioFemaleURL : lesson.audioMaleURL
@@ -144,12 +143,12 @@ struct PlayerScreen: View {
                             }
                         }, label: {
                             //if let lesson {
-                                Image(systemName: playerViewModel.isAudioPlaying() ? "pause.circle.fill" : "play.circle.fill")
-                                    .font(.system(size: 85))
-                                    .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                                          green: 65/255,
-                                                                          blue: 78/255,
-                                                                          alpha: 1)))
+                            Image(systemName: playerViewModel.isAudioPlaying() ? "pause.circle.fill" : "play.circle.fill")
+                                .font(.system(size: 85))
+                                .foregroundStyle(Color(uiColor: .init(red: 63/255,
+                                                                      green: 65/255,
+                                                                      blue: 78/255,
+                                                                      alpha: 1)))
                             //}
                         })
                         .overlay {

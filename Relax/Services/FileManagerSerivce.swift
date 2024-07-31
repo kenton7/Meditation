@@ -10,6 +10,7 @@ import Foundation
 protocol IFileManagerSerivce: AnyObject {
     func getDownloadFiles() -> [FileItem]
     func getContentsOfFolder(at url: URL) -> [FileItem] 
+    func deleteFile(at url: URL) -> Bool
 }
 
 struct FileItem: Identifiable {
@@ -19,8 +20,9 @@ struct FileItem: Identifiable {
 
 final class FileManagerSerivce: IFileManagerSerivce {
     
+    let fileManager = FileManager.default
+    
     func getDownloadFiles() -> [FileItem] {
-        let fileManager = FileManager.default
         let documentDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
         
         do {
@@ -38,7 +40,6 @@ final class FileManagerSerivce: IFileManagerSerivce {
     }
     
     func getContentsOfFolder(at url: URL) -> [FileItem] {
-        let fileManager = FileManager.default
         
         do {
             let fileURLs = try fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
@@ -48,5 +49,16 @@ final class FileManagerSerivce: IFileManagerSerivce {
             return []
         }
     }
+    
+    func deleteFile(at url: URL) -> Bool {
+            do {
+                try fileManager.removeItem(at: url)
+                print("Файл успешно удален: \(url)")
+                return true
+            } catch {
+                print("Ошибка при удалении файла: \(error.localizedDescription)")
+                return false
+            }
+        }
     
 }

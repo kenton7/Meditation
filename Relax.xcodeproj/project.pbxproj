@@ -28,6 +28,8 @@
 		0909C83B2C348D060049744F /* ProfileScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0909C83A2C348D060049744F /* ProfileScreen.swift */; };
 		091DEEFF2C5A17F000184F16 /* DownloadedScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091DEEFE2C5A17F000184F16 /* DownloadedScreen.swift */; };
 		091DEF012C5A1A4800184F16 /* FileManagerSerivce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091DEF002C5A1A4800184F16 /* FileManagerSerivce.swift */; };
+		091DEF032C5A451700184F16 /* EmptyAnimation.json in Resources */ = {isa = PBXBuildFile; fileRef = 091DEF022C5A451700184F16 /* EmptyAnimation.json */; };
+		091DEF052C5A453800184F16 /* EmptyAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091DEF042C5A453800184F16 /* EmptyAnimation.swift */; };
 		0920C7C02C29B2CE00AE9FAC /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 0920C7BF2C29B2CE00AE9FAC /* FirebaseDatabase */; };
 		0920C7C22C29B2D400AE9FAC /* FirebaseDatabaseSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 0920C7C12C29B2D400AE9FAC /* FirebaseDatabaseSwift */; };
 		0920C7C42C29BB6000AE9FAC /* AuthErrorCode+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0920C7C32C29BB6000AE9FAC /* AuthErrorCode+Extension.swift */; };
@@ -101,6 +103,8 @@
 		0909C83A2C348D060049744F /* ProfileScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileScreen.swift; sourceTree = "<group>"; };
 		091DEEFE2C5A17F000184F16 /* DownloadedScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadedScreen.swift; sourceTree = "<group>"; };
 		091DEF002C5A1A4800184F16 /* FileManagerSerivce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManagerSerivce.swift; sourceTree = "<group>"; };
+		091DEF022C5A451700184F16 /* EmptyAnimation.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = EmptyAnimation.json; path = ../../../../Downloads/EmptyAnimation.json; sourceTree = "<group>"; };
+		091DEF042C5A453800184F16 /* EmptyAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyAnimation.swift; sourceTree = "<group>"; };
 		0920C7C32C29BB6000AE9FAC /* AuthErrorCode+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AuthErrorCode+Extension.swift"; sourceTree = "<group>"; };
 		0920C7C72C2AEC2F00AE9FAC /* UserLearningAnimation.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = UserLearningAnimation.json; sourceTree = "<group>"; };
 		0920C7C92C2AEC4600AE9FAC /* UserLearningAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserLearningAnimation.swift; sourceTree = "<group>"; };
@@ -254,6 +258,7 @@
 				0909C8342C31CA180049744F /* Representable */,
 				0972C6402C257CCC005ECB08 /* OnboadringRelaxAnimation.json */,
 				0929D0C92C53B4D50026CF9E /* PremiumAnimation.json */,
+				091DEF022C5A451700184F16 /* EmptyAnimation.json */,
 				0920C7C72C2AEC2F00AE9FAC /* UserLearningAnimation.json */,
 				0972C6562C259B7D005ECB08 /* TextFields */,
 				0972C6422C257D2B005ECB08 /* LottieAnimations */,
@@ -316,6 +321,7 @@
 			children = (
 				0972C6432C257D3C005ECB08 /* OnboardingAnimation.swift */,
 				0920C7C92C2AEC4600AE9FAC /* UserLearningAnimation.swift */,
+				091DEF042C5A453800184F16 /* EmptyAnimation.swift */,
 			);
 			path = LottieAnimations;
 			sourceTree = "<group>";
@@ -516,6 +522,7 @@
 				0972C62D2C257646005ECB08 /* Preview Assets.xcassets in Resources */,
 				0972C6492C258523005ECB08 /* GoogleService-Info.plist in Resources */,
 				0972C62A2C257646005ECB08 /* Assets.xcassets in Resources */,
+				091DEF032C5A451700184F16 /* EmptyAnimation.json in Resources */,
 				0972C6412C257CCC005ECB08 /* OnboadringRelaxAnimation.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -570,6 +577,7 @@
 				0909C8172C2D55720049744F /* MusicFilesViewModel.swift in Sources */,
 				0909C83B2C348D060049744F /* ProfileScreen.swift in Sources */,
 				0972C6532C25955F005ECB08 /* String+Extensions.swift in Sources */,
+				091DEF052C5A453800184F16 /* EmptyAnimation.swift in Sources */,
 				0972C6692C2604CB005ECB08 /* LogInView.swift in Sources */,
 				0909C8132C2D3E670049744F /* HomeScreenViewModel.swift in Sources */,
 				0909C8302C3097230049744F /* PlayerViewModel.swift in Sources */,
