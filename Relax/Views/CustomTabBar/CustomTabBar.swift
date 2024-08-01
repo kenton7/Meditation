@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-enum TabbedItems: Int, CaseIterable {
-    case home = 0
+enum TabbedItems: Hashable, CaseIterable, Identifiable {
+    case home
     case sleep
     case meditation
     case music
@@ -43,59 +43,73 @@ enum TabbedItems: Int, CaseIterable {
             return "person.fill"
         }
     }
+    
+    var id: TabbedItems { self }
+}
+
+extension TabbedItems {
+    
+    @ViewBuilder
+    var destination: some View {
+        switch self {
+        case .home:
+            HomeScreen()
+        case .sleep:
+            SleepScreen()
+        case .meditation:
+            MeditationScreen()
+        case .music:
+            MusicScreen()
+        case .profile:
+            ProfileScreen()
+        }
+    }
 }
 
 struct CustomTabBar: View {
     
     @State private var selectedTab = 0
+    @State private var selection: TabbedItems = .home
+    //@Binding var selection: Int
     private let musicViewModel = MusicFilesViewModel()
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            TabView(selection: $selectedTab) {
-                HomeScreen()
-                    .tag(0)
-                
-                SleepScreen()
-                    .tag(1)
-                
-                MeditationScreen()
-                    .tag(2)
-                
-                MusicScreen()
-                    .tag(3)
-                    .environmentObject(musicViewModel)
-                
-                ProfileScreen()
-                    .tag(4)
+            TabView(selection: $selection) {
+                ForEach(TabbedItems.allCases) { screen in
+                    screen.destination
+                        .tag(selection as TabbedItems?)
+                }
             }
+            .environment(\.currentTab, $selection)
             
             HStack(spacing: 10) {
                 ForEach(TabbedItems.allCases, id: \.self) { item in
                     Button {
                         withAnimation {
-                            selectedTab = item.rawValue
+                            selection = item
                         }
                     } label: {
                         customTabItem(imageName: item.iconName,
                                       title: item.title,
-                                      isActive: (selectedTab == item.rawValue)
+                                      isActive: (selection == item as TabbedItems?)
                         )
                     }
                     .frame(maxWidth: .infinity)
                 }
             }
             .frame(height: 65)
-            .background(selectedTab == 1 ? Color(uiColor: .init(red: 3/255,
+            .background(selection == .sleep ? Color(uiColor: .init(red: 3/255,
                                                                 green: 23/255,
                                                                 blue: 77/255,
                                                                 alpha: 1)) : .white)
         }
-        .shadow(color: selectedTab == 1 ? .white.opacity(0.4) : .black.opacity(0.4), radius: 10, x: 0, y: 5)
+        .shadow(color: selection == .sleep ? .white.opacity(0.4) : .black.opacity(0.4), radius: 10, x: 0, y: 5)
     }
 }
 
 extension CustomTabBar {
+    @ViewBuilder
     func customTabItem(imageName: String, title: String, isActive: Bool) -> some View {
         VStack(spacing: 3) {
             ZStack {
@@ -116,8 +130,8 @@ extension CustomTabBar {
             
             Text(title)
                 .padding(.horizontal, 0)
-                .foregroundStyle((isActive && selectedTab == 1) ? .white
-                                 : (isActive && selectedTab != 1 ?
+                .foregroundStyle((isActive && selection == .sleep) ? .white
+                                 : (isActive && selection != .sleep ?
                                     Color(uiColor: .init(red: 142/255,
                                                          green: 151/255,
                                                          blue: 253/255,
@@ -128,6 +142,17 @@ extension CustomTabBar {
     }
 }
 
-#Preview {
-    CustomTabBar()
+private struct CurrentTabKey: EnvironmentKey {
+    static let defaultValue: Binding<TabbedItems> = .constant(.home)
 }
+
+extension EnvironmentValues {
+    var currentTab: Binding<TabbedItems> {
+        get { self[CurrentTabKey.self] }
+        set { self[CurrentTabKey.self] = newValue }
+    }
+}
+
+//#Preview {
+//    CustomTabBar()
+//}

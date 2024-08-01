@@ -11,6 +11,7 @@ import FirebaseAuth
 struct MainScreen: View {
     
     @StateObject private var viewModel = AuthWithEmailViewModel()
+    //@State private var selection: Int = 0
     
     var body: some View {
         //NavigationStack {

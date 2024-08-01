@@ -379,6 +379,7 @@ struct NightStories: View {
     @State private var isSelected = false
     @State private var selectedStory: CourseAndPlaylistOfDayModel?
     @Binding var isShowing: Bool
+    @Environment(\.currentTab) private var selectedTab
     
     var body: some View {
         NavigationStack {
@@ -430,8 +431,9 @@ struct NightStories: View {
                                 })
                                 .padding(.horizontal)
                             }
-                            NavigationLink {
-                                SleepScreen()
+                            Button {
+                                //SleepScreen()
+                                selectedTab.wrappedValue = .sleep
                             } label: {
                                 ZStack {
                                     Circle()
