@@ -7,7 +7,12 @@
 
 import SwiftUI
 
-enum TabbedItems: Hashable, CaseIterable, Identifiable {
+//MARK: - CurrentTabKey
+struct CurrentTabKey: EnvironmentKey {
+    static let defaultValue: Binding<TabbedItems> = .constant(.home)
+}
+
+enum TabbedItems: Hashable, CaseIterable {
     case home
     case sleep
     case meditation
@@ -42,9 +47,7 @@ enum TabbedItems: Hashable, CaseIterable, Identifiable {
         case .profile:
             return "person.fill"
         }
-    }
-    
-    var id: TabbedItems { self }
+    }    
 }
 
 extension TabbedItems {
@@ -68,15 +71,12 @@ extension TabbedItems {
 
 struct CustomTabBar: View {
     
-    @State private var selectedTab = 0
     @State private var selection: TabbedItems = .home
-    //@Binding var selection: Int
-    private let musicViewModel = MusicFilesViewModel()
     
     var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selection) {
-                ForEach(TabbedItems.allCases) { screen in
+                ForEach(TabbedItems.allCases, id: \.self) { screen in
                     screen.destination
                         .tag(selection as TabbedItems?)
                 }
@@ -104,11 +104,13 @@ struct CustomTabBar: View {
                                                                 blue: 77/255,
                                                                 alpha: 1)) : .white)
         }
-        .shadow(color: selection == .sleep ? .white.opacity(0.4) : .black.opacity(0.4), radius: 10, x: 0, y: 5)
+        .shadow(color: .black.opacity(0.4), radius: 10, x: 0, y: 5)
+        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 }
 
 extension CustomTabBar {
+    
     @ViewBuilder
     func customTabItem(imageName: String, title: String, isActive: Bool) -> some View {
         VStack(spacing: 3) {
@@ -139,17 +141,6 @@ extension CustomTabBar {
                                     : .gray))
                 .font(.system(size: 11, weight: .bold, design: .rounded))
         }
-    }
-}
-
-private struct CurrentTabKey: EnvironmentKey {
-    static let defaultValue: Binding<TabbedItems> = .constant(.home)
-}
-
-extension EnvironmentValues {
-    var currentTab: Binding<TabbedItems> {
-        get { self[CurrentTabKey.self] }
-        set { self[CurrentTabKey.self] = newValue }
     }
 }
 

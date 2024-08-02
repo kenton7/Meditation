@@ -74,7 +74,7 @@ struct GreetingView: View {
         VStack {
             HStack {
                 VStack(alignment: .leading) {
-                    Text(homeScreenViewModel.greeting + "!")
+                    Text(homeScreenViewModel.greeting)
                         .padding()
                         .foregroundStyle(Color(uiColor: .init(red: 63/255,
                                                               green: 65/255,
@@ -95,6 +95,9 @@ struct GreetingView: View {
             .padding(.vertical)
             .offset(y: isShowing ? 0 : -200)
             .animation(.bouncy, value: isShowing)
+        }
+        .onAppear {
+            homeScreenViewModel.updateGreeting()
         }
     }
 }

@@ -26,22 +26,22 @@ class HomeScreenViewModel: ObservableObject {
         updateGreeting()
     }
     
-    private func updateGreeting() {
+    func updateGreeting() {
         switch currentHour {
         case 0..<4:
-            self.greeting = "Доброй ночи, \(user?.displayName ?? "User")"
+            self.greeting = "Доброй ночи, \(user?.displayName ?? "User")!"
             self.secondaryGreeting = "Желаем вам сладких снов и крепкого отдыха."
         case 4..<12:
-            self.greeting = "Доброе утро, \(user?.displayName ?? "User")"
+            self.greeting = "Доброе утро, \(user?.displayName ?? "User")!"
             self.secondaryGreeting = "Пусть этот день принесёт вам радость и вдохновение."
         case 12..<18:
-            self.greeting = "Добрый день, \(user?.displayName ?? "User")"
+            self.greeting = "Добрый день, \(user?.displayName ?? "User")!"
             self.secondaryGreeting = "Желаем вам продуктивного и приятного дня."
         case 18...23:
-            self.greeting = "Добрый вечер, \(user?.displayName ?? "User")"
+            self.greeting = "Добрый вечер, \(user?.displayName ?? "User")!"
             self.secondaryGreeting = "Пусть ваш вечер будет спокойным и уютным."
         default:
-            self.greeting = "Привет, \(user?.displayName ?? "User")"
+            self.greeting = "Привет, \(user?.displayName ?? "User")!"
             self.secondaryGreeting = ""
         }
     }

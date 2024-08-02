@@ -30,15 +30,15 @@ struct SleepScreen: View {
                 }
                 .ignoresSafeArea()
             }
+            .onAppear {
+                isShowing = true
+            }
+            .onDisappear {
+                isShowing = false
+            }
         }
         .refreshable {
             nightStoriesVM.fetchNightStories()
-        }
-        .onAppear {
-            isShowing = true
-        }
-        .onDisappear {
-            isShowing = false
         }
     }
 }

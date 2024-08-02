@@ -56,12 +56,9 @@ struct PlayerScreen: View {
                             })
                             
                             Button(action: {
-                                //if let lesson {
-                                databaseVM.download(course: course,
-                                                    courseType: course.type,
-                                                    isFemale: isFemale,
-                                                    lesson: lesson)
-                                //}
+                                Task.detached {
+                                    try await databaseVM.asyncDownload(course: course, courseType: course.type, isFemale: isFemale, lesson: lesson)
+                                }
                             }, label: {
                                 Image("DownloadButton")
                             })

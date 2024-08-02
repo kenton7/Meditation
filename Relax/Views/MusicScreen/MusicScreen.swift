@@ -10,21 +10,30 @@ import AVKit
 
 struct MusicScreen: View {
     @StateObject private var viewModel = MusicFilesViewModel()
-    @State private var player: AVPlayer?
+    @State private var isShowing = false
     
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
-                MusicHeaderView()
-                AllMusicPlaylists()
+                MusicHeaderView(isShowing: $isShowing)
+                AllMusicPlaylists(isShowing: $isShowing)
                     .environmentObject(viewModel)
            }
+            .onAppear {
+                isShowing = true
+            }
+            .onDisappear {
+                isShowing = false
+            }
         }
         .padding(.bottom)
     }
 }
 
 struct MusicHeaderView: View {
+    
+    @Binding var isShowing: Bool
+    
     var body: some View {
         VStack {
             Text("Музыка")
@@ -43,6 +52,8 @@ struct MusicHeaderView: View {
             Spacer()
         }
         .padding(.vertical)
+        .offset(y: isShowing ? 0 : -1000)
+        .animation(.bouncy, value: isShowing)
     }
 }
 
@@ -51,6 +62,7 @@ struct AllMusicPlaylists: View {
     @EnvironmentObject private var musicViewModel: MusicFilesViewModel
     @State private var isSelected = false
     @State var selectedPlaylist: CourseAndPlaylistOfDayModel?
+    @Binding var isShowing: Bool
     
     var body: some View {
         NavigationStack {
@@ -91,8 +103,10 @@ struct AllMusicPlaylists: View {
                                 }
                             })
                         }
-                })
+                    })
                 }
+                .offset(x: isShowing ? 0 : -1000)
+                .animation(.bouncy, value: isShowing)
         }
         .navigationDestination(isPresented: $isSelected) {
             if let selectedPlaylist {
@@ -104,5 +118,5 @@ struct AllMusicPlaylists: View {
 
 
 #Preview("AllMusic") {
-    AllMusicPlaylists()
+    AllMusicPlaylists(isShowing: .constant(true))
 }

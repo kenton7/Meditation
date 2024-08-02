@@ -44,13 +44,6 @@ struct EmailFieldView: View {
                         .opacity(isFocused ? 1 : 0)
                 }
             }
-            .onAppear {
-                //isEmailEditing = false
-            }
-            
     }
 }
 
-#Preview {
-    EmailFieldView("Email", email: .constant("kuznecov95-95@yandex.ru"))
-}

@@ -13,7 +13,8 @@ import SwiftUI
 
 
 protocol DatabaseChangable: AnyObject {
-    func download(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool, lesson: Lesson)
+    func asyncDownload(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool, lesson: Lesson) async throws -> URL
+    func downloadAllCourse(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool?, lessons: [Lesson]) async throws -> [URL]
     func userLiked(course: CourseAndPlaylistOfDayModel, type: IncrementDecrementLike, isLiked: Bool, user: User, courseType: Types)
     func updateListeners(course: CourseAndPlaylistOfDayModel, type: Types)
     func getListenersIn(course: CourseAndPlaylistOfDayModel, courseType: Types)
@@ -22,9 +23,9 @@ protocol DatabaseChangable: AnyObject {
     func checkIfUserLiked(user: User, course: CourseAndPlaylistOfDayModel)
     func writeToDatabaseIfUserViewedTutorial(user: User, isViewed: Bool)
     func checkIfUserViewedTutorial(user: User) async
-    func updateDisplayName(newDisplayName: String)
+    func updateDisplayName(newDisplayName: String) async throws
     func changeEmail(newEmail: String) async throws
-    func updatePassword(newPassword: String, currentPassword: String, completion: @escaping (Error?) -> Void)
+    func updatePassword(newPassword: String, currentPassword: String) async throws
 }
 
 enum IncrementDecrementLike {
@@ -45,45 +46,65 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
     private var authViewModel = AuthWithEmailViewModel()
     @State private var downloadURL: URL?
     
-    func download(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool, lesson: Lesson) {
+    func downloadAllCourse(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool?, lessons: [Lesson]) async throws -> [URL] {
+        var results = [URL]()
         
-        let storage = Storage.storage()
-        let storageRef = storage.reference()
+        try await withThrowingTaskGroup(of: URL.self) { [unowned self] group in
+            for lesson in lessons {
+                group.addTask {
+                    return try await self.asyncDownload(course: course, courseType: courseType, isFemale: isFemale ?? true, lesson: lesson)
+                }
+            }
+            for try await result in group {
+                results.append(result)
+            }
+        }
+        
+        return results
+    }
+    
+    func asyncDownload(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool, lesson: Lesson) async throws -> URL {
+        
         var localURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         
-        switch courseType {
-        case .playlist:
-            break
-        case .meditation:
-            let lessonRef = storageRef.child("meditations/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
-            localURL.append(path: "\(course.name)/\(lesson.name)", directoryHint: .isDirectory)
-            localURL.appendPathExtension(for: .mp3)
-            print(lessonRef)
-            let downloadTask = lessonRef.write(toFile: localURL) { url, error in
-                self.isDownloadStarted = true
+        var storageRef: StorageReference {
+            switch courseType {
+            case .playlist:
+                return Storage.storage().reference(withPath: "music/\(course.id)/\(lesson.lessonID).mp3")
+            case .meditation:
+                return Storage.storage().reference(withPath: "meditations/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
+            case .story:
+                return Storage.storage().reference(withPath: "stories/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
+            case .emergency:
+                return Storage.storage().reference(withPath: "emergency/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
+            }
+        }
+        
+        localURL.append(path: "\(course.name)/\(lesson.name)", directoryHint: .isDirectory)
+        localURL.appendPathExtension(for: .mp3)
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            let downloadTask = storageRef.write(toFile: localURL) { url, error in
                 if let error = error {
-                    print("Ошибка загрузки: \(error.localizedDescription)")
-                    self.isDownloadStarted = false
-                    return
-                }
-                print("Файл загружен в: \(url!.path)")
-                DispatchQueue.main.async {
-                    self.downloadURL = url
-                    self.isDownloadStarted = false
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume(returning: localURL)
                 }
             }
             
             downloadTask.observe(.progress) { snapshot in
                 let percentComplete = 100 * Double(snapshot.progress!.completedUnitCount) / Double(snapshot.progress!.totalUnitCount)
                 print("Загрузка: \(percentComplete)% завершено")
-                self.downloadProgress = percentComplete
+                DispatchQueue.main.async {
+                    self.downloadProgress = percentComplete
+                }
             }
-        case .story:
-            break
-            //referecne = storage.reference(forURL: .databaseURL + "\(isFemale ? lesson.audioFemaleURL : lesson.audioMaleURL)")
-        case .emergency:
-            break
-            //referecne = storage.reference(forURL: .databaseURL + "\(isFemale ? lesson.audioFemaleURL : lesson.audioMaleURL)")
+            
+            downloadTask.observe(.failure) { snapshot in
+                if let error = snapshot.error {
+                    continuation.resume(throwing: error)
+                }
+            }
         }
     }
     
@@ -152,93 +173,52 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
     
     func getListenersIn(course: CourseAndPlaylistOfDayModel, courseType: Types) {
         
-        switch courseType {
-        case .playlist:
-            Database.database(url: .databaseURL).reference().child("music").child(course.id).child("listenedCount").observeSingleEvent(of: .value) { snapshot in
-                if let listenersCount = snapshot.value as? Int {
-                    DispatchQueue.main.async {
-                        self.listeners = listenersCount
-                    }
-                } else {
-                    print("Значение не найдено для \(course.id) в music")
-                }
+        var path: String {
+            switch courseType {
+            case .playlist:
+                "music"
+            case .meditation:
+                "courses"
+            case .story:
+                "nightStories"
+            case .emergency:
+                "emergencyMeditation"
             }
-        case .meditation:
-            Database.database(url: .databaseURL).reference().child("courses").child(course.id).child("listenedCount").observeSingleEvent(of: .value) { snapshot in
-                if let listenersCount = snapshot.value as? Int {
-                    DispatchQueue.main.async {
-                        self.listeners = listenersCount
-                    }
-                } else {
-                    print("Значение не найдено для \(course.id) в meditation")
+        }
+        
+        Database.database(url: .databaseURL).reference().child(path).child(course.id).child("listenedCount").observeSingleEvent(of: .value) { snapshot in
+            if let listenersCount = snapshot.value as? Int {
+                DispatchQueue.main.async {
+                    self.listeners = listenersCount
                 }
-            }
-        case .story:
-            Database.database(url: .databaseURL).reference().child("nightStories").child(course.id).child("listenedCount").observeSingleEvent(of: .value) { snapshot in
-                if let listenersCount = snapshot.value as? Int {
-                    DispatchQueue.main.async {
-                        self.listeners = listenersCount
-                    }
-                } else {
-                    print("Значение не найдено для \(course.id) в story")
-                }
-            }
-        case .emergency:
-            print("emergency")
-            Database.database(url: .databaseURL).reference().child("emergencyMeditation").child(course.id).child("listenedCount").observeSingleEvent(of: .value) { snapshot in
-                if let listenersCount = snapshot.value as? Int {
-                    DispatchQueue.main.async {
-                        self.listeners = listenersCount
-                    }
-                } else {
-                    print("Значение не найдено для \(course.id) в emergency")
-                }
+            } else {
+                print("Значнние не найдено для \(course.id) в \(path)")
             }
         }
     }
     
     func getLikesIn(course: CourseAndPlaylistOfDayModel, courseType: Types) {
         
-        switch courseType {
-        case .playlist:
-            Database.database(url: .databaseURL).reference().child("music").child(course.id).child("likes").observe(.value) { snapshot in
-                if let likesValue = snapshot.value as? Int {
-                    DispatchQueue.main.async {
-                        self.likes = likesValue
-                    }
-                } else {
-                    print("Значение не найдено для \(course.id) в music")
-                }
+        var path: String {
+            switch courseType {
+            case .playlist:
+                "music"
+            case .meditation:
+                "courses"
+            case .story:
+                "nightStories"
+            case .emergency:
+                "emergencyMeditation"
             }
-        case .meditation:
-            Database.database(url: .databaseURL).reference().child("courses").child(course.id).child("likes").observeSingleEvent(of: .value) { snapshot in
-                if let likesValue = snapshot.value as? Int {
-                    DispatchQueue.main.async {
-                        self.likes = likesValue
-                    }
-                } else {
-                    print("Значение не найдено для \(course.id) в meditation")
+        }
+        
+        Database.database(url: .databaseURL).reference().child(path).child(course.id).child("likes").observeSingleEvent(of: .value) { snapshot in
+            if let likesCount = snapshot.value as? Int {
+                DispatchQueue.main.async {
+                    self.likes = likesCount
                 }
-            }
-        case .story:
-            Database.database(url: .databaseURL).reference().child("nightStories").child(course.id).child("likes").observeSingleEvent(of: .value) { snapshot in
-                if let likesValue = snapshot.value as? Int {
-                    DispatchQueue.main.async {
-                        self.likes = likesValue
-                    }
-                } else {
-                    print("Значение не найдено для \(course.id) в story")
-                }
-            }
-        case .emergency:
-            Database.database(url: .databaseURL).reference().child("emergencyMeditation").child(course.id).child("likes").observeSingleEvent(of: .value) { snapshot in
-                if let likesValue = snapshot.value as? Int {
-                    DispatchQueue.main.async {
-                        self.likes = likesValue
-                    }
-                } else {
-                    print("Значение не найдено для \(course.id) в emergency")
-                }
+            } else {
+                print("Значнние не найдено для \(course.id) в \(path)")
             }
         }
     }
@@ -291,62 +271,54 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
         }
     }
     
-    func updateDisplayName(newDisplayName: String) {
+    func updateDisplayName(newDisplayName: String) async throws {
         guard let user = Auth.auth().currentUser else {
             print("No user is signed in.")
-            //completion(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No user is signed in."]))
-            return
+            throw(NSError(domain: "Авторизованный пользователь не найден", code: 121))
         }
         
         let changeRequest = user.createProfileChangeRequest()
         changeRequest.displayName = newDisplayName
-        changeRequest.commitChanges { error in
-            if let error = error {
-                print("Error updating display name: \(error.localizedDescription)")
-            } else {
-                print("Display name updated successfully to \(newDisplayName)")
-            }
-            //completion(error)
+        
+        do {
+            try await changeRequest.commitChanges()
+        } catch {
+            throw(NSError(domain: "Произошла ошибка при попытке изменения имени", code: 119))
         }
     }
     
     func changeEmail(newEmail: String) async throws {
-        guard let user = Auth.auth().currentUser else {
-            print("No user is signed in.")
-            return
+        guard !newEmail.isEmpty, newEmail.isValidEmail() else {
+            throw(NSError(domain: "Новое значение email введено неверно или не может быть пустым", code: 120, userInfo: ["Ошибка": ""]))
         }
-        try await user.sendEmailVerification(beforeUpdatingEmail: newEmail)
+        
+        guard let user = Auth.auth().currentUser, !newEmail.isEmpty, newEmail.isValidEmail() else {
+            print("No user is signed in.")
+            throw(NSError(domain: "Авторизованный пользователь не найден", code: 121))
+        }
+        do {
+            try await user.sendEmailVerification(beforeUpdatingEmail: newEmail)
+        } catch {
+            throw(error)
+        }
     }
     
-    func updatePassword(newPassword: String, currentPassword: String, completion: @escaping (Error?) -> Void) {
+    func updatePassword(newPassword: String, currentPassword: String) async throws {
         guard let user = Auth.auth().currentUser else {
-                    print("Пользователь не найден")
-            completion(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No user is signed in."]))
-                    return
-                }
-
-                // Для повторной аутентификации используем метод EmailAuthProvider
-                let credential = EmailAuthProvider.credential(withEmail: user.email ?? "", password: currentPassword)
-
-                user.reauthenticate(with: credential) { result, error in
-                    if let error = error {
-                        print("Ошибка аутентификации: \(error.localizedDescription)")
-                        completion(error)
-                        return
-                    }
-
-                    // Повторная аутентификация успешна, теперь можно обновить пароль
-                    user.updatePassword(to: newPassword) { [weak self] error in
-                        if let error = error {
-                            print(error.localizedDescription)
-                            completion(error)
-                        } else {
-                            print("Пароль успешно обновлен. Вы будете перенаправлены на экран входа.")
-                            self?.authViewModel.signOut()
-                        }
-                    }
-                }
+            print("Пользователь не найден")
+            throw(NSError(domain: "Авторизованный пользователь не найден", code: 121))
+        }
+        
+        // Для повторной аутентификации используем метод EmailAuthProvider
+        let credential = EmailAuthProvider.credential(withEmail: user.email ?? "", password: currentPassword)
+        
+        do {
+            try await user.reauthenticate(with: credential)
+            try await user.updatePassword(to: newPassword)
+            authViewModel.signOut()
+        } catch {
+            throw(NSError(domain: "Текущий пароль введён неверно", code: 122))
+        }
     }
-    
-    
 }
+

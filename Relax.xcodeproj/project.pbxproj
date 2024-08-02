@@ -30,6 +30,7 @@
 		091DEF012C5A1A4800184F16 /* FileManagerSerivce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091DEF002C5A1A4800184F16 /* FileManagerSerivce.swift */; };
 		091DEF032C5A451700184F16 /* EmptyAnimation.json in Resources */ = {isa = PBXBuildFile; fileRef = 091DEF022C5A451700184F16 /* EmptyAnimation.json */; };
 		091DEF052C5A453800184F16 /* EmptyAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091DEF042C5A453800184F16 /* EmptyAnimation.swift */; };
+		091DEF072C5B83D000184F16 /* EnvironmentValues+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091DEF062C5B83D000184F16 /* EnvironmentValues+Extension.swift */; };
 		0920C7C02C29B2CE00AE9FAC /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 0920C7BF2C29B2CE00AE9FAC /* FirebaseDatabase */; };
 		0920C7C22C29B2D400AE9FAC /* FirebaseDatabaseSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 0920C7C12C29B2D400AE9FAC /* FirebaseDatabaseSwift */; };
 		0920C7C42C29BB6000AE9FAC /* AuthErrorCode+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0920C7C32C29BB6000AE9FAC /* AuthErrorCode+Extension.swift */; };
@@ -105,6 +106,7 @@
 		091DEF002C5A1A4800184F16 /* FileManagerSerivce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManagerSerivce.swift; sourceTree = "<group>"; };
 		091DEF022C5A451700184F16 /* EmptyAnimation.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = EmptyAnimation.json; path = ../../../../Downloads/EmptyAnimation.json; sourceTree = "<group>"; };
 		091DEF042C5A453800184F16 /* EmptyAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyAnimation.swift; sourceTree = "<group>"; };
+		091DEF062C5B83D000184F16 /* EnvironmentValues+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EnvironmentValues+Extension.swift"; sourceTree = "<group>"; };
 		0920C7C32C29BB6000AE9FAC /* AuthErrorCode+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AuthErrorCode+Extension.swift"; sourceTree = "<group>"; };
 		0920C7C72C2AEC2F00AE9FAC /* UserLearningAnimation.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = UserLearningAnimation.json; sourceTree = "<group>"; };
 		0920C7C92C2AEC4600AE9FAC /* UserLearningAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserLearningAnimation.swift; sourceTree = "<group>"; };
@@ -350,6 +352,7 @@
 				0909C8372C32DC120049744F /* AVPlayer+Extansion.swift */,
 				0929D0C72C4671B60026CF9E /* UserDefaults+Extension.swift */,
 				0929D0CD2C53B8520026CF9E /* View+Extension.swift */,
+				091DEF062C5B83D000184F16 /* EnvironmentValues+Extension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -573,6 +576,7 @@
 				09E871DD2C384E2C002CEB54 /* LessonsView.swift in Sources */,
 				0909C8262C2DB6C50049744F /* RecommendationModel.swift in Sources */,
 				09D9B3BD2C3FC33A0082295A /* MeditationScreen.swift in Sources */,
+				091DEF072C5B83D000184F16 /* EnvironmentValues+Extension.swift in Sources */,
 				0920C7C42C29BB6000AE9FAC /* AuthErrorCode+Extension.swift in Sources */,
 				0909C8172C2D55720049744F /* MusicFilesViewModel.swift in Sources */,
 				0909C83B2C348D060049744F /* ProfileScreen.swift in Sources */,

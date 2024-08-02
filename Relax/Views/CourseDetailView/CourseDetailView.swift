@@ -24,6 +24,7 @@ struct CourseDetailView: View {
     private let user = Auth.auth().currentUser
     @State private var isFemale = true
     @State private var isSelected = false
+    @State private var lessons = [Lesson]()
     
     var body: some View {
         NavigationStack {
@@ -62,6 +63,9 @@ struct CourseDetailView: View {
             databaseViewModel.checkIfUserLiked(user: user!, course: course)
             databaseViewModel.getListenersIn(course: course, courseType: course.type)
             databaseViewModel.storyInfo(course: course, isFemale: isFemale)
+        }
+        .task {
+            lessons = await coursesViewModel.fetchCourseDetails(type: course.type, courseID: course.id)
         }
     }
     
@@ -122,6 +126,9 @@ struct CourseDetailView: View {
                         Button(action: {
                             //MARK: - TODO - Реализовать скачивание
                             //databaseViewModel.download(course: course, courseType: course.type, isFemale: isFemale)
+                            Task.detached {
+                                try await databaseViewModel.downloadAllCourse(course: course, courseType: course.type, isFemale: isFemale, lessons: lessons)
+                            }
                         }, label: {
                             Image(systemName: "arrow.down")
                                 .bold()
@@ -138,11 +145,24 @@ struct CourseDetailView: View {
                                 }
                                 .clipShape(.circle)
                         })
+                        .padding(10)
+                        .overlay {
+                            ZStack {
+                                Circle()
+                                    .stroke(Color.gray, lineWidth: 4)
+                                    .padding(10)
+                                Circle()
+                                    .trim(from: 0, to: databaseViewModel.downloadProgress)
+                                    .stroke(Color.green, lineWidth: 4)
+                                    .padding(10)
+                                    .rotationEffect(.degrees(-90))
+                            }
+                        }
                     }
                     Spacer()
                 }
             }
-            .padding(.horizontal)
+            //.padding(.horizontal)
             
             HStack {
                 Text(course.description)
@@ -207,8 +227,6 @@ struct CourseDetailView: View {
                 }
             }
             LessonsView(isFemale: $isFemale, course: course)
-                .environmentObject(coursesViewModel)
-                .environmentObject(playerViewModel)
             Spacer()
         }
         .padding()

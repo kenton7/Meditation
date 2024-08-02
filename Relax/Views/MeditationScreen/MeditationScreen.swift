@@ -117,14 +117,14 @@ struct EmergencyHelp: View {
                     }
                 })
             }
+            .offset(x: isShowing ? 0 : -1000)
+            .animation(.bouncy, value: isShowing)
         }
         .navigationDestination(isPresented: $isSelected) {
             if let course = selectedCourse {
                 ReadyCourseDetailView(course: course)
             }
         }
-        .offset(x: isShowing ? 0 : -1000)
-        .animation(.bouncy, value: isShowing)
     }
 }
 

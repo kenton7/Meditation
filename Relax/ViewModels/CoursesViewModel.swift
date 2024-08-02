@@ -30,12 +30,12 @@ class CoursesViewModel: ObservableObject {
     
     @Published var allCourses: [CourseAndPlaylistOfDayModel] = []
     @Published var dailyRecommendations: [CourseAndPlaylistOfDayModel] = []
-    @Published var lessons: [Lesson] = []
     @Published var isPlaying: Bool = false
     @Published var likesCount = 0
     @Published var filteredStories: [CourseAndPlaylistOfDayModel] = []
     @Published var dailyCourses: [CourseAndPlaylistOfDayModel] = []
     @Published var isSelected = false
+    @Published var lessons: [Lesson] = []
     private var playerViewModel = PlayerViewModel.shared
     private var cancellables = Set<AnyCancellable>()
     private let databaseRef = Database.database(url: .databaseURL).reference().child("courseAndPlaylistOfDay")
