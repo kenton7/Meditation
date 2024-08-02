@@ -105,7 +105,6 @@ struct GreetingView: View {
 //MARK: - DailyRecommendations
 struct DailyRecommendations: View {
     
-    //@StateObject private var playlistAndCourseOfDay = CoursesViewModel()
     @EnvironmentObject var viewModel: CoursesViewModel
     @State private var isCourseTapped: Bool = false
     @State private var selectedCourse: CourseAndPlaylistOfDayModel?
@@ -177,7 +176,6 @@ struct DailyRecommendations: View {
                                         AsyncImage(url: URL(string: course.imageURL)) { image in
                                             image.resizable()
                                                 .scaledToFit()
-                                                //.frame(maxWidth: 400, maxHeight: 300)
                                                 .frame(width: 200, height: 150)
                                         } placeholder: {
                                             ProgressView()
@@ -405,7 +403,6 @@ struct NightStories: View {
                                 Button(action: {
                                     isSelected = true
                                     selectedStory = nightStory
-                                    //nightStoriesViewModel.playStoryFrom(url: nightStory.audioFemaleURL)
                                 }, label: {
                                     VStack(alignment: .leading) {
                                         ZStack {
@@ -435,7 +432,6 @@ struct NightStories: View {
                                 .padding(.horizontal)
                             }
                             Button {
-                                //SleepScreen()
                                 selectedTab.wrappedValue = .sleep
                             } label: {
                                 ZStack {

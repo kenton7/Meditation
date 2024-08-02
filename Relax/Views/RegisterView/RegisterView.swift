@@ -21,7 +21,6 @@ struct RegisterView: View {
     @State private var isErrorWhileRegister: Bool = false
     @State private var errorMessage: String?
     @State private var userID: String?
-    @MainActor @State private var userModel: UserModel?
     @EnvironmentObject var viewModel: AuthWithEmailViewModel
     @State private var isRegistration = false
     
@@ -120,7 +119,6 @@ struct RegisterView: View {
                                 .stroke(Color(uiColor: .black), lineWidth: 1)
                                 .frame(width: 20, height: 20)
                                 .overlay {
-                                    //Image(systemName: isAgreeWithPrivacy ? "checkmark" : "")
                                     Image(systemName: "checkmark")
                                         .foregroundStyle(isAgreeWithPrivacy ? .green : .clear)
                                 }
@@ -130,26 +128,21 @@ struct RegisterView: View {
                     
                     Button(action: {
                         isRegistration = true
-                        errorMessage = nil
-                        Task.detached {
+                        Task {
                             do {
-                                let user = try await viewModel.asyncRegisterWith(name: name, email: email, password: password)
+                                try await viewModel.asyncRegisterWith(name: name, email: email, password: password)
                                 await MainActor.run {
-                                    userModel = user
-                                    withAnimation {
-                                        isRegistered = true
-                                        viewModel.signedIn = true
-                                        isRegistration = false
-                                        self.errorMessage = nil
-                                    }
+                                    self.isRegistered = true
+                                    print("is registered? \(self.isRegistered)")
+                                    self.errorMessage = nil
                                 }
                             } catch {
                                 await MainActor.run {
                                     self.errorMessage = "\(error.localizedDescription)"
+                                    self.isRegistration = false
                                 }
                             }
                         }
-                        
                     }, label: {
                         if isRegistration {
                             ProgressView()
@@ -168,9 +161,9 @@ struct RegisterView: View {
                     .disabled(!isAgreeWithPrivacy)
                     .padding()
                 }
-                .navigationDestination(isPresented: $isRegistered) {
-                    WelcomeScreen(user: userModel)
-                }
+            }
+            .navigationDestination(isPresented: $isRegistered) {
+                WelcomeScreen()
             }
         }
     }

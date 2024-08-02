@@ -15,22 +15,19 @@ struct ContentView: View {
     @EnvironmentObject var authViewModel: AuthWithEmailViewModel
     
     var body: some View {
-        
         Group {
-            if authViewModel.signedIn && !authViewModel.userID.isEmpty {
-                MainScreen()
+            if authViewModel.signedIn /*&& !authViewModel.userID.isEmpty*/ {
+                //NavigationStack {
+                    MainScreen()
+                //}
             } else {
                 NavigationStack {
                     OnboardingScreen()
                 }
             }
         }
-        .tint(.white)
         .onAppear {
             authViewModel.signedIn = authViewModel.isUserLoggedIn
-        }
-        .onChange(of: authViewModel.signedIn) { signedIn in
-            print("signedIn changed: \(signedIn)")
         }
     }
 }

@@ -38,8 +38,6 @@ class CoursesViewModel: ObservableObject {
     @Published var lessons: [Lesson] = []
     private var playerViewModel = PlayerViewModel.shared
     private var cancellables = Set<AnyCancellable>()
-    private let databaseRef = Database.database(url: .databaseURL).reference().child("courseAndPlaylistOfDay")
-    private let imageLoadSemaphore = DispatchSemaphore(value: 1)
     private var lastUpdate: Date?
     var dailyCourse: CourseAndPlaylistOfDayModel?
     
@@ -162,11 +160,6 @@ class CoursesViewModel: ObservableObject {
             self.filteredStories = self.allCourses.filter { $0.genre == genre }
         }
     }
-    
-    
-//    func playCourse(from urlString: String, playlist: [Lesson], trackIndex: Int?, type: Types) {
-//        playerViewModel.playAudio(from: urlString, playlist: playlist, trackIndex: trackIndex, type: type, isFemale: <#T##Bool#>)
-//    }
     
     func pause() {
         playerViewModel.pause()

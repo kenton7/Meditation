@@ -14,7 +14,6 @@ struct WelcomeScreen: View {
     
     @EnvironmentObject private var viewModel: AuthWithEmailViewModel
     @State private var isLogOut = false
-    let user: UserModel?
     @State private var isGetStartedTapped = false
     
     var body: some View {
@@ -27,7 +26,7 @@ struct WelcomeScreen: View {
                         .font(.system(.title2, design: .rounded)).bold()
                         .foregroundStyle(.white)
                     
-                    Text("Привет, \(user?.user?.displayName ?? "")! \nДобро пожаловать \n в Серотонику")
+                    Text("Привет, \(Auth.auth().currentUser?.displayName ?? "")! \nДобро пожаловать \n в Серотонику")
                         .padding(.horizontal)
                         .multilineTextAlignment(.center)
                         .textInputAutocapitalization(.words)
@@ -61,9 +60,13 @@ struct WelcomeScreen: View {
         .navigationDestination(isPresented: $isGetStartedTapped) {
             UserInterestsTopicScreen()
         }
+        
+        .onAppear {
+            print("WELCOME!!!!")
+        }
     }
 }
 
 #Preview {
-    WelcomeScreen(user: nil)
+    WelcomeScreen()
 }

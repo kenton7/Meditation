@@ -21,6 +21,7 @@ struct RemindersScreen: View {
     private let notificationService = NotificationsService.shared
     @StateObject private var databaseVM = ChangeDataInDatabase()
     @State private var selectedDays: [Day] = .init()
+    @EnvironmentObject var authViewModel: AuthWithEmailViewModel
     @State private var isContinueOrSkipButtonPressed = false
     @State private var days: [Day] = [
             Day(name: "ПН"),
@@ -110,6 +111,7 @@ struct RemindersScreen: View {
                                                                         sound: .default,
                                                                         selectedDays: selectedDays,
                                                                         selectedTime: selectionTime)
+                        authViewModel.signedIn = true
                         isContinueOrSkipButtonPressed = true
                         if let user = Auth.auth().currentUser {
                             databaseVM.writeToDatabaseIfUserViewedTutorial(user: user, isViewed: isContinueOrSkipButtonPressed)
@@ -125,6 +127,7 @@ struct RemindersScreen: View {
                     .padding()
                     
                     Button("Нет, спасибо") {
+                        authViewModel.signedIn = true
                         coreDataService.saveSelectedDays(selectedDays, time: selectionTime)
                         isContinueOrSkipButtonPressed = true
                         if let user = Auth.auth().currentUser {
@@ -137,8 +140,8 @@ struct RemindersScreen: View {
             Spacer()
         }
         .navigationDestination(isPresented: $isContinueOrSkipButtonPressed) {
-            let user = Auth.auth().currentUser
-            let userModel = UserModel(user: user)
+            //let user = Auth.auth().currentUser
+            //let userModel = UserModel(user: user)
             //MainScreen(user: userModel)
             MainScreen()
         }

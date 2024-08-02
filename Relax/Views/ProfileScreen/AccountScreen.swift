@@ -24,12 +24,13 @@ struct AccountScreen: View {
     @State private var errorMessagePassword = ""
     @State private var errorMessageEmail = ""
     @State private var isError = false
+    @EnvironmentObject var viewModel: AuthWithEmailViewModel
     @StateObject private var databaseVM = ChangeDataInDatabase()
-    @StateObject private var viewModel = AuthWithEmailViewModel()
+    
     
     var body: some View {
         NavigationStack {
-            if viewModel.isUserLoggedIn, !viewModel.userID.isEmpty {
+            if viewModel.signedIn/*, !viewModel.userID.isEmpty*/ {
                 List {
                     Section("Ваше имя") {
                         VStack {
@@ -37,6 +38,9 @@ struct AccountScreen: View {
                                 .padding()
                                 .foregroundStyle(.black)
                                 .textFieldStyle(.plain)
+                                .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
+                                .clipShape(.rect(cornerRadius: 8))
+                                .padding()
                             
                             Button(action: {
                                 isUpdatingName = true
@@ -103,8 +107,7 @@ struct AccountScreen: View {
                             .background(Color(UIColor(red: 142/255, green: 151/255, blue: 253/255, alpha: 1)))
                             .clipShape(.rect(cornerRadius: 20))
                             .padding()
-                            .disabled(newEmail.isEmpty)
-                            .disabled(!newEmail.isValidEmail())
+                            .disabled(newEmail.isEmpty || !newEmail.isValidEmail())
                         }
                     }
                     .buttonStyle(.plain)
@@ -204,7 +207,7 @@ struct AccountScreen: View {
                         }
                         
                     }
-                    .buttonStyle(PlainButtonStyle())
+                    .buttonStyle(.plain)
                 }
                 .onAppear {
                     userName = currentUser?.displayName ?? ""

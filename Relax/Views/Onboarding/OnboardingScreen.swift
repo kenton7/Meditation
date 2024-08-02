@@ -42,6 +42,7 @@ struct OnboardingScreen: View {
                     .padding()
                     .background(Color(UIColor(red: 142/255, green: 151/255, blue: 253/255, alpha: 1)))
                     .clipShape(.rect(cornerRadius: 20))
+                    .frame(maxWidth: .infinity)
                     
                     HStack {
                         Text("Уже есть аккаунт?")
@@ -58,7 +59,6 @@ struct OnboardingScreen: View {
         .navigationBarBackButtonHidden()
         .navigationDestination(isPresented: $hasAccount) {
             LogInView()
-                .environmentObject(viewModel)
         }
     }
 }

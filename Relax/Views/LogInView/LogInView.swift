@@ -93,12 +93,11 @@ struct LogInView: View {
                         errorMessage = nil
                         Task.detached {
                             do {
-                                let user = try await viewModel.asyncLogInWith(email: email, password: password)
+                                try await viewModel.asyncLogInWith(email: email, password: password)
                                 if let firebaseUser = Auth.auth().currentUser {
                                     await databaseVM.checkIfUserViewedTutorial(user: firebaseUser)
                                 }
                                 await MainActor.run {
-                                    userModel = user
                                     isLogining = false
                                     self.errorMessage = nil
                                     withAnimation {
@@ -140,18 +139,14 @@ struct LogInView: View {
             }
         }
         .navigationDestination(isPresented: $isLogIn) {
-            
             if databaseVM.isTutorialViewed {
                 MainScreen()
-                    .environmentObject(viewModel)
             } else {
-                WelcomeScreen(user: userModel)
-                    .environmentObject(viewModel)
+                WelcomeScreen()
             }
         }
         .navigationDestination(isPresented: $isForgotPasswordPressed) {
             ForgotPasswordView()
-                .environmentObject(viewModel)
         }
         .onAppear {
             email = ""

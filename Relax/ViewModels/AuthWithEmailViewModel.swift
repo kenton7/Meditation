@@ -11,8 +11,8 @@ import FirebaseAuth
 import FirebaseDatabase
 
 protocol Authable: AnyObject {
-    func asyncRegisterWith(name: String, email: String, password: String) async throws -> UserModel?
-    func asyncLogInWith(email: String, password: String) async throws -> UserModel?
+    func asyncRegisterWith(name: String, email: String, password: String) async throws
+    func asyncLogInWith(email: String, password: String) async throws
     func restorePasswordWith(email: String, completion: @escaping ((Bool, NSError?) -> Void))
     func signOut()
     func deleteAccount()
@@ -28,29 +28,28 @@ final class AuthWithEmailViewModel: ObservableObject, Authable {
         return Auth.auth().currentUser != nil
     }
     
-    init() {
-        self.handler = Auth.auth().addStateDidChangeListener { [weak self] _, user in
-            DispatchQueue.main.async {
-                self?.userID = user?.uid ?? ""
-                self?.signedIn = user != nil
-                print("userID \(self?.userID ?? ""), signedIn: \(self?.signedIn ?? false)")
-            }
-        }
-    }
+//    init() {
+//        self.handler = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+//            DispatchQueue.main.async {
+//                self?.userID = user?.uid ?? ""
+//                self?.signedIn = user != nil
+//                print("userID \(self?.userID ?? ""), signedIn: \(self?.signedIn ?? false)")
+//            }
+//        }
+//    }
     
-    func asyncRegisterWith(name: String, email: String, password: String) async throws -> UserModel? {
+    func asyncRegisterWith(name: String, email: String, password: String) async throws {
         do {
             let result = try await Auth.auth().createUser(withEmail: email, password: password)
+            await MainActor.run {
+                //self.signedIn = true
+                self.userID = result.user.uid
+            }
             let changeRequest = result.user.createProfileChangeRequest()
             changeRequest.displayName = name
             try await changeRequest.commitChanges()
             let userData = ["email": email, "name": name]
-            try await Database.database(url: String.databaseURL).reference().child("users").child(result.user.uid).setValue(userData)
-            await MainActor.run {
-                self.signedIn = true
-                self.userID = result.user.uid
-            }
-            return UserModel(user: result.user)
+            try await Database.database(url: .databaseURL).reference().child("users").child(result.user.uid).setValue(userData)
         } catch {
             let errorCodes = AuthErrorCode(_nsError: error as NSError)
             let customError: NSError
@@ -77,7 +76,7 @@ final class AuthWithEmailViewModel: ObservableObject, Authable {
         }
     }
     
-    func asyncLogInWith(email: String, password: String) async throws -> UserModel? {
+    func asyncLogInWith(email: String, password: String) async throws {
         do {
             let result = try await Auth.auth().signIn(withEmail: email, password: password)
             await MainActor.run {
@@ -85,7 +84,6 @@ final class AuthWithEmailViewModel: ObservableObject, Authable {
                 self.userID = result.user.uid
             }
             print("User logged in with ID: \(userID)")
-            return UserModel(user: result.user)
         } catch {
             let errorCodes = AuthErrorCode(_nsError: error as NSError)
             let customError: NSError
@@ -146,6 +144,7 @@ final class AuthWithEmailViewModel: ObservableObject, Authable {
     }
     
     func deleteAccount() {
+        Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser!.uid).removeValue()
         Auth.auth().currentUser?.delete()
         DispatchQueue.main.async {
             self.signedIn = false

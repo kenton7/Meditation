@@ -31,7 +31,7 @@ struct EmailFieldView: View {
             .focused($isFocused)
             .onTapGesture {
                 withAnimation {
-                    //isEmailEditing = true
+                    isEmailEditing = true
                     isFocused = true
                 }
             }

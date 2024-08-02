@@ -21,7 +21,7 @@ enum ProfileScreenModel: String, CaseIterable {
 
 struct ProfileScreen: View {
     
-    @StateObject private var authViewModel = AuthWithEmailViewModel()
+    @EnvironmentObject var authViewModel: AuthWithEmailViewModel
     private var currentUser = Auth.auth().currentUser
     @State private var isBuyPremiumPressed = false
     @State private var writeToDeveloperPressed = false
@@ -33,7 +33,7 @@ struct ProfileScreen: View {
             VStack {
                 HStack {
                     if let user = currentUser {
-                        Text("\(user.displayName!)")
+                        Text("\(user.displayName ?? "")")
                             .padding()
                             .foregroundStyle(.black)
                             .font(.system(.title, design: .rounded, weight: .bold))

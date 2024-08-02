@@ -26,6 +26,7 @@ struct CourseDetailView: View {
     @State private var isSelected = false
     @State private var lessons = [Lesson]()
     
+    
     var body: some View {
         NavigationStack {
             ZStack {

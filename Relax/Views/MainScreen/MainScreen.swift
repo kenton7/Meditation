@@ -10,12 +10,13 @@ import FirebaseAuth
 
 struct MainScreen: View {
     
-    @StateObject private var viewModel = AuthWithEmailViewModel()
+    @EnvironmentObject var viewModel: AuthWithEmailViewModel
+    
     //@State private var selection: Int = 0
     
     var body: some View {
         //NavigationStack {
-            if viewModel.isUserLoggedIn, !viewModel.userID.isEmpty {
+        if viewModel.signedIn {/*, !viewModel.userID.isEmpty {*/
                 CustomTabBar()
             } else {
                 OnboardingScreen()

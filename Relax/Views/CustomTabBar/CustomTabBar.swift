@@ -63,8 +63,10 @@ extension TabbedItems {
             MeditationScreen()
         case .music:
             MusicScreen()
+                .tint(.black)
         case .profile:
             ProfileScreen()
+                .tint(.black)
         }
     }
 }
