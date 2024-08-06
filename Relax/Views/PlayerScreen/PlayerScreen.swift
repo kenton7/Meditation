@@ -8,6 +8,7 @@
 import SwiftUI
 import FirebaseDatabase
 import AVFoundation
+import FirebaseAuth
 
 struct PlayerScreen: View {
     
@@ -18,6 +19,11 @@ struct PlayerScreen: View {
     @StateObject private var databaseVM = ChangeDataInDatabase()
     @StateObject private var playerViewModel = PlayerViewModel.shared
     @State private var trackName = ""
+    @State private var errorDownloadingMessage = ""
+    @State private var isDowndloadError = false
+    @State private var isDownloaded = false
+    private let currentUser = Auth.auth().currentUser
+    private let fileManagerService: IFileManagerSerivce = FileManagerSerivce()
     
     let lesson: Lesson?
     let isFemale: Bool
@@ -49,30 +55,65 @@ struct PlayerScreen: View {
                         HStack {
                             Spacer()
                             Button(action: {
-                                //MARK: - TODO: реализовать проверку лайкнуто или нет и куда-то перемещать лайкнутый урок
+                                //MARK: - TODO: реализовать проверку лайкнуто или нет (реализовано) и куда-то перемещать лайкнутый урок
                                 isLiked.toggle()
+                                if let currentUser = currentUser {
+                                    if isLiked {
+                                        databaseVM.userLiked(lesson: lesson, type: .increment, isLiked: isLiked, user: currentUser)
+                                    } else {
+                                        databaseVM.userLiked(lesson: lesson, type: .decrement, isLiked: isLiked, user: currentUser)
+                                    }
+                                }
                             }, label: {
                                 Image(isLiked ? "LikeButton_fill" : "LikeButton")
                             })
+                            .padding(.horizontal)
                             
-                            Button(action: {
-                                Task.detached {
-                                    try await databaseVM.asyncDownload(course: course, courseType: course.type, isFemale: isFemale, lesson: lesson)
+                            if !isDownloaded {
+                                Button(action: {
+                                    Task.detached {
+                                        do {
+                                            let _ = try await databaseVM.asyncDownload(course: course,
+                                                                                       courseType: course.type,
+                                                                                       isFemale: isFemale,
+                                                                                       lesson: lesson)
+                                            await MainActor.run {
+                                                withAnimation {
+                                                    self.isDownloaded = true
+                                                }
+                                            }
+                                        } catch {
+                                            await MainActor.run {
+                                                self.isDowndloadError = true
+                                                self.errorDownloadingMessage = error.localizedDescription
+                                            }
+                                        }
+                                    }
+                                }, label: {
+                                    Image("DownloadButton")
+                                })
+                                .padding()
+                                .overlay {
+                                    if !isDownloaded {
+                                        ZStack {
+                                            Circle()
+                                                .stroke(Color.gray, lineWidth: 4)
+                                                .padding()
+                                            Circle()
+                                                .trim(from: 0, to: databaseVM.downloadProgress)
+                                                .stroke(Color.green, lineWidth: 4)
+                                                .padding()
+                                                .rotationEffect(.degrees(-90))
+                                        }
+                                        .opacity(databaseVM.downloadProgress >= 100 ? 0 : 1)
+                                    }
                                 }
-                            }, label: {
-                                Image("DownloadButton")
-                            })
-                            .padding()
-                            .overlay {
-                                ZStack {
-                                    Circle()
-                                        .stroke(Color.gray, lineWidth: 4)
-                                        .padding()
-                                    Circle()
-                                        .trim(from: 0, to: databaseVM.downloadProgress)
-                                        .stroke(Color.green, lineWidth: 4)
-                                        .padding()
-                                        .rotationEffect(.degrees(-90))
+                                .alert("Ошибка при скачивании файла", isPresented: $isDowndloadError) {
+                                    HStack {
+                                        Button("ОК", role: .cancel) {}
+                                    }
+                                } message: {
+                                    Text(errorDownloadingMessage)
                                 }
                             }
                         }
@@ -108,10 +149,6 @@ struct PlayerScreen: View {
                         })
                         
                         Button(action: {
-                            //                            guard let lesson = lesson else { print("no lesson")
-                            //                                return
-                            //                            }
-                            
                             if let lesson {
                                 let url = isFemale ? lesson.audioFemaleURL : lesson.audioMaleURL
                                 Task {
@@ -139,14 +176,12 @@ struct PlayerScreen: View {
                                 }
                             }
                         }, label: {
-                            //if let lesson {
                             Image(systemName: playerViewModel.isAudioPlaying() ? "pause.circle.fill" : "play.circle.fill")
                                 .font(.system(size: 85))
                                 .foregroundStyle(Color(uiColor: .init(red: 63/255,
                                                                       green: 65/255,
                                                                       blue: 78/255,
                                                                       alpha: 1)))
-                            //}
                         })
                         .overlay {
                             Circle()
@@ -182,11 +217,6 @@ struct PlayerScreen: View {
                         if playerViewModel.duration.seconds.isFinite && playerViewModel.duration.seconds > 0 {
                             self.sliderValue = newValue.seconds / playerViewModel.duration.seconds
                         }
-                        
-                        //                        if playerViewModel.currentPlayingURL == nil {
-                        //                            dismiss()
-                        //                        }
-                        
                     }
                     
                     HStack {
@@ -208,7 +238,14 @@ struct PlayerScreen: View {
             }
         }
         .onAppear {
-            print("lesson: \(playerViewModel.lessonName)")
+            if let currentUser = currentUser, let lesson = lesson {
+                databaseVM.checkIfUserLiked(lesson: lesson, user: currentUser)
+                isDownloaded = fileManagerService.isDownloaded(lesson: lesson, course: course)
+            }
+            
+        }
+        .onChange(of: databaseVM.isLiked) { newValue in
+            self.isLiked = newValue
         }
     }
 }

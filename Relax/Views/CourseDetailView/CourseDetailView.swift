@@ -22,9 +22,11 @@ struct CourseDetailView: View {
     @EnvironmentObject private var coursesViewModel: CoursesViewModel
     @EnvironmentObject private var playerViewModel: PlayerViewModel
     private let user = Auth.auth().currentUser
+    private let fileManagerService: IFileManagerSerivce = FileManagerSerivce()
     @State private var isFemale = true
     @State private var isSelected = false
     @State private var lessons = [Lesson]()
+    @State private var isDownloaded = false
     
     
     var body: some View {
@@ -75,16 +77,17 @@ struct CourseDetailView: View {
         VStack {
             HStack {
                 Text(course.name)
+                    .padding(.horizontal)
                     .foregroundStyle(course.type == .story ? .white : Color(uiColor: .init(red: 63/255,
                                                                                            green: 65/255,
                                                                                            blue: 78/255,
                                                                                            alpha: 1)))
                     .font(.system(.title2, design: .rounded)).bold()
+                    .multilineTextAlignment(.leading)
                 
                 Spacer()
                 
-                VStack {
-                    HStack(spacing: 30) {
+                    HStack {
                         Spacer()
                         
                         Button(action: {
@@ -124,46 +127,53 @@ struct CourseDetailView: View {
                                 .clipShape(.circle)
                         })
                         
-                        Button(action: {
-                            //MARK: - TODO - Реализовать скачивание
-                            //databaseViewModel.download(course: course, courseType: course.type, isFemale: isFemale)
-                            Task.detached {
-                                try await databaseViewModel.downloadAllCourse(course: course, courseType: course.type, isFemale: isFemale, lessons: lessons)
-                            }
-                        }, label: {
-                            Image(systemName: "arrow.down")
-                                .bold()
-                                .foregroundStyle(course.type == .story ? .white : .black)
-                                .frame(width: 50, height: 50)
-                                .background(.clear)
-                                .overlay {
-                                    Circle()
-                                        .stroke(course.type == .story ? .white : Color(uiColor: .init(red: 63/255,
-                                                                                                      green: 65/255,
-                                                                                                      blue: 78/255,
-                                                                                                      alpha: 1)),
-                                                lineWidth: 2)
+                        if !isDownloaded {
+                            Button(action: {
+                                Task.detached {
+                                    let _ = try await databaseViewModel.downloadAllCourse(course: course,
+                                                                                  courseType: course.type,
+                                                                                  isFemale: isFemale,
+                                                                                  lessons: lessons)
+                                    await MainActor.run {
+                                        withAnimation {
+                                            self.isDownloaded = true
+                                        }
+                                    }
                                 }
-                                .clipShape(.circle)
-                        })
-                        .padding(10)
-                        .overlay {
-                            ZStack {
-                                Circle()
-                                    .stroke(Color.gray, lineWidth: 4)
-                                    .padding(10)
-                                Circle()
-                                    .trim(from: 0, to: databaseViewModel.downloadProgress)
-                                    .stroke(Color.green, lineWidth: 4)
-                                    .padding(10)
-                                    .rotationEffect(.degrees(-90))
+                            }, label: {
+                                Image(systemName: "arrow.down")
+                                    .bold()
+                                    .foregroundStyle(course.type == .story ? .white : .black)
+                                    .frame(width: 50, height: 50)
+                                    .background(.clear)
+                                    .overlay {
+                                        Circle()
+                                            .stroke(course.type == .story ? .white : Color(uiColor: .init(red: 63/255,
+                                                                                                          green: 65/255,
+                                                                                                          blue: 78/255,
+                                                                                                          alpha: 1)),
+                                                    lineWidth: 2)
+                                    }
+                                    .clipShape(.circle)
+                            })
+                            .padding(10)
+                            .overlay {
+                                ZStack {
+                                    Circle()
+                                        .stroke(Color.gray, lineWidth: 4)
+                                        .padding(10)
+                                    Circle()
+                                        .trim(from: 0, to: databaseViewModel.downloadProgress)
+                                        .stroke(Color.green, lineWidth: 4)
+                                        .padding(10)
+                                        .rotationEffect(.degrees(-90))
+                                }
+                                .opacity(databaseViewModel.downloadProgress >= 100 ? 0 : 1)
                             }
                         }
                     }
                     Spacer()
-                }
             }
-            //.padding(.horizontal)
             
             HStack {
                 Text(course.description)
@@ -193,7 +203,6 @@ struct CourseDetailView: View {
                                                               blue: 178/255,
                                                               alpha: 1)))
                 }
-                .padding(.horizontal)
                 
                 HStack {
                     Spacer()
@@ -203,7 +212,7 @@ struct CourseDetailView: View {
                                                               green: 200/255,
                                                               blue: 193/255,
                                                               alpha: 1)))
-                    Text("\(databaseViewModel.listeners) слушают")
+                    Text("\(databaseViewModel.listeners) слушали")
                         .font(.system(size: 14, design: .rounded)).bold()
                         .foregroundStyle(Color(uiColor: .init(red: 161/255,
                                                               green: 164/255,
@@ -216,7 +225,7 @@ struct CourseDetailView: View {
             if course.type != .playlist {
                 VStack {
                     HStack {
-                        Text("Выберите ведущего")
+                        Text("Выберите голос")
                             .foregroundStyle(course.type == .story ? .white : Color(uiColor: .init(red: 63/255,
                                                                                                    green: 65/255,
                                                                                                    blue: 78/255,
@@ -231,9 +240,9 @@ struct CourseDetailView: View {
             Spacer()
         }
         .padding()
+        .onAppear {
+            isDownloaded = fileManagerService.isCourseDownloaded(course: course)
+        }
     }
 }
 
-//#Preview("ReadyCourseDetailView") {
-//    ReadyCourseDetailView(course: .init(id: "basicCourse", name: "Основы", imageURL: "https://firebasestorage.googleapis.com/v0/b/relax-8e1d3.appspot.com/o/BasicCourse.png?alt=media&token=08260d35-2207-4bb9-8db8-82944106845f", color: .init(red: 142, green: 151, blue: 253), duration: "8", description: "Этот курс предназначен для тех, кто только начинает свой путь к спокойствию и внутренней гармонии.", listenedCount: 3, type: .meditation, isDaily: false, likes: 5))
-//}

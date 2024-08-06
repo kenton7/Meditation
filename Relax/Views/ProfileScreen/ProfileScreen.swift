@@ -24,7 +24,6 @@ struct ProfileScreen: View {
     @EnvironmentObject var authViewModel: AuthWithEmailViewModel
     private var currentUser = Auth.auth().currentUser
     @State private var isBuyPremiumPressed = false
-    @State private var writeToDeveloperPressed = false
     @State private var aboutUsPressed = false
     let fileManagerService: IFileManagerSerivce = FileManagerSerivce()
     
@@ -97,8 +96,7 @@ struct ProfileScreen: View {
                     
                     Section("Помощь") {
                         Button(action: {
-                            //writeToDeveloperPressed = true
-                            openMail(emailTo: "support@gmail.com",
+                            openMail(emailTo: "serotonika.app@gmail.com",
                                          subject: "Серотоника",
                                          body: nil)
                         }, label: {
@@ -109,9 +107,6 @@ struct ProfileScreen: View {
                                 Text("Связаться с разработчиком")
                             }
                         })
-//                        .sheet(isPresented: $writeToDeveloperPressed, content: {
-//                            //
-//                        })
                         
                         Button(action: {
                             aboutUsPressed = true
@@ -154,7 +149,3 @@ struct ProfileScreen: View {
         }
     }
 }
-
-//#Preview {
-//    ProfileScreen()
-//}

@@ -76,6 +76,8 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
             case .story:
                 return Storage.storage().reference(withPath: "stories/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
             case .emergency:
+                let url = Storage.storage().reference(withPath: "emergency/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
+                print(url)
                 return Storage.storage().reference(withPath: "emergency/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
             }
         }
@@ -133,6 +135,17 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
             Database.database(url: .databaseURL).reference().child("nightStories").child(course.id).updateChildValues(["likes": likesCount])
         case .emergency:
             Database.database(url: .databaseURL).reference().child("emergencyMeditation").child(course.id).updateChildValues(["likes": likesCount])
+        }
+    }
+    
+    func userLiked(lesson: Lesson, type: IncrementDecrementLike, isLiked: Bool, user: User) {
+        switch type {
+        case .increment:
+            self.isLiked = true
+            Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("likedLessons").updateChildValues([lesson.name: self.isLiked])
+        case .decrement:
+            self.isLiked = false
+            Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("likedLessons").child(lesson.name).removeValue()
         }
     }
     
@@ -251,6 +264,25 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
                 }
             } else {
                 print("Значения курсов не найдены или не в ожидаемом формате")
+            }
+        }
+    }
+    
+    func checkIfUserLiked(lesson: Lesson, user: User) {
+        let ref = Database.database(url: .databaseURL).reference()
+        let likedLessonsRef = ref.child("users").child(user.uid).child("likedLessons")
+        likedLessonsRef.observe(.value) { snapshot in
+            if let likedLesson = snapshot.value as? [String: Bool] {
+                if let isLiked = likedLesson[lesson.name] {
+                    DispatchQueue.main.async {
+                        self.isLiked = isLiked
+                        print(self.isLiked)
+                    }
+                } else {
+                    print("Значение для урока \(lesson.name) не найдено или не является Bool")
+                }
+            } else {
+                print("Значения уроков не найдены или не в ожидаемом формате")
             }
         }
     }

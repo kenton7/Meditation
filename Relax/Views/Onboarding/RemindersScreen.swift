@@ -44,7 +44,6 @@ struct RemindersScreen: View {
                         .multilineTextAlignment(.leading)
                     Spacer()
                 }
-                //.padding(.vertical, 10)
                 
                 HStack {
                     Text("Вы можете выбрать любое время, \nно мы советуем заниматься утром.")
@@ -140,9 +139,6 @@ struct RemindersScreen: View {
             Spacer()
         }
         .navigationDestination(isPresented: $isContinueOrSkipButtonPressed) {
-            //let user = Auth.auth().currentUser
-            //let userModel = UserModel(user: user)
-            //MainScreen(user: userModel)
             MainScreen()
         }
     }

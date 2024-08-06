@@ -11,6 +11,8 @@ protocol IFileManagerSerivce: AnyObject {
     func getDownloadFiles() -> [FileItem]
     func getContentsOfFolder(at url: URL) -> [FileItem] 
     func deleteFile(at url: URL) -> Bool
+    func isDownloaded(lesson: Lesson, course: CourseAndPlaylistOfDayModel) -> Bool
+    func isCourseDownloaded(course: CourseAndPlaylistOfDayModel) -> Bool 
 }
 
 struct FileItem: Identifiable {
@@ -37,6 +39,25 @@ final class FileManagerSerivce: IFileManagerSerivce {
             print("Ошибка при получении скачанных файлов из файлового менеджера")
             return []
         }
+    }
+    
+    func isDownloaded(lesson: Lesson, course: CourseAndPlaylistOfDayModel) -> Bool {
+        guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return false
+        }
+        
+        let fileURLStrDecoded = documentsDirectory.appendingPathComponent(course.name).appendingPathComponent(lesson.name).appendingPathExtension(for: .mp3).absoluteString.decodeURL() ?? ""
+        let fileURL = URL(string: fileURLStrDecoded)!
+        return fileManager.fileExists(atPath: fileURL.path)
+    }
+    
+    func isCourseDownloaded(course: CourseAndPlaylistOfDayModel) -> Bool {
+        guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return false
+        }
+        
+        let fileURL = documentsDirectory.appendingPathComponent(course.name)
+        return fileManager.fileExists(atPath: fileURL.path)
     }
     
     func getContentsOfFolder(at url: URL) -> [FileItem] {

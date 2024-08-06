@@ -32,6 +32,7 @@
 		091DEF052C5A453800184F16 /* EmptyAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091DEF042C5A453800184F16 /* EmptyAnimation.swift */; };
 		091DEF072C5B83D000184F16 /* EnvironmentValues+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091DEF062C5B83D000184F16 /* EnvironmentValues+Extension.swift */; };
 		091DEF0B2C5D4E1800184F16 /* TextField+Representable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091DEF0A2C5D4E1800184F16 /* TextField+Representable.swift */; };
+		091DEF0E2C60E34B00184F16 /* YandexLoginSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 091DEF0D2C60E34B00184F16 /* YandexLoginSDK */; };
 		0920C7C02C29B2CE00AE9FAC /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 0920C7BF2C29B2CE00AE9FAC /* FirebaseDatabase */; };
 		0920C7C22C29B2D400AE9FAC /* FirebaseDatabaseSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 0920C7C12C29B2D400AE9FAC /* FirebaseDatabaseSwift */; };
 		0920C7C42C29BB6000AE9FAC /* AuthErrorCode+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0920C7C32C29BB6000AE9FAC /* AuthErrorCode+Extension.swift */; };
@@ -109,6 +110,7 @@
 		091DEF042C5A453800184F16 /* EmptyAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyAnimation.swift; sourceTree = "<group>"; };
 		091DEF062C5B83D000184F16 /* EnvironmentValues+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EnvironmentValues+Extension.swift"; sourceTree = "<group>"; };
 		091DEF0A2C5D4E1800184F16 /* TextField+Representable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TextField+Representable.swift"; sourceTree = "<group>"; };
+		091DEF0F2C60E4B200184F16 /* Relax.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Relax.entitlements; sourceTree = "<group>"; };
 		0920C7C32C29BB6000AE9FAC /* AuthErrorCode+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AuthErrorCode+Extension.swift"; sourceTree = "<group>"; };
 		0920C7C72C2AEC2F00AE9FAC /* UserLearningAnimation.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = UserLearningAnimation.json; sourceTree = "<group>"; };
 		0920C7C92C2AEC4600AE9FAC /* UserLearningAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserLearningAnimation.swift; sourceTree = "<group>"; };
@@ -164,6 +166,7 @@
 			files = (
 				0920C7C22C29B2D400AE9FAC /* FirebaseDatabaseSwift in Frameworks */,
 				0920C7C02C29B2CE00AE9FAC /* FirebaseDatabase in Frameworks */,
+				091DEF0E2C60E34B00184F16 /* YandexLoginSDK in Frameworks */,
 				0972C64C2C258671005ECB08 /* FirebaseAnalytics in Frameworks */,
 				0972C6502C258671005ECB08 /* FirebaseCrashlytics in Frameworks */,
 				0909C8282C2F04A00049744F /* FirebaseStorage in Frameworks */,
@@ -259,6 +262,7 @@
 		0972C6242C257644005ECB08 /* Relax */ = {
 			isa = PBXGroup;
 			children = (
+				091DEF0F2C60E4B200184F16 /* Relax.entitlements */,
 				098352052C36A55B0092DAB7 /* Info.plist */,
 				0909C8342C31CA180049744F /* Representable */,
 				0972C6402C257CCC005ECB08 /* OnboadringRelaxAnimation.json */,
@@ -475,6 +479,7 @@
 				0920C7BF2C29B2CE00AE9FAC /* FirebaseDatabase */,
 				0920C7C12C29B2D400AE9FAC /* FirebaseDatabaseSwift */,
 				0909C8272C2F04A00049744F /* FirebaseStorage */,
+				091DEF0D2C60E34B00184F16 /* YandexLoginSDK */,
 			);
 			productName = Relax;
 			productReference = 0972C6222C257644005ECB08 /* Relax.app */;
@@ -508,6 +513,7 @@
 			packageReferences = (
 				0972C63C2C257B37005ECB08 /* XCRemoteSwiftPackageReference "lottie-ios" */,
 				0972C63F2C257BE5005ECB08 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				091DEF0C2C60E34B00184F16 /* XCRemoteSwiftPackageReference "yandex-login-sdk-ios" */,
 			);
 			productRefGroup = 0972C6232C257644005ECB08 /* Products */;
 			projectDirPath = "";
@@ -731,6 +737,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Relax/Relax.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Relax/Preview Content\"";
@@ -750,6 +758,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kuznetsovIlya.Relax;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -765,6 +774,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Relax/Relax.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Relax/Preview Content\"";
@@ -784,6 +795,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kuznetsovIlya.Relax;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -818,6 +830,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		091DEF0C2C60E34B00184F16 /* XCRemoteSwiftPackageReference "yandex-login-sdk-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/yandexmobile/yandex-login-sdk-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.2;
+			};
+		};
 		0972C63C2C257B37005ECB08 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airbnb/lottie-ios";
@@ -841,6 +861,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 0972C63F2C257BE5005ECB08 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseStorage;
+		};
+		091DEF0D2C60E34B00184F16 /* YandexLoginSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 091DEF0C2C60E34B00184F16 /* XCRemoteSwiftPackageReference "yandex-login-sdk-ios" */;
+			productName = YandexLoginSDK;
 		};
 		0920C7BF2C29B2CE00AE9FAC /* FirebaseDatabase */ = {
 			isa = XCSwiftPackageProductDependency;

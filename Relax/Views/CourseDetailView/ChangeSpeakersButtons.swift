@@ -21,7 +21,7 @@ struct ChangeSpeakersButtons: View {
                             isFemale = true
                         }
                     }, label: {
-                        Text("Юля")
+                        Text("Женский")
                             .underline(color: isFemale ? Color(uiColor: .init(red: 142/255,
                                                                               green: 151/255,
                                                                               blue: 253/255,
@@ -34,31 +34,30 @@ struct ChangeSpeakersButtons: View {
                                                                                                                blue: 178/255, alpha: 1)))
                             .font(.system(.title3, design: .rounded, weight: .bold))
                     })
+                    .padding()
                     .frame(maxWidth: .infinity)
                     
-                    HStack {
-                        Button(action: {
-                            withAnimation {
-                                isFemale = false
-                            }
-                        }, label: {
-                            Text("Даниил")
-                                .underline(color: isFemale == false ? Color(uiColor: .init(red: 142/255,
-                                                                                green: 151/255,
-                                                                                blue: 253/255,
-                                                                                alpha: 1)) : .clear)
-                                .foregroundStyle(isFemale == false  ? Color(uiColor: .init(red: 142/255,
-                                                                               green: 151/255,
-                                                                               blue: 253/255,
-                                                                               alpha: 1)) : Color(uiColor: .init(red: 161/255,
-                                                                                                                 green: 164/255,
-                                                                                                                 blue: 178/255, alpha: 1)))
-                                .font(.system(.title3, design: .rounded, weight: .bold))
-                        })
-                        .frame(maxWidth: .infinity)
-                    }
+                    Button(action: {
+                        withAnimation {
+                            isFemale = false
+                        }
+                    }, label: {
+                        Text("Мужской")
+                            .underline(color: isFemale == false ? Color(uiColor: .init(red: 142/255,
+                                                                                       green: 151/255,
+                                                                                       blue: 253/255,
+                                                                                       alpha: 1)) : .clear)
+                            .foregroundStyle(isFemale == false  ? Color(uiColor: .init(red: 142/255,
+                                                                                       green: 151/255,
+                                                                                       blue: 253/255,
+                                                                                       alpha: 1)) : Color(uiColor: .init(red: 161/255,
+                                                                                                                         green: 164/255,
+                                                                                                                         blue: 178/255, alpha: 1)))
+                            .font(.system(.title3, design: .rounded, weight: .bold))
+                    })
+                    .padding()
+                    .frame(maxWidth: .infinity)
                 }
-                .padding(.vertical)
             }
             Divider()
         }

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct AnyShape: Shape {
+struct AnyShape: Shape, @unchecked Sendable {
     private let path: (CGRect) -> Path
     
     init<S: Shape>(_ wrapped: S) {
