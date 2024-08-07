@@ -25,10 +25,12 @@ struct ProfileScreen: View {
     private var currentUser = Auth.auth().currentUser
     @State private var isBuyPremiumPressed = false
     @State private var aboutUsPressed = false
+    @State private var isRemindersPressed = false
     let fileManagerService: IFileManagerSerivce = FileManagerSerivce()
+    @State private var path = NavigationPath()
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             VStack {
                 HStack {
                     if let user = currentUser {
@@ -53,10 +55,9 @@ struct ProfileScreen: View {
                                 Text("Аккаунт")
                             }
                         }
-
-                            
+                        
                         NavigationLink {
-                            //
+                            RemindersScreen(isFromSettings: true)
                         } label: {
                             HStack {
                                 Image("notifications")
@@ -97,8 +98,8 @@ struct ProfileScreen: View {
                     Section("Помощь") {
                         Button(action: {
                             openMail(emailTo: "serotonika.app@gmail.com",
-                                         subject: "Серотоника",
-                                         body: nil)
+                                     subject: "Серотоника",
+                                     body: nil)
                         }, label: {
                             HStack {
                                 Image("email")

@@ -20,6 +20,7 @@ struct LogInView: View {
     @State private var userModel: UserModel?
     @State private var isLogining = false
     @StateObject private var databaseVM = ChangeDataInDatabase()
+    @EnvironmentObject var notificationsService: NotificationsService
     
     
     var body: some View {
@@ -121,7 +122,7 @@ struct LogInView: View {
                     })
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color(UIColor(red: 142/255, green: 151/255, blue: 253/255, alpha: 1)))
+                    .background(Color(uiColor: .defaultButtonColor))
                     .clipShape(.rect(cornerRadius: 20))
                     .padding()
                     .disabled(email.isEmpty)
@@ -141,6 +142,7 @@ struct LogInView: View {
         .navigationDestination(isPresented: $isLogIn) {
             if databaseVM.isTutorialViewed {
                 MainScreen()
+                    .environmentObject(NotificationsService.shared)
             } else {
                 WelcomeScreen()
             }

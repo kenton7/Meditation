@@ -10,18 +10,14 @@ import UserNotifications
 import CoreData
 import SwiftUI
 
-class NotificationsService {
+class NotificationsService: ObservableObject {
     
     static let shared = NotificationsService()
     private init() {}
-    
-    //@FetchRequest(sortDescriptors: []) var selectedDays: FetchedResults<Reminder>
-    
+        
     func requestAuthorization() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
-            if success {
-                
-            } else if let error {
+            if success {} else if let error {
                 print(error.localizedDescription)
             }
         }
@@ -59,4 +55,18 @@ class NotificationsService {
         }
     }
     
+    func rescheduleNotifications() {
+        // Пример данных, которые нужно запланировать
+        @FetchRequest(sortDescriptors: []) var savedDays: FetchedResults<Reminder>
+        let title = "Медитация ждет вас!"
+        let subtitle: String? = nil
+        let body = "Найдите спокойное место и начните свою практику."
+        var selectedDays = [Day]()
+        
+        savedDays.forEach {
+            selectedDays.append(.init(name: $0.day ?? "", isSelected: $0.isSelected))
+            print(selectedDays)
+            sendNotificationWithContent(title: title, subtitle: subtitle, body: body, sound: .default, selectedDays: selectedDays, selectedTime: $0.time ?? Date())
+        }
+    }
 }

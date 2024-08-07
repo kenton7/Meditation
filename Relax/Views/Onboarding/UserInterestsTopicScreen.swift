@@ -72,7 +72,7 @@ struct UserInterestsTopicScreen: View {
                         })
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color(UIColor(red: 142/255, green: 151/255, blue: 253/255, alpha: 1)))
+                        .background(Color(uiColor: .defaultButtonColor))
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                         .padding()
                         .disabled(selectedTopics.isEmpty)
@@ -81,7 +81,7 @@ struct UserInterestsTopicScreen: View {
             }
         }
         .navigationDestination(isPresented: $isContinueTapped, destination: {
-            RemindersScreen()
+            RemindersScreen(isFromSettings: false)
         })
         .task {
             await coursesVM.getCourses(isDaily: false)

@@ -46,7 +46,7 @@ class HeaderDetailCourse: ObservableObject {
                                      bottomTrailingRadius: 16,
                                      topTrailingRadius: 0,
                                      style: .continuous))
-                    .shadow(color: .gray, radius: 5, x: 0, y: 3)
+                    .shadow(color: .black.opacity(0.7), radius: 5, x: 0, y: 3)
 
                 
                 VStack(spacing: 15) {

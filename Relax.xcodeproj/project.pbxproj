@@ -33,6 +33,7 @@
 		091DEF072C5B83D000184F16 /* EnvironmentValues+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091DEF062C5B83D000184F16 /* EnvironmentValues+Extension.swift */; };
 		091DEF0B2C5D4E1800184F16 /* TextField+Representable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091DEF0A2C5D4E1800184F16 /* TextField+Representable.swift */; };
 		091DEF0E2C60E34B00184F16 /* YandexLoginSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 091DEF0D2C60E34B00184F16 /* YandexLoginSDK */; };
+		091DEF132C63831600184F16 /* NotificationsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091DEF122C63831600184F16 /* NotificationsScreen.swift */; };
 		0920C7C02C29B2CE00AE9FAC /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 0920C7BF2C29B2CE00AE9FAC /* FirebaseDatabase */; };
 		0920C7C22C29B2D400AE9FAC /* FirebaseDatabaseSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 0920C7C12C29B2D400AE9FAC /* FirebaseDatabaseSwift */; };
 		0920C7C42C29BB6000AE9FAC /* AuthErrorCode+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0920C7C32C29BB6000AE9FAC /* AuthErrorCode+Extension.swift */; };
@@ -111,6 +112,7 @@
 		091DEF062C5B83D000184F16 /* EnvironmentValues+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EnvironmentValues+Extension.swift"; sourceTree = "<group>"; };
 		091DEF0A2C5D4E1800184F16 /* TextField+Representable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TextField+Representable.swift"; sourceTree = "<group>"; };
 		091DEF0F2C60E4B200184F16 /* Relax.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Relax.entitlements; sourceTree = "<group>"; };
+		091DEF122C63831600184F16 /* NotificationsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsScreen.swift; sourceTree = "<group>"; };
 		0920C7C32C29BB6000AE9FAC /* AuthErrorCode+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AuthErrorCode+Extension.swift"; sourceTree = "<group>"; };
 		0920C7C72C2AEC2F00AE9FAC /* UserLearningAnimation.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = UserLearningAnimation.json; sourceTree = "<group>"; };
 		0920C7C92C2AEC4600AE9FAC /* UserLearningAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserLearningAnimation.swift; sourceTree = "<group>"; };
@@ -220,6 +222,7 @@
 				0909C83A2C348D060049744F /* ProfileScreen.swift */,
 				0929D0CB2C53B50E0026CF9E /* AccountScreen.swift */,
 				091DEEFE2C5A17F000184F16 /* DownloadedScreen.swift */,
+				091DEF122C63831600184F16 /* NotificationsScreen.swift */,
 			);
 			path = ProfileScreen;
 			sourceTree = "<group>";
@@ -576,6 +579,7 @@
 				098352072C36AC6A0092DAB7 /* HeaderDetailCourse.swift in Sources */,
 				096130462C2C82E200C681B0 /* NotificationsService.swift in Sources */,
 				0929D0CC2C53B50E0026CF9E /* AccountScreen.swift in Sources */,
+				091DEF132C63831600184F16 /* NotificationsScreen.swift in Sources */,
 				0909C81A2C2D56300049744F /* MusicScreen.swift in Sources */,
 				0920C7D72C2BDE9300AE9FAC /* CoreDataModel.xcdatamodeld in Sources */,
 				0920C7CD2C2AEE4C00AE9FAC /* UserInterestsTopicScreen.swift in Sources */,
@@ -746,6 +750,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Relax/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Серотоника";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -783,6 +788,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Relax/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Серотоника";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

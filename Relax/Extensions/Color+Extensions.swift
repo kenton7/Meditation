@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import UIKit
 
 extension Color {
     func toData() -> Data? {
@@ -32,4 +33,9 @@ extension Color {
             opacity: Double(components[3])
         )
     }
+}
+
+extension UIColor {
+    static let noThanksButtonColor: UIColor = .init(red: 63/255, green: 65/255, blue: 78/255, alpha: 1)
+    static let defaultButtonColor: UIColor = .init(red: 142/255, green: 151/255, blue: 253/255, alpha: 1)
 }

@@ -9,6 +9,7 @@ import Foundation
 import FirebaseCore
 import FirebaseAuth
 import FirebaseDatabase
+import UserNotifications
 
 protocol Authable: AnyObject {
     func asyncRegisterWith(name: String, email: String, password: String) async throws
@@ -140,6 +141,7 @@ final class AuthWithEmailViewModel: ObservableObject, Authable {
         } catch {
             print("Ошибка при попытке выхода из аккаунта: \(error.localizedDescription)")
         }
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
         print("User signed out")
     }
     
@@ -150,5 +152,6 @@ final class AuthWithEmailViewModel: ObservableObject, Authable {
             self.signedIn = false
             self.userID = ""
         }
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
     }
 }

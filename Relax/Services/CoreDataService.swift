@@ -28,6 +28,7 @@ class CoreDataService {
             let reminder = Reminder(context: viewContext)
             reminder.day = day.name
             reminder.time = time
+            reminder.isSelected = day.isSelected
             
             do {
                 try viewContext.save()
@@ -57,8 +58,6 @@ class CoreDataService {
         let topicEntity = Topic(context: viewContext)
         topicEntity.topicName = topic.name
         topicEntity.isSelected = topic.isSelected
-        //topicEntity.image = topic.image
-        // topicEntity.color = topic.color (если требуется сохранять цвет)
         
         do {
             try viewContext.save()
@@ -85,32 +84,6 @@ class CoreDataService {
             print("Ошибка при удалении темы: \(error.localizedDescription)")
         }
     }
-    
-//    func loadTopics() -> [TopicsModel] {
-//        let fetchRequest: NSFetchRequest<Topic> = Topic.fetchRequest()
-//        
-//        do {
-//            let results = try viewContext.fetch(fetchRequest)
-//            return results.map { topicEntity in
-//                var color: Color?
-//                if let colorData = topicEntity.color as Data?,
-//                   let uiColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: UIColor.self, from: colorData) {
-//                    color = Color(uiColor)
-//                }
-//                
-//                return TopicsModel(
-//                    topicName: topicEntity.topicName ?? "",
-//                    image: topicEntity.image,
-//                    color: color,
-//                    isSelected: topicEntity.isSelected
-//                )
-//            }
-//        } catch {
-//            print("Failed to load topics: \(error)")
-//            return []
-//        }
-//    }
-
     
     private func deleteAllDays() {
         let fetchRequest: NSFetchRequest<Reminder> = Reminder.fetchRequest()

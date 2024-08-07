@@ -153,7 +153,7 @@ struct RegisterView: View {
                     })
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color(UIColor(red: 142/255, green: 151/255, blue: 253/255, alpha: 1)))
+                    .background(Color(uiColor: .defaultButtonColor))
                     .clipShape(.rect(cornerRadius: 20))
                     .disabled(!email.isValidEmail())
                     .disabled(name.isEmpty)

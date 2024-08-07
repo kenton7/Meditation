@@ -11,21 +11,13 @@ import FirebaseAuth
 struct MainScreen: View {
     
     @EnvironmentObject var viewModel: AuthWithEmailViewModel
-    
-    //@State private var selection: Int = 0
+    @EnvironmentObject var notificationsService: NotificationsService
     
     var body: some View {
-        //NavigationStack {
-        if viewModel.signedIn {/*, !viewModel.userID.isEmpty {*/
-                CustomTabBar()
-            } else {
-                OnboardingScreen()
-            }
-//        }
-//        .navigationBarBackButtonHidden()
+        if viewModel.signedIn {
+            CustomTabBar()
+        } else {
+            OnboardingScreen()
+        }
     }
-}
-
-#Preview {
-    return MainScreen()
 }
