@@ -25,6 +25,7 @@ class CoreDataService {
         deleteAllDays()
         
         for day in days {
+            print("Сохраненные дни: \(day.name)")
             let reminder = Reminder(context: viewContext)
             reminder.day = day.name
             reminder.time = time

@@ -120,7 +120,10 @@ struct ProfileScreen: View {
                             }
                         })
                         .sheet(isPresented: $aboutUsPressed, content: {
-                            //
+                            WebView(url: URL(string: "https://yandex.ru")!)
+                                .ignoresSafeArea()
+                                .navigationTitle("О нас")
+                                .navigationBarTitleDisplayMode(.inline)
                         })
                     }
                     

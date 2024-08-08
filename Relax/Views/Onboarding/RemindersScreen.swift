@@ -88,8 +88,12 @@ struct RemindersScreen: View {
                         ForEach($days, id: \.name) { $day in
                             Button(action: {
                                 day.isSelected.toggle()
-                                selectedDays.append(day)
-                                coreDataService.saveSelectedDays(selectedDays, time: selectionTime)
+                                if day.isSelected {
+                                    selectedDays.append(day)
+                                } else {
+                                    selectedDays.removeAll { $0.name == day.name }
+                                }
+                                //coreDataService.saveSelectedDays(selectedDays, time: selectionTime)
                             }, label: {
                                 Text(day.name)
                                     .foregroundColor(day.isSelected ? .white : Color(uiColor: .init(red: 161/255, green: 164/255, blue: 178/255, alpha: 1)))
@@ -158,17 +162,16 @@ struct RemindersScreen: View {
                 MainScreen()
             })
             .onAppear {
-                savedDays.forEach {
-                    selectionTime = $0.time ?? Date()
-    //                days = [
-    //                    .init(name: "ПН", isSelected: $0.isSelected),
-    //                    .init(name: "ВТ", isSelected: $0.isSelected),
-    //                    .init(name: "СР", isSelected: $0.isSelected),
-    //                    .init(name: "ЧТ", isSelected: $0.isSelected),
-    //                    .init(name: "ПТ", isSelected: $0.isSelected),
-    //                    .init(name: "СБ", isSelected: $0.isSelected),
-    //                    .init(name: "ВС", isSelected: $0.isSelected)
-    //                ]
+                for savedDay in savedDays {
+                    if let index = days.firstIndex(where: { $0.name == savedDay.day }) {
+                        days[index].isSelected = savedDay.isSelected
+                        if savedDay.isSelected {
+                            selectedDays.append(days[index])
+                        }
+                    }
+                    if let savedTime = savedDay.time {
+                        selectionTime = savedTime
+                    }
                 }
             }
         }
