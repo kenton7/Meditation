@@ -30,6 +30,7 @@ class CoreDataService {
             reminder.day = day.name
             reminder.time = time
             reminder.isSelected = day.isSelected
+            reminder.index = Int16(day.index)
             
             do {
                 try viewContext.save()
@@ -40,19 +41,19 @@ class CoreDataService {
     }
     
     // Загрузка выбранных дней недели
-    func loadSelectedDays() -> [Day] {
-        let fetchRequest: NSFetchRequest<Reminder> = Reminder.fetchRequest()
-        
-        do {
-            let results = try viewContext.fetch(fetchRequest)
-            return results.map { reminder in
-                return Day(name: reminder.day ?? "")
-            }
-        } catch {
-            print("Failed to load selected days: \(error)")
-            return []
-        }
-    }
+//    func loadSelectedDays() -> [Day] {
+//        let fetchRequest: NSFetchRequest<Reminder> = Reminder.fetchRequest()
+//        
+//        do {
+//            let results = try viewContext.fetch(fetchRequest)
+//            return results.map { reminder in
+//                return Day(name: reminder.day ?? "")
+//            }
+//        } catch {
+//            print("Failed to load selected days: \(error)")
+//            return []
+//        }
+//    }
     
     // Сохранение тем
     func saveTopic(_ topic: TopicsModel) {

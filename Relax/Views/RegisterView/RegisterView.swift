@@ -23,6 +23,8 @@ struct RegisterView: View {
     @State private var userID: String?
     @EnvironmentObject var viewModel: AuthWithEmailViewModel
     @State private var isRegistration = false
+    @State private var isPrivacyPolicyPressed = false
+    @State private var isTermsAndConditionsPressed = false
     
     var body: some View {
         NavigationStack {
@@ -98,33 +100,49 @@ struct RegisterView: View {
                     PasswordFieldView("Пароль", text: $password)
                     Spacer()
                     
-                    HStack {
-                        Text("Я прочитал")
-                            .font(.system(size: 10, weight: .light, design: .rounded))
-                        Button(action: {
+                    Group {
+                        HStack {
+                            Text("Я прочитал(-а)")
+                                .font(.system(size: 9, weight: .light, design: .rounded))
+                            Button(action: {
+                                isPrivacyPolicyPressed = true
+                            }, label: {
+                                Text("политику конфиденциальности")
+                                    .foregroundStyle(.blue)
+                                    .font(.system(size: 9, weight: .light, design: .rounded))
+                            })
+                            .sheet(isPresented: $isPrivacyPolicyPressed, content: {
+                                WebView(url: URL(string: "https://firebasestorage.googleapis.com/v0/b/relax-8e1d3.appspot.com/o/Privacy.rtf?alt=media&token=8b23e1ac-d014-465f-adba-445426f0b37e")!)
+                            })
                             
-                        }, label: {
-                            Text("политику конфиденциальности")
-                                .foregroundStyle(.blue)
-                                .font(.system(size: 10, weight: .light, design: .rounded))
-                        })
-                        Text("и согласен с условиями")
-                            .font(.system(size: 10, weight: .light, design: .rounded))
-                        Button(action: {
-                            withAnimation {
-                                isAgreeWithPrivacy.toggle()
-                            }
-                        }, label: {
-                            RoundedRectangle(cornerRadius: 5, style: RoundedCornerStyle.continuous)
-                                .stroke(Color(uiColor: .black), lineWidth: 1)
-                                .frame(width: 20, height: 20)
-                                .overlay {
-                                    Image(systemName: "checkmark")
-                                        .foregroundStyle(isAgreeWithPrivacy ? .green : .clear)
+                            Button(action: {
+                                isTermsAndConditionsPressed = true
+                            }, label: {
+                                Text("и согласен(-на) с условиями")
+                                    .foregroundStyle(.blue)
+                                    .font(.system(size: 9, weight: .light, design: .rounded))
+                            })
+                            .sheet(isPresented: $isTermsAndConditionsPressed, content: {
+                                WebView(url: URL(string: "https://firebasestorage.googleapis.com/v0/b/relax-8e1d3.appspot.com/o/terms.rtf?alt=media&token=8d861b43-5a76-48f3-8c2d-ae77ad2faee1")!)
+                            })
+
+                            Button(action: {
+                                withAnimation {
+                                    isAgreeWithPrivacy.toggle()
                                 }
-                        })
+                            }, label: {
+                                RoundedRectangle(cornerRadius: 5, style: RoundedCornerStyle.continuous)
+                                    .stroke(Color(uiColor: .black), lineWidth: 1)
+                                    .frame(width: 20, height: 20)
+                                    .overlay {
+                                        Image(systemName: "checkmark")
+                                            .foregroundStyle(isAgreeWithPrivacy ? .green : .clear)
+                                    }
+                            })
+                        }
+                        .padding(.vertical)
                     }
-                    .padding(.vertical)
+                    .padding(.horizontal)
                     
                     Button(action: {
                         isRegistration = true

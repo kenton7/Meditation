@@ -39,7 +39,7 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
     @Published var isLiked = false
     @Published var listeners = 0
     @Published var storyURL = ""
-    @Published var isTutorialViewed = false
+    @Published var isTutorialViewed: Bool? = nil
     @Published var isDownloadStarted = false
     @Published var downloadProgress = 0.0
     private var coursesViewModel = CoursesViewModel()
@@ -291,17 +291,32 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
         Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("isTutorialViewed").setValue(isViewed)
     }
     
+//    func checkIfUserViewedTutorial(user: User) async {
+//        Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("isTutorialViewed").observeSingleEvent(of: .value) { snapshot in
+//            if let isViewed = snapshot.value as? Bool {
+//                DispatchQueue.main.async {
+//                    self.isTutorialViewed = isViewed
+//                }
+//            } else {
+//                print("Значение isTutorialViewed не найдено")
+//            }
+//        }
+//    }
+    
     func checkIfUserViewedTutorial(user: User) async {
-        Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("isTutorialViewed").observeSingleEvent(of: .value) { snapshot in
-            if let isViewed = snapshot.value as? Bool {
-                DispatchQueue.main.async {
-                    self.isTutorialViewed = isViewed
+            Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("isTutorialViewed").observeSingleEvent(of: .value) { snapshot in
+                if let isViewed = snapshot.value as? Bool {
+                    DispatchQueue.main.async {
+                        self.isTutorialViewed = isViewed
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.isTutorialViewed = false  // Если значение не найдено, установите в false
+                    }
+                    print("Значение isTutorialViewed не найдено")
                 }
-            } else {
-                print("Значение isTutorialViewed не найдено")
             }
         }
-    }
     
     func updateDisplayName(newDisplayName: String) async throws {
         guard let user = Auth.auth().currentUser else {

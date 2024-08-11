@@ -29,16 +29,6 @@ final class AuthWithEmailViewModel: ObservableObject, Authable {
         return Auth.auth().currentUser != nil
     }
     
-//    init() {
-//        self.handler = Auth.auth().addStateDidChangeListener { [weak self] _, user in
-//            DispatchQueue.main.async {
-//                self?.userID = user?.uid ?? ""
-//                self?.signedIn = user != nil
-//                print("userID \(self?.userID ?? ""), signedIn: \(self?.signedIn ?? false)")
-//            }
-//        }
-//    }
-    
     func asyncRegisterWith(name: String, email: String, password: String) async throws {
         do {
             let result = try await Auth.auth().createUser(withEmail: email, password: password)
@@ -147,11 +137,16 @@ final class AuthWithEmailViewModel: ObservableObject, Authable {
     
     func deleteAccount() {
         Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser!.uid).removeValue()
-        Auth.auth().currentUser?.delete()
-        DispatchQueue.main.async {
-            self.signedIn = false
-            self.userID = ""
-        }
-        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        Auth.auth().currentUser?.delete(completion: { error in
+            if let error = error {
+                print(error)
+            } else {
+                DispatchQueue.main.async {
+                    self.signedIn = false
+                    self.userID = ""
+                }
+            }
+            UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        })
     }
 }

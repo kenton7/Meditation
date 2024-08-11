@@ -12,7 +12,6 @@ import FirebaseStorage
 
 struct UserInterestsTopicScreen: View {
     
-    //@State private var topics = TopicsModel.getTopics()
     @State private var selectedTopics: [CourseAndPlaylistOfDayModel] = []
     @State private var isContinueTapped = false
     private let topicDataService = CoreDataService.shared
@@ -55,10 +54,6 @@ struct UserInterestsTopicScreen: View {
                             LazyVGrid(columns: columns, alignment: .center, spacing: 20, content: {
                                 ForEach($coursesVM.allCourses, id: \.id) { $topic in
                                     TopicButton(topic: $topic, selectedTopics: $selectedTopics)
-    //                                    .onChange(of: topic.isSelected) { _ in
-    //                                        print("selected")
-    //                                        topicDataService.saveTopic(topic)
-    //                                    }
                                 }
                             })
                             .padding()
@@ -94,7 +89,6 @@ struct TopicButton: View {
     @Binding var topic: CourseAndPlaylistOfDayModel
     @Binding var selectedTopics: [CourseAndPlaylistOfDayModel]
     private let topicDataService = CoreDataService.shared
-    //@StateObject private var recommendationsViewModel = RecommendationsViewModel()
     
     var body: some View {
         Button(action: {
@@ -104,22 +98,14 @@ struct TopicButton: View {
                     topic.isSelected = true
                     let topicDict = ["name": topic.name]
                     Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? "").child("selectedTopics").child(topic.name).setValue(topicDict)
-                    //topicDataService.saveTopic(topic)
                 } else {
                     selectedTopics.removeAll(where: { $0.name == topic.name })
                     topic.isSelected = false
                     Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? "").child("selectedTopics").child(topic.name).removeValue()
-                    //topicDataService.deleteTopic(topic: topic)
-//                    do {
-//                        try topicDataService.viewContext.save()
-//                    } catch {
-//                        print(error)
-//                    }
                 }
             }
         }, label: {
             ZStack {
-                //topic.color
                 Color(uiColor: .init(red: CGFloat(topic.color.red) / 255,
                                      green: CGFloat(topic.color.green) / 255,
                                      blue: CGFloat(topic.color.blue) / 255,

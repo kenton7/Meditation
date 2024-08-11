@@ -14,7 +14,7 @@ struct MainScreen: View {
     @EnvironmentObject var notificationsService: NotificationsService
     
     var body: some View {
-        if viewModel.signedIn {
+        if viewModel.isUserLoggedIn {
             CustomTabBar()
         } else {
             OnboardingScreen()

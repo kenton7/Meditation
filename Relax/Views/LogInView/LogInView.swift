@@ -140,12 +140,19 @@ struct LogInView: View {
             }
         }
         .navigationDestination(isPresented: $isLogIn) {
-            if databaseVM.isTutorialViewed {
-                MainScreen()
-                    .environmentObject(NotificationsService.shared)
-            } else {
-                WelcomeScreen()
+            if let isTutorialViewed = databaseVM.isTutorialViewed {
+                if isTutorialViewed {
+                    CustomTabBar()
+                } else {
+                    WelcomeScreen()
+                }
             }
+//            if databaseVM.isTutorialViewed {
+//                CustomTabBar()
+//                    //.environmentObject(NotificationsService.shared)
+//            } else {
+//                WelcomeScreen()
+//            }
         }
         .navigationDestination(isPresented: $isForgotPasswordPressed) {
             ForgotPasswordView()

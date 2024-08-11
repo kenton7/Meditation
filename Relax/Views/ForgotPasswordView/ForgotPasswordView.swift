@@ -14,10 +14,12 @@ struct ForgotPasswordView: View {
     @State private var email: String = ""
     @EnvironmentObject private var authViewModel: AuthWithEmailViewModel
     @State private var hasSentRestorePassword = false
+    @State private var isErrorWhenRestore = false
+    @State private var errorMessage = ""
     
     var body: some View {
         VStack {
-            Text("Введите вашу электронную почту, на которую зарегистрирован аккаунт")
+            Text("Введите электронную почту, на которую зарегистрирован ваш аккаунт")
                 .padding()
                 .font(.system(.title, design: .rounded, weight: .bold))
                 .multilineTextAlignment(.center)
@@ -29,8 +31,11 @@ struct ForgotPasswordView: View {
                     if success {
                         hasSentRestorePassword = true
                     } else {
-                        let authErrorCode = AuthErrorCode(_nsError: error!)
-                        print(authErrorCode.code)
+                        if let error = error {
+                            let authErrorCode = AuthErrorCode(_nsError: error)
+                            isErrorWhenRestore = true
+                            errorMessage = error.localizedDescription
+                        }
                     }
                 }
             }, label: {
@@ -49,6 +54,11 @@ struct ForgotPasswordView: View {
                         dismiss()
                     }
                 }
+            }
+            .alert(errorMessage, isPresented: $isErrorWhenRestore) {
+                Button("ОК", role: .destructive) {}
+            } message: {
+                Text("Произошла ошибка при попытке восстановления пароля. Пожалуйста, повторите попытку или свяжитесь с нами: serotonika.app@gmail.com")
             }
         }
     }

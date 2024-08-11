@@ -230,6 +230,14 @@
 			path = ProfileScreen;
 			sourceTree = "<group>";
 		};
+		091DEF162C66104C00184F16 /* NotificationsScreen */ = {
+			isa = PBXGroup;
+			children = (
+				0920C7D32C2B248100AE9FAC /* RemindersScreen.swift */,
+			);
+			path = NotificationsScreen;
+			sourceTree = "<group>";
+		};
 		094E467C2C3D958600AE2FE8 /* SleepScreen */ = {
 			isa = PBXGroup;
 			children = (
@@ -309,6 +317,7 @@
 				09D9B3BB2C3FC3320082295A /* MeditationScreen */,
 				0909C8182C2D56200049744F /* MusicScreen */,
 				09D9B3B82C3FB5920082295A /* CustomTabBar */,
+				091DEF162C66104C00184F16 /* NotificationsScreen */,
 				0983520A2C37C7F00092DAB7 /* PlayerScreen */,
 				0909C8392C348CFA0049744F /* ProfileScreen */,
 				0909C8332C31B74E0049744F /* CourseDetailView */,
@@ -326,7 +335,6 @@
 				0920C7CC2C2AEE4C00AE9FAC /* UserInterestsTopicScreen.swift */,
 				0972C63A2C257687005ECB08 /* OnboardingScreen.swift */,
 				0972C65F2C25A6D6005ECB08 /* WelcomeScreen.swift */,
-				0920C7D32C2B248100AE9FAC /* RemindersScreen.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -754,7 +762,6 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Relax/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Серотоника";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -792,7 +799,6 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Relax/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Серотоника";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

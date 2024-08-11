@@ -2,6 +2,7 @@
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="Reminder" representedClassName="Reminder" syncable="YES" codeGenerationType="class">
         <attribute name="day" optional="YES" attributeType="String"/>
+        <attribute name="index" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="isSelected" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="time" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>

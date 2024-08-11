@@ -120,7 +120,7 @@ struct ProfileScreen: View {
                             }
                         })
                         .sheet(isPresented: $aboutUsPressed, content: {
-                            WebView(url: URL(string: "https://yandex.ru")!)
+                            WebView(url: URL(string: "https://firebasestorage.googleapis.com/v0/b/relax-8e1d3.appspot.com/o/aboutUs.rtf?alt=media&token=64393fb2-c94c-4f6b-a904-1688cb4c2a65")!)
                                 .ignoresSafeArea()
                                 .navigationTitle("О нас")
                                 .navigationBarTitleDisplayMode(.inline)

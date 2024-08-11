@@ -12,6 +12,7 @@ import CoreData
 struct Day {
     let name: String
     var isSelected: Bool = false
+    var index: Int
 }
 
 struct RemindersScreen: View {
@@ -27,13 +28,13 @@ struct RemindersScreen: View {
     @EnvironmentObject var authViewModel: AuthWithEmailViewModel
     @State private var isContinueOrSkipButtonPressed = false
     @State private var days: [Day] = [
-            Day(name: "ПН"),
-            Day(name: "ВТ"),
-            Day(name: "СР"),
-            Day(name: "ЧТ"),
-            Day(name: "ПТ"),
-            Day(name: "СБ"),
-            Day(name: "ВС")
+            Day(name: "ПН", index: 2),
+            Day(name: "ВТ", index: 3),
+            Day(name: "СР", index: 4),
+            Day(name: "ЧТ", index: 5),
+            Day(name: "ПТ", index: 6),
+            Day(name: "СБ", index: 7),
+            Day(name: "ВС", index: 1)
         ]
     let isFromSettings: Bool
     //@State private var days: [Day] = []
@@ -146,13 +147,13 @@ struct RemindersScreen: View {
                                 coreDataService.saveSelectedDays(selectedDays, time: selectionTime)
                                 isContinueOrSkipButtonPressed = true
                                 if let user = Auth.auth().currentUser {
-                                    databaseVM.writeToDatabaseIfUserViewedTutorial(user: user, isViewed: isDaySelected)
+                                    databaseVM.writeToDatabaseIfUserViewedTutorial(user: user, isViewed: true)
                                 }
                             }, label: {
                                 Text("Нет, спасибо")
                                     .foregroundStyle(Color(uiColor: .noThanksButtonColor))
                             })
-                    }
+                        }
                     }
                 }
                 Spacer()
@@ -160,6 +161,7 @@ struct RemindersScreen: View {
             .padding(.bottom)
             .navigationDestination(isPresented: $isContinueOrSkipButtonPressed, destination: {
                 MainScreen()
+                    .navigationBarBackButtonHidden()
             })
             .onAppear {
                 for savedDay in savedDays {

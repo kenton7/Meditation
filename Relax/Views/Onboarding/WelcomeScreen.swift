@@ -60,10 +60,6 @@ struct WelcomeScreen: View {
         .navigationDestination(isPresented: $isGetStartedTapped) {
             UserInterestsTopicScreen()
         }
-        
-        .onAppear {
-            print("WELCOME!!!!")
-        }
     }
 }
 
