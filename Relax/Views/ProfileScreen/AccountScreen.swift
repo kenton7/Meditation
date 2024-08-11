@@ -24,24 +24,37 @@ struct AccountScreen: View {
     @State private var errorMessagePassword = ""
     @State private var errorMessageEmail = ""
     @State private var isError = false
+    @FocusState private var isFocused: Bool
     @EnvironmentObject var viewModel: AuthWithEmailViewModel
     @StateObject private var databaseVM = ChangeDataInDatabase()
     
     
     var body: some View {
         NavigationStack {
-            if viewModel.signedIn/*, !viewModel.userID.isEmpty*/ {
+            if viewModel.signedIn {
                 List {
                     Section("Ваше имя") {
                         VStack {
-                            TextField(userName, text: $newUserName)
-                                .padding()
-                                .foregroundStyle(.black)
-                                .textFieldStyle(.plain)
-                                .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
-                                .clipShape(.rect(cornerRadius: 8))
-                                .padding()
-                            
+                            ZStack(alignment: .leading) {
+                                TextField("", text: $newUserName)
+                                    .padding()
+                                    .foregroundStyle(.black)
+                                    .textFieldStyle(.plain)
+                                    .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
+                                    .clipShape(.rect(cornerRadius: 8))
+                                    .focused($isFocused)
+                                    .onTapGesture {
+                                        isFocused = true
+                                    }
+                                    .padding()
+                                
+                                Text(userName)
+                                    .padding()
+                                    .offset(x: 10)
+                                    .offset(y: (isFocused || !newUserName.isEmpty) ? -40 : 0)
+                                    .foregroundStyle(isFocused ? .black : .secondary)
+                                    .animation(.spring, value: isFocused)
+                            }
                             Button(action: {
                                 isUpdatingName = true
                                 Task.detached {
