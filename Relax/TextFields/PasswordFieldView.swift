@@ -21,27 +21,46 @@ struct PasswordFieldView: View {
     
     var body: some View {
         ZStack(alignment: .trailing) {
-            Group {
-                if isSecured {
-                    SecureField(title, text: $text)
-                        .padding()
-                        .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
-                        .clipShape(.rect(cornerRadius: 8))
-                        .padding()
-                        .autocorrectionDisabled(true)
-                        .onTapGesture {
-                            isFocused = true
-                        }
+            if isSecured {
+                ZStack(alignment: .leading) {
+                SecureField("", text: $text)
+                    .padding()
+                    .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
+                    .clipShape(.rect(cornerRadius: 8))
+                    .padding()
+                    .autocorrectionDisabled(true)
+                    .focused($isFocused)
+                    .onTapGesture {
+                        isFocused = true
+                    }
+                
+                Text(title)
+                    .padding()
+                    .offset(x: 10)
+                    .offset(y: (isFocused || !text.isEmpty) ? -40 : 0)
+                    .foregroundStyle(isFocused ? .black : .secondary)
+                    .animation(.spring, value: isFocused)
+            }
                 } else {
-                    TextField(title, text: $text)
-                        .padding()
-                        .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
-                        .clipShape(.rect(cornerRadius: 8))
-                        .padding()
-                        .autocorrectionDisabled(true)
-                        .onTapGesture {
-                            isFocused = true
-                        }
+                    ZStack(alignment: .leading) {
+                        TextField("", text: $text)
+                            .padding()
+                            .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
+                            .clipShape(.rect(cornerRadius: 8))
+                            .padding()
+                            .autocorrectionDisabled(true)
+                            .focused($isFocused)
+                            .onTapGesture {
+                                isFocused = true
+                            }
+                        
+                        Text(title)
+                            .padding()
+                            .offset(x: 10)
+                            .offset(y: (isFocused || !text.isEmpty) ? -40 : 0)
+                            .foregroundStyle(isFocused ? .black : .secondary)
+                            .animation(.spring, value: isFocused)
+                    }
                 }
                 
                 Button(action: {
@@ -52,7 +71,6 @@ struct PasswordFieldView: View {
                         .foregroundStyle(.gray)
                 }
                 .padding(.horizontal)
-            }
         }
     }
 }

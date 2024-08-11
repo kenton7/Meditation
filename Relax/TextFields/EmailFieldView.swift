@@ -20,7 +20,8 @@ struct EmailFieldView: View {
     }
     
     var body: some View {
-        TextField(title, text: $email)
+        ZStack(alignment: .leading) {
+        TextField("", text: $email)
             .padding()
             .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
             .clipShape(.rect(cornerRadius: 8))
@@ -44,6 +45,14 @@ struct EmailFieldView: View {
                         .opacity(isFocused ? 1 : 0)
                 }
             }
+
+            Text(title)
+                .padding()
+                .offset(x: 10)
+                .offset(y: (isFocused || !email.isEmpty) ? -40 : 0)
+                .foregroundStyle(isFocused ? .black : .secondary)
+                .animation(.spring, value: isFocused)
+        }
     }
 }
 
