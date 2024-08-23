@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-class SelectGenreViewModel: ObservableObject {
+final class SelectGenreViewModel: ObservableObject {
         
     @Published var genres = [
         StoryGenresModel(genre: "Всё", isSelected: true, image: "headphones"),

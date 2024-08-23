@@ -10,7 +10,7 @@ import SwiftUI
 struct ReadyCourseDetailView: View {
     
     let course: CourseAndPlaylistOfDayModel
-    @StateObject private var databaseViewModel = ChangeDataInDatabase()
+    @StateObject private var databaseViewModel = ChangeDataInDatabase.shared
     @EnvironmentObject private var courseViewModel: CoursesViewModel
     @EnvironmentObject private var playerViewModel: PlayerViewModel
     

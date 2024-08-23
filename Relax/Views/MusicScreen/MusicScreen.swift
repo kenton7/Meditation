@@ -84,7 +84,8 @@ struct AllMusicPlaylists: View {
                                             .padding(.horizontal)
                                             .frame(width: 200, height: 150)
                                     } placeholder: {
-                                        ProgressView()
+                                        //ProgressView()
+                                        LoadingAnimationButton()
                                     }
                                     
                                     Text(file.name)

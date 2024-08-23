@@ -16,8 +16,9 @@ struct PlayerScreen: View {
     @State private var isLiked = false
     @State private var sliderValue: Double = 0.0
     @ObservedObject private var fetchDatabaseVM = CoursesViewModel()
-    @StateObject private var databaseVM = ChangeDataInDatabase()
+    @StateObject private var databaseVM = ChangeDataInDatabase.shared
     @StateObject private var playerViewModel = PlayerViewModel.shared
+    @EnvironmentObject private var yandexViewModel: YandexAuthorization
     @State private var trackName = ""
     @State private var errorDownloadingMessage = ""
     @State private var isDowndloadError = false
@@ -55,15 +56,27 @@ struct PlayerScreen: View {
                         HStack {
                             Spacer()
                             Button(action: {
-                                //MARK: - TODO: реализовать проверку лайкнуто или нет (реализовано) и куда-то перемещать лайкнутый урок
                                 isLiked.toggle()
-                                if let currentUser = currentUser {
-                                    if isLiked {
-                                        databaseVM.userLiked(lesson: lesson, type: .increment, isLiked: isLiked, user: currentUser)
-                                    } else {
-                                        databaseVM.userLiked(lesson: lesson, type: .decrement, isLiked: isLiked, user: currentUser)
-                                    }
+                                guard let userID = currentUser?.uid, !yandexViewModel.clientID.isEmpty else { return }
+                                if isLiked {
+                                    databaseVM.userLiked(lesson: lesson, type: .increment, isLiked: isLiked, userID: userID)
+                                } else {
+                                    databaseVM.userLiked(lesson: lesson, type: .decrement, isLiked: isLiked, userID: userID)
                                 }
+//                                if let userID = currentUser?.uid ?? yandexViewModel.clientID {
+//                                    if isLiked {
+//                                        databaseVM.userLiked(lesson: lesson, type: .increment, isLiked: isLiked, userID: userID)
+//                                    } else {
+//                                        databaseVM.userLiked(lesson: lesson, type: .decrement, isLiked: isLiked, userID: userID)
+//                                    }
+//                                }
+//                                if let currentUser = currentUser {
+//                                    if isLiked {
+//                                        databaseVM.userLiked(lesson: lesson, type: .increment, isLiked: isLiked, user: currentUser)
+//                                    } else {
+//                                        databaseVM.userLiked(lesson: lesson, type: .decrement, isLiked: isLiked, user: currentUser)
+//                                    }
+//                                }
                             }, label: {
                                 Image(isLiked ? "LikeButton_fill" : "LikeButton")
                             })
@@ -227,8 +240,7 @@ struct PlayerScreen: View {
                             Text(playerViewModel.formatTime(time: playerViewModel.duration))
                                 .foregroundStyle(course.type == .story ? .white : .black)
                         } else {
-                            ProgressView()
-                                .progressViewStyle(.circular)
+                            LoadingAnimationButton()
                         }
                     }
                     .padding(.horizontal)
@@ -238,8 +250,8 @@ struct PlayerScreen: View {
             }
         }
         .onAppear {
-            if let currentUser = currentUser, let lesson = lesson {
-                databaseVM.checkIfUserLiked(lesson: lesson, user: currentUser)
+            if let userID = currentUser?.uid, !yandexViewModel.clientID.isEmpty, let lesson = lesson {
+                databaseVM.checkIfUserLiked(lesson: lesson, userID: userID)
                 isDownloaded = fileManagerService.isDownloaded(lesson: lesson, course: course)
             }
             

@@ -15,7 +15,7 @@ struct LessonsView: View {
     @State private var isPlaying = false
     @State private var playingURL: String? = nil
     let course: CourseAndPlaylistOfDayModel
-    @StateObject private var databaseViewModel = ChangeDataInDatabase()
+    @StateObject private var databaseViewModel = ChangeDataInDatabase.shared
     @State private var isTappedOnName = false
     @State private var lesson: Lesson?
     @State private var url: String = ""

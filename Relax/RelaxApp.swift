@@ -9,12 +9,30 @@ import SwiftUI
 import FirebaseCore
 import CoreData
 import AVFoundation
+import YandexLoginSDK
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         FirebaseApp.configure()
         setupAudioSession()
+        
+        //let yandexViewModel = YandexAuthorization.shared
+        do {
+            try YandexLoginSDK.shared.activate(with: .yandexLoginSDKClientID, authorizationStrategy: .default)
+        } catch {
+            print("yandex login error: \(error)")
+        }
+        return true
+    }
+    
+    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+        do {
+            try YandexLoginSDK.shared.handleOpenURL(url)
+        } catch {
+            print("error open URL: \(error)")
+        }
+        
         return true
     }
     
@@ -27,16 +45,33 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             print("Failed to configure AVAudioSession in AppDelegate: \(error.localizedDescription)")
         }
     }
+    
+    func application(
+            _ application: UIApplication,
+            continue userActivity: NSUserActivity,
+            restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
+        ) -> Bool {
+        
+            do {
+                try YandexLoginSDK.shared.handleUserActivity(userActivity)
+            } catch {
+                print("error user activity: \(error)")
+            }
+            return true
+        }
 }
 
 @main
 struct RelaxApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @StateObject private var authViewModel = AuthWithEmailViewModel()
+    @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var playerViewModel = PlayerViewModel.shared
     @StateObject private var nightStoriesVM = NightStoriesViewModel()
     @StateObject private var meditationViewModel = CoursesViewModel()
+    @StateObject private var yandexViewModel = YandexAuthorization.shared
     @StateObject private var notificationsService = NotificationsService.shared
+    @StateObject private var changeDatabase = ChangeDataInDatabase.shared
+    //@StateObject private var signInWithAppleVM = SignInWithAppleVM()
     let persistenceController = PersistenceController.shared
     
 
@@ -49,6 +84,9 @@ struct RelaxApp: App {
                 .environmentObject(nightStoriesVM)
                 .environmentObject(meditationViewModel)
                 .environmentObject(notificationsService)
+                .environmentObject(changeDatabase)
+                .environmentObject(yandexViewModel)
+                //.environmentObject(signInWithAppleVM)
                 .environment(\.colorScheme, .light)
         }
         .environment(\.managedObjectContext, persistenceController.container.viewContext)

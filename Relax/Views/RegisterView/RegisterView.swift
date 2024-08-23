@@ -8,6 +8,9 @@
 import SwiftUI
 import FirebaseCore
 import FirebaseAuth
+import YandexLoginSDK
+import AuthenticationServices
+import CryptoKit
 
 struct RegisterView: View {
     
@@ -21,10 +24,15 @@ struct RegisterView: View {
     @State private var isErrorWhileRegister: Bool = false
     @State private var errorMessage: String?
     @State private var userID: String?
-    @EnvironmentObject var viewModel: AuthWithEmailViewModel
+    @EnvironmentObject var viewModel: AuthViewModel
     @State private var isRegistration = false
     @State private var isPrivacyPolicyPressed = false
     @State private var isTermsAndConditionsPressed = false
+    @StateObject private var yandexAuth = YandexAuthorization.shared
+    @StateObject private var databaseVM = ChangeDataInDatabase.shared
+    //@EnvironmentObject private var signInWithAppleVM: SignInWithAppleVM
+    private let locale = Locale.current
+    @Environment(\.colorScheme) private var scheme
     
     var body: some View {
         NavigationStack {
@@ -37,42 +45,98 @@ struct RegisterView: View {
                     Spacer()
                     Text("Создайте новый аккаунт")
                         .font(.system(.title, design: .rounded, weight: .bold))
-                    //Spacer()
-                    //MARK: - Кнопки авторизации через гугл и Apple
+                    Spacer()
+                    //MARK: - Кнопки авторизации через Yandex и VK
                     Button {
-                        //GOOGLE
+                        if let rootViewController = getRootViewController() {
+                            do {
+                                guard isAgreeWithPrivacy else {
+                                    errorMessage = "Сначала нужно принять условия использования."
+                                    return
+                                }
+                                try YandexLoginSDK.shared.authorize(with: rootViewController,
+                                                                    customValues: nil,
+                                                                    authorizationStrategy: .default)
+                                //isRegistered = true
+                            } catch {
+                                print("Ошибка запуска авторизации: \(error.localizedDescription)")
+                                isRegistration = false
+                            }
+                        }
                     } label: {
-                        HStack {
-                            Image("Google")
-                                .frame(width: 20, height: 20)
-                            Text("Войти через Google")
-                                .foregroundStyle(.black)
-                                .bold()
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(.black)
+                            HStack {
+                                Image("Yandex")
+                                    .resizable()
+                                    .frame(width: 25, height: 25)
+                                Text("Войти с Яндекс ID")
+                                    .foregroundStyle(.white)
+                                    .bold()
+                            }
                         }
                     }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
                     .padding()
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20, style: RoundedCornerStyle.continuous)
-                            .stroke(Color(uiColor: .lightGray), lineWidth: 3)
-                    )
+                    .clipShape(.rect(cornerRadius: 16))
                     
-                    Button(action: {
-                        //Apple
-                    }, label: {
-                        HStack {
-                            Image("Apple")
-                                .frame(width: 25, height: 20)
-                            Text("Войти через Apple")
-                                .bold()
-                                .foregroundStyle(.black)
+                    //Кнопка Войти через Apple. НЕ должна быть доступна для пользователей из РФ!
+                    if locale.identifier == "ru_RU" {
+                        SignInWithAppleButton(.signUp) { request in
+                            guard isAgreeWithPrivacy else {
+                                    errorMessage = "Сначала нужно принять условия использования."
+                                    isErrorWhileRegister = true
+                                    return
+                                }
+                            request.requestedScopes = [.fullName, .email]
+                            request.nonce = viewModel.currentNonce
+                        } onCompletion: { result in
+                            guard isAgreeWithPrivacy else {
+                                errorMessage = "Сначала нужно принять условия использования."
+                                isRegistration = false
+                                self.isRegistered = false
+                                return
+                            }
+                            switch result {
+                            case .success(let authorization):
+                                Task {
+                                    await viewModel.signInWithApple(authorization)
+                                    if let userID = Auth.auth().currentUser?.uid {
+                                        await databaseVM.checkIfFirebaseUserViewedTutorial(userID: userID)
+                                    }
+                                    await MainActor.run {
+                                        self.isRegistered = true
+                                    }
+                                }
+                            case .failure(let error):
+                                errorMessage = error.localizedDescription
+                                isErrorWhileRegister = true
+                                isRegistration = false
+                                self.isRegistered = false
+                            }
                         }
-                    })
-                    .padding()
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20, style: RoundedCornerStyle.continuous)
-                            .stroke(Color(uiColor: .black), lineWidth: 3)
-                    )
-                    .padding()
+                        .foregroundStyle(scheme == .dark ? .black : .white)
+                        .clipShape(.rect(cornerRadius: 16))
+                        .overlay {
+                            ZStack {
+                                Capsule()
+                                HStack {
+                                    Image(systemName: "applelogo")
+                                    Text("Вход с Apple")
+                                        .bold()
+                                }
+                                .foregroundStyle(scheme == .dark ? .black : .white)
+                            }
+                            .allowsHitTesting(false)
+                        }
+                        .frame(height: 56)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .clipShape(.rect(cornerRadius: 16))
+                    }
+                    
                     Divider()
                     Text("ИЛИ ЗАРЕГИСТРИРУЙТЕСЬ С ПОМОЩЬЮ EMAIL")
                         .font(.system(size: 15))
@@ -91,10 +155,10 @@ struct RegisterView: View {
                         EmailFieldView("Email", email: $email)
                         if let errorMessage = errorMessage {
                             Text(errorMessage)
+                                .padding()
                                 .bold()
                                 .foregroundStyle(.red)
                                 .font(.system(size: 15))
-                                .lineLimit(nil)
                         }
                     }
                     PasswordFieldView("Пароль", text: $password)
@@ -125,10 +189,13 @@ struct RegisterView: View {
                             .sheet(isPresented: $isTermsAndConditionsPressed, content: {
                                 WebView(url: URL(string: "https://firebasestorage.googleapis.com/v0/b/relax-8e1d3.appspot.com/o/terms.rtf?alt=media&token=8d861b43-5a76-48f3-8c2d-ae77ad2faee1")!)
                             })
-
+                            
                             Button(action: {
                                 withAnimation {
                                     isAgreeWithPrivacy.toggle()
+                                    DispatchQueue.main.async {
+                                        self.errorMessage = nil
+                                    }
                                 }
                             }, label: {
                                 RoundedRectangle(cornerRadius: 5, style: RoundedCornerStyle.continuous)
@@ -148,10 +215,11 @@ struct RegisterView: View {
                         isRegistration = true
                         Task {
                             do {
-                                try await viewModel.asyncRegisterWith(name: name, email: email, password: password)
+                                try await viewModel.asyncRegisterWith(name: name, 
+                                                                      email: email,
+                                                                      password: password)
                                 await MainActor.run {
                                     self.isRegistered = true
-                                    print("is registered? \(self.isRegistered)")
                                     self.errorMessage = nil
                                 }
                             } catch {
@@ -163,14 +231,14 @@ struct RegisterView: View {
                         }
                     }, label: {
                         if isRegistration {
-                            ProgressView()
+                            LoadingAnimationButton()
                         } else {
                             Text("Зарегистрироваться")
                                 .foregroundStyle(.white)
                         }
                     })
                     .padding()
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, maxHeight: 50)
                     .background(Color(uiColor: .defaultButtonColor))
                     .clipShape(.rect(cornerRadius: 20))
                     .disabled(!email.isValidEmail())
@@ -182,6 +250,11 @@ struct RegisterView: View {
             }
             .navigationDestination(isPresented: $isRegistered) {
                 WelcomeScreen()
+            }
+            .onReceive(yandexAuth.$isLoggedIn) { isRegistered in
+                if isRegistered {
+                    self.isRegistered = true
+                }
             }
         }
     }

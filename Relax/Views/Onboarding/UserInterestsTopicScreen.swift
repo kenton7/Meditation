@@ -16,6 +16,7 @@ struct UserInterestsTopicScreen: View {
     @State private var isContinueTapped = false
     private let topicDataService = CoreDataService.shared
     @StateObject private var coursesVM = CoursesViewModel()
+    @EnvironmentObject var yandexViewModel: YandexAuthorization
     
     private let firebaseUser = Auth.auth().currentUser
     
@@ -89,19 +90,25 @@ struct TopicButton: View {
     @Binding var topic: CourseAndPlaylistOfDayModel
     @Binding var selectedTopics: [CourseAndPlaylistOfDayModel]
     private let topicDataService = CoreDataService.shared
+    @EnvironmentObject var yandexViewModel: YandexAuthorization
     
     var body: some View {
+                
         Button(action: {
-            withAnimation {
-                if !selectedTopics.contains(where: { $0.name == topic.name }) {
-                    selectedTopics.append(topic)
-                    topic.isSelected = true
-                    let topicDict = ["name": topic.name]
-                    Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? "").child("selectedTopics").child(topic.name).setValue(topicDict)
-                } else {
-                    selectedTopics.removeAll(where: { $0.name == topic.name })
-                    topic.isSelected = false
-                    Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? "").child("selectedTopics").child(topic.name).removeValue()
+            if let userID = Auth.auth().currentUser?.uid ?? yandexViewModel.userInfo?.client_id {
+                withAnimation {
+                    if !selectedTopics.contains(where: { $0.name == topic.name }) {
+                        selectedTopics.append(topic)
+                        topic.isSelected = true
+                        let topicDict = ["name": topic.name]
+                        //Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? "").child("selectedTopics").child(topic.name).setValue(topicDict)
+                        Database.database(url: .databaseURL).reference().child("users").child(userID).child("selectedTopics").child(topic.name).setValue(topicDict)
+                    } else {
+                        selectedTopics.removeAll(where: { $0.name == topic.name })
+                        topic.isSelected = false
+//                        Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? "").child("selectedTopics").child(topic.name).removeValue()
+                        Database.database(url: .databaseURL).reference().child("users").child(userID).child("selectedTopics").child(topic.name).removeValue()
+                    }
                 }
             }
         }, label: {
@@ -132,7 +139,8 @@ struct TopicButton: View {
                                 }
                             }
                     } placeholder: {
-                        ProgressView()
+                        //ProgressView()
+                        LoadingAnimationButton()
                     }
                     .padding()
                 }
@@ -156,9 +164,6 @@ struct TopicButton: View {
             )
         })
         .padding(.horizontal)
-//        .onChange(of: topic.isSelected) { newValue in
-//            topicDataService.saveTopic(topic)
-//        }
     }
 }
 

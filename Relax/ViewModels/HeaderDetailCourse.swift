@@ -21,7 +21,7 @@ struct AnyShape: Shape, @unchecked Sendable {
     }
 }
 
-class HeaderDetailCourse: ObservableObject {
+final class HeaderDetailCourse: ObservableObject {
     
     @Published var offsetY: CGFloat = .zero
     
@@ -67,7 +67,8 @@ class HeaderDetailCourse: ObservableObject {
                                 .padding(.top, self.offsetY < 0 ? 16 : 0)
                                 //.offset(x: (rect.minX - 16) * progress, y: -resizedOffsetY * progress - (progress * 16))
                         } placeholder: {
-                            ProgressView()
+                            //ProgressView()
+                            LoadingAnimationButton()
                         }
                     }
                     .onChange(of: progress) { newValue in

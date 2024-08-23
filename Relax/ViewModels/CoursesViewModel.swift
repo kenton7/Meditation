@@ -12,7 +12,7 @@ import FirebaseAuth
 import Combine
 
 
-class CoursesViewModel: ObservableObject {
+final class CoursesViewModel: ObservableObject {
     
     enum PathToMaterialOfDay: String {
         case playlist = "playlistOfDay"
@@ -20,7 +20,6 @@ class CoursesViewModel: ObservableObject {
     }
     
     enum Paths: String {
-        //        case playlistOfDay = "playlistOfDay"
         case playlistOfDay = "courseAndPlaylistOfDay"
         case meditationOfDay = "courseOfDay"
         case allCourses = "courses"
@@ -42,11 +41,11 @@ class CoursesViewModel: ObservableObject {
     var dailyCourse: CourseAndPlaylistOfDayModel?
     
     init() {
-        playerViewModel.$isPlaying
-            .receive(on: RunLoop.main)
-            .assign(to: \.isPlaying, on: self)
-            .store(in: &cancellables)
-        lastUpdate = UserDefaults.standard.object(forKey: "lastUpdate") as? Date
+//        playerViewModel.$isPlaying
+//            .receive(on: RunLoop.main)
+//            .assign(to: \.isPlaying, on: self)
+//            .store(in: &cancellables)
+//        lastUpdate = UserDefaults.standard.object(forKey: "lastUpdate") as? Date
     }
     
     func fetchCourseDetails(type: Types, courseID: String) async -> [Lesson] {

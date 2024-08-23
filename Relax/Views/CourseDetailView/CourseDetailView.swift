@@ -21,6 +21,7 @@ struct CourseDetailView: View {
     @EnvironmentObject private var databaseViewModel: ChangeDataInDatabase
     @EnvironmentObject private var coursesViewModel: CoursesViewModel
     @EnvironmentObject private var playerViewModel: PlayerViewModel
+    @EnvironmentObject private var yandexViewModel: YandexAuthorization
     private let user = Auth.auth().currentUser
     private let fileManagerService: IFileManagerSerivce = FileManagerSerivce()
     @State private var isFemale = true
@@ -63,7 +64,7 @@ struct CourseDetailView: View {
         }
         .onAppear {
             databaseViewModel.getLikesIn(course: course, courseType: course.type)
-            databaseViewModel.checkIfUserLiked(user: user!, course: course)
+            databaseViewModel.checkIfUserLiked(userID: user?.uid ?? yandexViewModel.clientID, course: course)
             databaseViewModel.getListenersIn(course: course, courseType: course.type)
             databaseViewModel.storyInfo(course: course, isFemale: isFemale)
         }
@@ -95,16 +96,16 @@ struct CourseDetailView: View {
                                 isLiked.toggle()
                             }
                             if isLiked {
-                                databaseViewModel.userLiked(course: course, 
+                                databaseViewModel.userLiked(course: course,
                                                             type: .increment,
                                                             isLiked: isLiked,
-                                                            user: user!,
+                                                            userID: user?.uid ?? yandexViewModel.clientID,
                                                             courseType: course.type)
                             } else {
-                                databaseViewModel.userLiked(course: course, 
+                                databaseViewModel.userLiked(course: course,
                                                             type: .decrement,
                                                             isLiked: isLiked,
-                                                            user: user!,
+                                                            userID: user?.uid ?? yandexViewModel.clientID,
                                                             courseType: course.type)
                             }
                         }, label: {

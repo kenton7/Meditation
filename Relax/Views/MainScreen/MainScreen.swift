@@ -10,7 +10,7 @@ import FirebaseAuth
 
 struct MainScreen: View {
     
-    @EnvironmentObject var viewModel: AuthWithEmailViewModel
+    @EnvironmentObject var viewModel: AuthViewModel
     @EnvironmentObject var notificationsService: NotificationsService
     
     var body: some View {

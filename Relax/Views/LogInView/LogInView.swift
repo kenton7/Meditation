@@ -7,24 +7,30 @@
 
 import SwiftUI
 import FirebaseAuth
+import YandexLoginSDK
+import AuthenticationServices
+import FirebaseDatabase
 
 struct LogInView: View {
     
     @State private var email: String = ""
     @State private var password: String = ""
-    @EnvironmentObject var viewModel: AuthWithEmailViewModel
+    @EnvironmentObject var viewModel: AuthViewModel
     @State private var isLogIn = false
     @State private var isForgotPasswordPressed = false
     @State private var errorMessage: String?
     @State private var userID: String?
     @State private var userModel: UserModel?
     @State private var isLogining = false
-    @StateObject private var databaseVM = ChangeDataInDatabase()
+    @StateObject private var databaseVM = ChangeDataInDatabase.shared
     @EnvironmentObject var notificationsService: NotificationsService
+    @EnvironmentObject private var yandexViewModel: YandexAuthorization
+    private let locale = Locale.current
+    @Environment(\.colorScheme) private var scheme
+    @State private var isViewed = false
     
     
     var body: some View {
-        //MARK: - Кнопки авторизации через гугл и Apple
         NavigationStack {
             ZStack {
                 VStack {
@@ -35,40 +41,87 @@ struct LogInView: View {
                     Spacer()
                     Text("C возвращением!")
                         .font(.system(.title, design: .rounded, weight: .bold))
+                    
                     Button {
-                        //GOOGLE
+                        if let rootViewController = getRootViewController() {
+                            do {
+                                isLogining = true
+                                try YandexLoginSDK.shared.authorize(with: rootViewController,
+                                                                    customValues: nil,
+                                                                    authorizationStrategy: .default)
+                            } catch {
+                                print("Ошибка запуска авторизации: \(error.localizedDescription)")
+                                isLogining = false
+                            }
+                        }
                     } label: {
-                        HStack {
-                            Image("Google")
-                                .frame(width: 20, height: 20)
-                            Text("Войти через Google")
-                                .foregroundStyle(.black).bold()
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(.black)
+                            HStack {
+                                Image("Yandex")
+                                    .resizable()
+                                    .frame(width: 25, height: 25)
+                                Text("Войти с Яндекс ID")
+                                    .foregroundStyle(.white)
+                                    .bold()
+                            }
                         }
                     }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
                     .padding()
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20, style: RoundedCornerStyle.continuous)
-                            .stroke(Color(uiColor: .lightGray), lineWidth: 3)
-                    )
+                    .clipShape(.rect(cornerRadius: 16))
                     
-                    Button(action: {
-                        //Apple
-                    }, label: {
-                        HStack {
-                            Image("Apple")
-                                .frame(width: 25, height: 20)
-                            Text("Войти через Apple")
-                                .bold()
-                                .foregroundStyle(.black)
+                    //Кнопка войти через Apple. НЕ должна быть доступна для пользователей из РФ
+                    if locale.identifier == "ru_RU" {
+                        SignInWithAppleButton(.signIn) { request in
+                            isLogining = true
+                            request.requestedScopes = [.fullName, .email]
+                            request.nonce = viewModel.currentNonce
+                        } onCompletion: { result in
+                            switch result {
+                            case .success(let authorization):
+                                Task {
+                                    await viewModel.signInWithApple(authorization)
+                                    //await databaseVM.checkIfFirebaseUserViewedTutorial(userID: viewModel.userID)
+//                                    await MainActor.run {
+//                                        self.isLogIn = true
+//                                    }
+//                                    if let userID = Auth.auth().currentUser?.uid {
+//                                        print("userID after Sign in With Apple: \(userID)")
+//                                        await databaseVM.checkIfFirebaseUserViewedTutorial(userID: userID)
+////                                        try await Database.database(url: .databaseURL).reference().child("users").child(userID).child("email").setValue(viewModel.appleIDEmail)
+//                                        await MainActor.run {
+//                                            self.isLogIn = true
+//                                        }
+//                                    }
+                                }
+                            case .failure(let error):
+                                errorMessage = error.localizedDescription
+                                isLogining = false
+                                self.isLogIn = false
+                            }
                         }
-                    })
-                    .padding()
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20, style: RoundedCornerStyle.continuous)
-                            .stroke(Color(uiColor: .black), lineWidth: 3)
-                    )
-                    .padding()
-                    
+                        .overlay {
+                            ZStack {
+                                Capsule()
+                                    .clipShape(.rect(cornerRadius: 16))
+                                HStack {
+                                    Image(systemName: "applelogo")
+                                    Text("Вход с Apple")
+                                        .bold()
+                                }
+                                .foregroundStyle(scheme == .dark ? .black : .white)
+                            }
+                            .allowsHitTesting(false)
+                        }
+                        .clipShape(.rect(cornerRadius: 16))
+                        .frame(height: 56)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                    }
+
                     Divider()
                     
                     Text("ИЛИ ВОЙТИ С ПОМОЩЬЮ EMAIL")
@@ -82,6 +135,7 @@ struct LogInView: View {
                         PasswordFieldView("Пароль", text: $password)
                         if let errorMessage = errorMessage {
                             Text(errorMessage)
+                                .padding(.horizontal)
                                 .bold()
                                 .foregroundStyle(.red)
                                 .multilineTextAlignment(.center)
@@ -95,8 +149,8 @@ struct LogInView: View {
                         Task.detached {
                             do {
                                 try await viewModel.asyncLogInWith(email: email, password: password)
-                                if let firebaseUser = Auth.auth().currentUser {
-                                    await databaseVM.checkIfUserViewedTutorial(user: firebaseUser)
+                                if let userID = Auth.auth().currentUser?.uid {
+                                    await databaseVM.checkIfFirebaseUserViewedTutorial(userID: userID)
                                 }
                                 await MainActor.run {
                                     isLogining = false
@@ -114,7 +168,8 @@ struct LogInView: View {
                         }
                     }, label: {
                         if isLogining {
-                            ProgressView()
+                            LoadingAnimationButton()
+                                .frame(width: 40, height: 40)
                         } else {
                             Text("Войти")
                                 .foregroundStyle(.white)
@@ -122,6 +177,7 @@ struct LogInView: View {
                     })
                     .padding()
                     .frame(maxWidth: .infinity)
+                    .frame(height: 50)
                     .background(Color(uiColor: .defaultButtonColor))
                     .clipShape(.rect(cornerRadius: 20))
                     .padding()
@@ -140,19 +196,31 @@ struct LogInView: View {
             }
         }
         .navigationDestination(isPresented: $isLogIn) {
-            if let isTutorialViewed = databaseVM.isTutorialViewed {
-                if isTutorialViewed {
-                    CustomTabBar()
-                } else {
-                    WelcomeScreen()
-                }
-            }
 //            if databaseVM.isTutorialViewed {
 //                CustomTabBar()
-//                    //.environmentObject(NotificationsService.shared)
+//                    .navigationBarBackButtonHidden()
 //            } else {
 //                WelcomeScreen()
 //            }
+            if isViewed {
+                CustomTabBar()
+                    .navigationBarBackButtonHidden()
+            } else {
+                WelcomeScreen()
+            }
+        }
+        .onReceive(yandexViewModel.$isLoggedIn) { isLoggedIn in
+                    if isLoggedIn {
+                        self.isLogIn = true
+                    }
+                }
+        .onReceive(databaseVM.$isTutorialViewed) { isViewed in
+            //self.isLogIn = true
+            self.isViewed = isViewed
+            self.isLogIn = true
+                }
+        .onChange(of: databaseVM.isTutorialViewed) { newValue in
+            isViewed = newValue
         }
         .navigationDestination(isPresented: $isForgotPasswordPressed) {
             ForgotPasswordView()
@@ -160,6 +228,7 @@ struct LogInView: View {
         .onAppear {
             email = ""
             password = ""
+            isLogIn = false
         }
     }
 }

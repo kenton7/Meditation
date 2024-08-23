@@ -21,7 +21,8 @@ enum ProfileScreenModel: String, CaseIterable {
 
 struct ProfileScreen: View {
     
-    @EnvironmentObject var authViewModel: AuthWithEmailViewModel
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject private var yandexViewModel: YandexAuthorization
     private var currentUser = Auth.auth().currentUser
     @State private var isBuyPremiumPressed = false
     @State private var aboutUsPressed = false
@@ -35,6 +36,11 @@ struct ProfileScreen: View {
                 HStack {
                     if let user = currentUser {
                         Text("\(user.displayName ?? "")")
+                            .padding()
+                            .foregroundStyle(.black)
+                            .font(.system(.title, design: .rounded, weight: .bold))
+                    } else {
+                        Text("\(yandexViewModel.userName ?? "")")
                             .padding()
                             .foregroundStyle(.black)
                             .font(.system(.title, design: .rounded, weight: .bold))

@@ -10,7 +10,7 @@ import AVFoundation
 import Combine
 import MediaPlayer
 
-class PlayerViewModel: ObservableObject {
+final class PlayerViewModel: ObservableObject {
     
     static let shared = PlayerViewModel()
     
@@ -188,11 +188,7 @@ class PlayerViewModel: ObservableObject {
         
         let urlString = url.absoluteString
         let decodedURLString = urlString.decodeURL() ?? ""
-        guard let decodedURL = URL(string: decodedURLString) else {
-            print("Ошибка при декодировании урла")
-            return
-        }
-                        
+
         if currentPlayingURL != decodedURLString {
             removeTimeObserver()
             playerItem = AVPlayerItem(url: url)
@@ -256,10 +252,6 @@ class PlayerViewModel: ObservableObject {
         
         let urlString = url.absoluteString
         let decodedURLString = urlString.decodeURL() ?? ""
-        guard let decodedURL = URL(string: decodedURLString) else {
-            print("Ошибка при декодировании урла")
-            return false
-        }
         return player?.rate != 0 && player?.error == nil && currentPlayingURL == decodedURLString
     }
     
@@ -289,13 +281,7 @@ class PlayerViewModel: ObservableObject {
     }
     
     @objc private func playerDidFinishPlaying(notification: NSNotification) {
-//        isPlaying = false
-//        currentTime = .zero
-//        currentPlayingURL = nil
-        
-        
         autoPlayingNextTrack(playlist: self.playlist, trackIndex: currentTrackIndex)
-        //currentPlayingURL = playlist[currentTrackIndex].audioFemaleURL
     }
     
     @objc private func handleInterruption(notification: Notification) {

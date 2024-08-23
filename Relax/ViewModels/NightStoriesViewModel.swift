@@ -11,9 +11,9 @@ import FirebaseStorage
 import FirebaseAuth
 import SwiftUI
 
-class NightStoriesViewModel: ObservableObject {
+final class NightStoriesViewModel: ObservableObject {
     
-    @StateObject private var databaseVM = ChangeDataInDatabase()
+    @StateObject private var databaseVM = ChangeDataInDatabase.shared
     @Published var nightStories: [CourseAndPlaylistOfDayModel] = []
     @Published var filteredStories: [CourseAndPlaylistOfDayModel] = []
     private var playerViewModel = PlayerViewModel.shared

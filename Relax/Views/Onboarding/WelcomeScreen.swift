@@ -9,10 +9,12 @@ import SwiftUI
 import FirebaseDatabase
 import FirebaseAuth
 import Lottie
+import YandexLoginSDK
 
 struct WelcomeScreen: View {
     
-    @EnvironmentObject private var viewModel: AuthWithEmailViewModel
+    @EnvironmentObject private var viewModel: AuthViewModel
+    @EnvironmentObject var yandexViewModel: YandexAuthorization
     @State private var isLogOut = false
     @State private var isGetStartedTapped = false
     
@@ -26,12 +28,14 @@ struct WelcomeScreen: View {
                         .font(.system(.title2, design: .rounded)).bold()
                         .foregroundStyle(.white)
                     
-                    Text("Привет, \(Auth.auth().currentUser?.displayName ?? "")! \nДобро пожаловать \n в Серотонику")
-                        .padding(.horizontal)
-                        .multilineTextAlignment(.center)
-                        .textInputAutocapitalization(.words)
-                        .font(.system(.title, design: .rounded)).bold()
-                        .foregroundStyle(.white)
+                    if let userName = Auth.auth().currentUser?.displayName ?? yandexViewModel.userName {
+                        Text("Привет, \(userName)! \nДобро пожаловать \n в Серотонику")
+                            .padding(.horizontal)
+                            .multilineTextAlignment(.center)
+                            .textInputAutocapitalization(.words)
+                            .font(.system(.title, design: .rounded)).bold()
+                            .foregroundStyle(.white)
+                    }
                     
                     Text("Найдите внутренний покой и гармонию, следуя нашим медитациям каждый день.")
                         .padding(.horizontal)

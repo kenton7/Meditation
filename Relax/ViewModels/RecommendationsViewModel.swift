@@ -14,40 +14,45 @@ struct UserSelectedTopicsModel: Codable {
     let name: String
 }
 
-class RecommendationsViewModel: ObservableObject {
+final class RecommendationsViewModel: ObservableObject {
     @Published var recommendations: [CourseAndPlaylistOfDayModel] = []
     @Published var usersTopics: [UserSelectedTopicsModel] = []
     
-    private let databaseRef = Database.database(url: .databaseURL).reference().child("courses")
-    private let userSelectedTopicsRef = Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser!.uid).child("selectedTopics")
+    private let yandexViewModel: YandexAuthorization
     
-    init() {
+    private let databaseRef = Database.database(url: .databaseURL).reference().child("courses")
+    private var userSelectedTopicsRef: DatabaseReference?
+    
+    init(yandexViewModel: YandexAuthorization) {
+        self.yandexViewModel = yandexViewModel
+        self.userSelectedTopicsRef = Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? yandexViewModel.clientID).child("selectedTopics")
         getTopicsWhichUserSelected()
-        //fetchRecommendations()
     }
     
     func getTopicsWhichUserSelected() {
-        userSelectedTopicsRef.observe(.value) { snapshot in
-            var topics: [UserSelectedTopicsModel] = []
-            for child in snapshot.children {
-                if let snapshot = child as? DataSnapshot {
-                    if let data = snapshot.value as? [String: Any] {
-                        do {
-                            let jsonData = try JSONSerialization.data(withJSONObject: data)
-                            let fileData = try JSONDecoder().decode(UserSelectedTopicsModel.self, from: jsonData)
-                            topics.append(fileData)
-                        } catch {
-                            print("Error decoding snapshot: \(error.localizedDescription)")
+        if let userSelectedTopicsRef {
+            userSelectedTopicsRef.observe(.value) { snapshot in
+                var topics: [UserSelectedTopicsModel] = []
+                for child in snapshot.children {
+                    if let snapshot = child as? DataSnapshot {
+                        if let data = snapshot.value as? [String: Any] {
+                            do {
+                                let jsonData = try JSONSerialization.data(withJSONObject: data)
+                                let fileData = try JSONDecoder().decode(UserSelectedTopicsModel.self, from: jsonData)
+                                topics.append(fileData)
+                            } catch {
+                                print("Error decoding snapshot: \(error.localizedDescription)")
+                            }
+                        } else {
+                            print("Failed to convert snapshot to dictionary")
                         }
-                    } else {
-                        print("Failed to convert snapshot to dictionary")
                     }
                 }
+                DispatchQueue.main.async {
+                    self.usersTopics = topics
+                }
+                self.fetchRecommendations()
             }
-            DispatchQueue.main.async {
-                self.usersTopics = topics
-            }
-            self.fetchRecommendations()
         }
     }
     

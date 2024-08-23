@@ -181,7 +181,8 @@ struct AllStoriesView: View {
                                     .aspectRatio(contentMode: .fill)
                                     .clipShape(.rect(cornerRadius: 16))
                             } placeholder: {
-                                ProgressView()
+                                //ProgressView()
+                                LoadingAnimationButton()
                             }
                             .padding()
                             

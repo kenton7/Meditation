@@ -9,7 +9,7 @@ import Foundation
 import FirebaseDatabase
 import AVFoundation
 
-class MusicFilesViewModel: ObservableObject {
+final class MusicFilesViewModel: ObservableObject {
     @Published var files: [CourseAndPlaylistOfDayModel] = []
     
     private let databaseRef = Database.database(url: .databaseURL).reference().child("music")

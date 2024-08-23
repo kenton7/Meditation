@@ -107,7 +107,8 @@ struct EmergencyHelp: View {
                                         .clipShape(.rect(cornerRadius: 16))
                                         .padding(.horizontal)
                                 } placeholder: {
-                                    ProgressView()
+                                    //ProgressView()
+                                    LoadingAnimationButton()
                                 }
                                 Text(emergencyLesson.name)
                                     .foregroundStyle(.black)
@@ -185,12 +186,14 @@ struct AllMeditationsView: View {
                                                                     .font(.system(size: 14, 
                                                                                   weight: .bold,
                                                                                   design: .rounded))
+                                                                    .shadow(color: .gray, radius: 5)
                                                             }
                                                     }
                                                 }
                                             }
                                     } placeholder: {
-                                        ProgressView()
+                                        //ProgressView()
+                                        LoadingAnimationButton()
                                     }
                                     .padding()
                                 }

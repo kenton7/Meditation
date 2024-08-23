@@ -9,7 +9,7 @@ import SwiftUI
 
 struct OnboardingScreen: View {
     
-    @EnvironmentObject var viewModel: AuthWithEmailViewModel
+    @EnvironmentObject var viewModel: AuthViewModel
     @State private var hasAccount = false
     
     var body: some View {

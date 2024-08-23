@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseAuth
+import FirebaseDatabase
 
 struct AccountScreen: View {
     
@@ -25,158 +26,166 @@ struct AccountScreen: View {
     @State private var errorMessageEmail = ""
     @State private var isError = false
     @FocusState private var isFocused: Bool
-    @EnvironmentObject var viewModel: AuthWithEmailViewModel
-    @StateObject private var databaseVM = ChangeDataInDatabase()
+    @EnvironmentObject var viewModel: AuthViewModel
+    @EnvironmentObject private var yandexViewModel: YandexAuthorization
+    @StateObject private var databaseVM = ChangeDataInDatabase.shared
+    //@EnvironmentObject private var signInWithAppleVM: SignInWithAppleVM
     
     
     var body: some View {
         NavigationStack {
-            if viewModel.signedIn {
+            //if viewModel.signedIn || yandexViewModel.isLoggedIn {
                 List {
-                    Section("Ваше имя") {
-                        VStack {
-                            ZStack(alignment: .leading) {
-                                TextField("", text: $newUserName)
-                                    .padding()
-                                    .foregroundStyle(.black)
-                                    .textFieldStyle(.plain)
-                                    .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
-                                    .clipShape(.rect(cornerRadius: 8))
-                                    .focused($isFocused)
-                                    .onTapGesture {
-                                        isFocused = true
+                    if !yandexViewModel.isLoggedIn {
+                        Section("Ваше имя") {
+                            VStack {
+                                ZStack(alignment: .leading) {
+                                    TextField("", text: $newUserName)
+                                        .padding()
+                                        .foregroundStyle(.black)
+                                        .textFieldStyle(.plain)
+                                        .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
+                                        .clipShape(.rect(cornerRadius: 8))
+                                        .focused($isFocused)
+                                        .onTapGesture {
+                                            isFocused = true
+                                        }
+                                        .padding()
+                                    
+                                    Text(userName)
+                                        .padding()
+                                        .offset(x: 10)
+                                        .offset(y: (isFocused || !newUserName.isEmpty) ? -40 : 0)
+                                        .foregroundStyle(isFocused ? .black : .secondary)
+                                        .animation(.spring, value: isFocused)
+                                }
+                                Button(action: {
+                                    isUpdatingName = true
+                                    Task.detached {
+                                        try await databaseVM.updateDisplayName(newDisplayName: newUserName)
+                                        await MainActor.run {
+                                            self.isUpdatingName = false
+                                        }
                                     }
-                                    .padding()
+                                }, label: {
+                                    if isUpdatingName {
+                                        LoadingAnimationButton()
+                                    } else {
+                                        Text("Обновить имя").bold()
+                                            .foregroundStyle(.white)
+                                    }
+                                })
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color(uiColor: .defaultButtonColor))
+                                .clipShape(.rect(cornerRadius: 20))
+                                .padding()
+                                .disabled(newUserName.isEmpty)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Section("Ваш email") {
+                            VStack {
+                                EmailFieldView(currentEmail, email: $newEmail)
                                 
-                                Text(userName)
-                                    .padding()
-                                    .offset(x: 10)
-                                    .offset(y: (isFocused || !newUserName.isEmpty) ? -40 : 0)
-                                    .foregroundStyle(isFocused ? .black : .secondary)
-                                    .animation(.spring, value: isFocused)
-                            }
-                            Button(action: {
-                                isUpdatingName = true
-                                Task.detached {
-                                    try await databaseVM.updateDisplayName(newDisplayName: newUserName)
-                                    await MainActor.run {
-                                        self.isUpdatingName = false
-                                    }
+                                if !errorMessageEmail.isEmpty {
+                                    Text(errorMessageEmail)
+                                        .padding()
+                                        .foregroundStyle(.red).bold()
+                                        .multilineTextAlignment(.center)
                                 }
-                            }, label: {
-                                if isUpdatingName {
-                                    ProgressView()
-                                } else {
-                                    Text("Обновить имя").bold()
-                                        .foregroundStyle(.white)
-                                }
-                            })
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color(uiColor: .defaultButtonColor))
-                            .clipShape(.rect(cornerRadius: 20))
-                            .padding()
-                            .disabled(newUserName.isEmpty)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    
-                    Section("Ваш email") {
-                        VStack {
-                            EmailFieldView(currentEmail, email: $newEmail)
-                            
-                            if !errorMessageEmail.isEmpty {
-                                Text(errorMessageEmail)
-                                    .padding()
-                                    .foregroundStyle(.red).bold()
-                                    .multilineTextAlignment(.center)
-                            }
-                            
-                            Button(action: {
-                                isUpdatingEmail = true
-                                Task.detached {
-                                    do {
-                                        try await databaseVM.changeEmail(newEmail: newEmail)
-                                        await MainActor.run {
-                                            self.isUpdatingEmail = false
-                                        }
-                                    } catch {
-                                        await MainActor.run {
-                                            self.errorMessageEmail = error.localizedDescription
-                                            self.isUpdatingEmail = false
+                                
+                                Button(action: {
+                                    isUpdatingEmail = true
+                                    Task.detached {
+                                        do {
+                                            try await databaseVM.changeEmail(newEmail: newEmail)
+                                            await MainActor.run {
+                                                self.isUpdatingEmail = false
+                                            }
+                                        } catch {
+                                            await MainActor.run {
+                                                self.errorMessageEmail = error.localizedDescription
+                                                self.isUpdatingEmail = false
+                                            }
                                         }
                                     }
-                                }
-                            }, label: {
-                                if isUpdatingEmail {
-                                    ProgressView()
-                                } else {
-                                    Text("Обновить email").bold()
-                                        .foregroundStyle(.white)
-                                }
-                            })
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color(uiColor: .defaultButtonColor))
-                            .clipShape(.rect(cornerRadius: 20))
-                            .padding()
-                            .disabled(newEmail.isEmpty || !newEmail.isValidEmail())
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    
-                    Section("Сменить пароль") {
-                        VStack {
-                            PasswordFieldView("Текущий пароль", text: $currentPassword)
+                                }, label: {
+                                    if isUpdatingEmail {
+                                        LoadingAnimationButton()
+                                    } else {
+                                        Text("Обновить email").bold()
+                                            .foregroundStyle(.white)
+                                    }
+                                })
+                                .padding()
                                 .frame(maxWidth: .infinity)
-                            
-                            PasswordFieldView("Новый пароль", text: $newPassword)
-                                .frame(maxWidth: .infinity)
-                            
-                            if !errorMessagePassword.isEmpty {
-                                Text(errorMessagePassword)
-                                    .padding()
-                                    .foregroundStyle(.red).bold()
-                                    .multilineTextAlignment(.center)
+                                .background(Color(uiColor: .defaultButtonColor))
+                                .clipShape(.rect(cornerRadius: 20))
+                                .padding()
+                                .disabled(newEmail.isEmpty || !newEmail.isValidEmail())
                             }
-                            
-                            Button(action: {
-                                isUpdatingPassword = true
-                                Task.detached {
-                                    do {
-                                        try await databaseVM.updatePassword(newPassword: newPassword, currentPassword: currentPassword)
-                                        await MainActor.run {
-                                            self.isUpdatingPassword = false
-                                        }
-                                    } catch {
-                                        await MainActor.run {
-                                            self.errorMessagePassword = error.localizedDescription
-                                            self.isUpdatingPassword = false
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Section("Сменить пароль") {
+                            VStack {
+                                PasswordFieldView("Текущий пароль", text: $currentPassword)
+                                    .frame(maxWidth: .infinity)
+                                
+                                PasswordFieldView("Новый пароль", text: $newPassword)
+                                    .frame(maxWidth: .infinity)
+                                
+                                if !errorMessagePassword.isEmpty {
+                                    Text(errorMessagePassword)
+                                        .padding()
+                                        .foregroundStyle(.red).bold()
+                                        .multilineTextAlignment(.center)
+                                }
+                                
+                                Button(action: {
+                                    isUpdatingPassword = true
+                                    Task.detached {
+                                        do {
+                                            try await databaseVM.updatePassword(newPassword: newPassword, currentPassword: currentPassword)
+                                            await MainActor.run {
+                                                self.isUpdatingPassword = false
+                                            }
+                                        } catch {
+                                            await MainActor.run {
+                                                self.errorMessagePassword = error.localizedDescription
+                                                self.isUpdatingPassword = false
+                                            }
                                         }
                                     }
-                                }
-                            }, label: {
-                                if isUpdatingPassword {
-                                    ProgressView()
-                                } else {
-                                    Text("Обновить пароль").bold()
-                                        .foregroundStyle(.white)
-                                }
-                            })
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color(uiColor: .defaultButtonColor))
-                            .clipShape(.rect(cornerRadius: 20))
-                            .padding()
-                            .disabled(currentPassword.isEmpty)
-                            .disabled(newPassword.isEmpty)
+                                }, label: {
+                                    if isUpdatingPassword {
+                                        LoadingAnimationButton()
+                                    } else {
+                                        Text("Обновить пароль").bold()
+                                            .foregroundStyle(.white)
+                                    }
+                                })
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color(uiColor: .defaultButtonColor))
+                                .clipShape(.rect(cornerRadius: 20))
+                                .padding()
+                                .disabled(currentPassword.isEmpty)
+                                .disabled(newPassword.isEmpty)
+                            }
                         }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                     
                     Section("Выйти из аккаунта") {
                         Button(action: {
-                            viewModel.signOut()
+                            if Auth.auth().currentUser != nil {
+                                viewModel.signOut()
+                            } else {
+                                yandexViewModel.logout()
+                            }
                         }, label: {
                             Text("Выйти")
                                 .foregroundStyle(.white).bold()
@@ -194,7 +203,7 @@ struct AccountScreen: View {
                             isDeletingAccount = true
                         }, label: {
                             if isDeletingAccount {
-                                ProgressView()
+                                LoadingAnimationButton()
                             } else {
                                 Text("Удалить аккаунт").bold()
                                     .foregroundStyle(.white)
@@ -209,7 +218,20 @@ struct AccountScreen: View {
                                isPresented: $isDeletingAccount) {
                             HStack {
                                 Button("Да", role: .destructive) {
-                                    viewModel.deleteAccount()
+                                    if Auth.auth().currentUser != nil {
+                                        if viewModel.isAppleLogin {
+                                            viewModel.revokeAppleSignInToken()
+                                        } else {
+                                            viewModel.deleteAccount()
+                                        }
+                                    } else {
+                                        Task {
+                                            try await Database.database(url: .databaseURL).reference().child("users").child(yandexViewModel.clientID).child("isTutorialViewed").setValue(false)
+                                            await yandexViewModel.deleteYandexAccount()
+                                            self.isDeletingAccount = false
+                                        }
+                                        //yandexViewModel.deleteYandexAccount()
+                                    }
                                 }
                                 Button("Отменить", role: .cancel) {
                                     isDeletingAccount = false
@@ -223,20 +245,14 @@ struct AccountScreen: View {
                     .buttonStyle(.plain)
                 }
                 .onAppear {
-                    userName = currentUser?.displayName ?? ""
+                    userName = currentUser?.displayName ?? yandexViewModel.userInfo?.first_name ?? ""
                     currentEmail = currentUser?.email ?? ""
                     isUpdatingEmail = false
                     isUpdatingPassword = false
                     isDeletingAccount = false
                 }
                 .listStyle(.insetGrouped)
-            } else {
-                OnboardingScreen()
-            }
         }
     }
 }
 
-#Preview {
-    AccountScreen()
-}

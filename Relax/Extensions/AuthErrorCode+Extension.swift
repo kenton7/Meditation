@@ -5,28 +5,31 @@
 //  Created by Илья Кузнецов on 24.06.2024.
 //
 
-import Foundation
 import FirebaseAuth
 
-extension AuthErrorCode.Code {
+extension AuthErrorCode {
     var errorMessage: String {
         switch self {
         case .emailAlreadyInUse:
-            return "The email is already in use with another account"
+            return "Этот email уже зарегистрирован в системе."
         case .userNotFound:
-            return "Account not found for the specified user. Please check and try again"
+            return "Аккаунт с такими данными не найден."
         case .userDisabled:
-            return "Your account has been disabled. Please contact support."
+            return "Ваш аккаунт заблокирован. Пожалуйста, свяжитесь со службой поддержки: serotonika.app@gmail.com."
         case .invalidEmail, .invalidSender, .invalidRecipientEmail:
-            return "Please enter a valid email"
+            return "Введите корректный email."
         case .networkError:
-            return "Network error. Please try again."
+            return "Ошибка сети. Пожалуйста, повторите попытку."
         case .weakPassword:
-            return "Your password is too weak. The password must be 6 characters long or more."
+            return "Ваш пароль слишком слабый. Пароль должен иметь не менее 6 символов."
         case .wrongPassword:
-            return "Your password is incorrect. Please try again or use 'Forgot password' to reset your password"
+            return "Введён неверный пароль. Пожалуйста, повторите попытку или нажмите на кнопку «Забыли пароль»."
+        case .invalidCredential:
+            return "Введён неверный email или пароль. Пожалуйста, повторите попытку."
+        case .tooManyRequests:
+            return "Слишком много неуспешных попыток. Повторите через некоторое время."
         default:
-            return "Unknown error occurred"
+            return "Произошла неизвестная ошибка."
         }
     }
 }

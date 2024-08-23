@@ -15,9 +15,9 @@ import AVKit
 struct HomeScreen: View {
     
     @StateObject private var viewModel = CoursesViewModel()
-    @StateObject private var recommendationsViewModel = RecommendationsViewModel()
     @StateObject private var nightStoriesViewModel = NightStoriesViewModel()
-    
+    @EnvironmentObject var yandexViewModel: YandexAuthorization
+    @StateObject private var recommendationsViewModel = RecommendationsViewModel(yandexViewModel: YandexAuthorization.shared)
     @State private var isShowing = false
     
     var body: some View {
@@ -55,6 +55,10 @@ struct HomeScreen: View {
         }
         .onAppear {
             isShowing = true
+//            if recommendationsViewModel == nil {
+//                print("HERE")
+//                recommendationsViewModel = RecommendationsViewModel(yandexViewModel: yandexViewModel)
+//            }
         }
         .onDisappear {
             isShowing = false
@@ -68,6 +72,7 @@ struct HomeScreen: View {
 struct GreetingView: View {
     
     @StateObject private var homeScreenViewModel = HomeScreenViewModel()
+    @EnvironmentObject var yandexViewModel: YandexAuthorization
     @Binding var isShowing: Bool
     
     var body: some View {
@@ -110,13 +115,13 @@ struct DailyRecommendations: View {
     @State private var selectedCourse: CourseAndPlaylistOfDayModel?
     @Binding var isShowing: Bool
     
-     var currentDate: String = {
+    var currentDate: String = {
         let date = Date()
         let df = DateFormatter()
         df.dateFormat = "dd.MM"
         return df.string(from: date)
     }()
-
+    
     
     var body: some View {
         NavigationStack {
@@ -178,7 +183,8 @@ struct DailyRecommendations: View {
                                                 .scaledToFit()
                                                 .frame(width: 200, height: 150)
                                         } placeholder: {
-                                            ProgressView()
+                                            //ProgressView()
+                                            LoadingAnimationButton()
                                         }
                                     }
                                     Spacer()
@@ -293,7 +299,10 @@ struct DailyThoughts: View {
 //MARK: - RecommendationsScreen
 struct RecommendationsScreen: View {
     
-    @StateObject private var recommendationsViewModel = RecommendationsViewModel()
+    @EnvironmentObject var yandexViewModel: YandexAuthorization
+    //@State private var recommendationsViewModel: RecommendationsViewModel?
+    @StateObject private var recommendationsViewModel = RecommendationsViewModel(yandexViewModel: YandexAuthorization.shared)
+    
     @FetchRequest(
         entity: Topic.entity(),
         sortDescriptors: []
@@ -319,46 +328,48 @@ struct RecommendationsScreen: View {
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHGrid(rows: [GridItem(.fixed(200))], spacing: 0, content: {
-                        ForEach(recommendationsViewModel.recommendations, id: \.name) { course in
-                            Button(action: {
-                                selectedCourse = course
-                                isSelected = true
-                            }, label: {
-                                VStack(alignment: .leading) {
-                                    ZStack {
-                                        Color(uiColor: .init(red: CGFloat(course.color.red) / 255,
-                                                             green: CGFloat(course.color.green) / 255,
-                                                             blue: CGFloat(course.color.blue) / 255,
-                                                             alpha: 1))
-                                        
-                                        AsyncImage(url: URL(string: course.imageURL)) { image in
-                                            image.resizable()
-                                                .scaledToFit()
-                                                .frame(width: 200, height: 150)
-                                        } placeholder: {
-                                            ProgressView()
+                        //if let recommendationsViewModel = recommendationsViewModel {
+                            ForEach(recommendationsViewModel.recommendations, id: \.name) { course in
+                                Button(action: {
+                                    selectedCourse = course
+                                    isSelected = true
+                                }, label: {
+                                    VStack(alignment: .leading) {
+                                        ZStack {
+                                            Color(uiColor: .init(red: CGFloat(course.color.red) / 255,
+                                                                 green: CGFloat(course.color.green) / 255,
+                                                                 blue: CGFloat(course.color.blue) / 255,
+                                                                 alpha: 1))
+                                            
+                                            AsyncImage(url: URL(string: course.imageURL)) { image in
+                                                image.resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 200, height: 150)
+                                            } placeholder: {
+                                                LoadingAnimationButton()
+                                            }
                                         }
+                                        .clipShape(.rect(cornerRadius: 10))
+                                        Spacer()
+                                        
+                                        Text(course.name)
+                                            .foregroundStyle(Color(uiColor: .init(red: 63/255,
+                                                                                  green: 65/255,
+                                                                                  blue: 78/255,
+                                                                                  alpha: 1)))
+                                            .font(.system(.callout, design: .rounded)).bold()
+                                        
+                                        Text(course.type.rawValue)
+                                            .foregroundStyle(Color(uiColor: .init(red: 161/255,
+                                                                                  green: 164/255,
+                                                                                  blue: 178/255,
+                                                                                  alpha: 1)))
+                                            .font(.system(.caption, design: .rounded))
                                     }
-                                    .clipShape(.rect(cornerRadius: 10))
-                                    Spacer()
-                                    
-                                    Text(course.name)
-                                        .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                                              green: 65/255,
-                                                                              blue: 78/255,
-                                                                              alpha: 1)))
-                                        .font(.system(.callout, design: .rounded)).bold()
-                                    
-                                    Text(course.type.rawValue)
-                                        .foregroundStyle(Color(uiColor: .init(red: 161/255,
-                                                                              green: 164/255,
-                                                                              blue: 178/255,
-                                                                              alpha: 1)))
-                                        .font(.system(.caption, design: .rounded))
-                                }
-                            })
-                            .padding(.horizontal)
-                        }
+                                })
+                                .padding(.horizontal)
+                            }
+                        //}
                     })
                 }
             }
@@ -370,6 +381,11 @@ struct RecommendationsScreen: View {
                 ReadyCourseDetailView(course: selectedCourse)
             }
         })
+//        .onAppear {
+//            if recommendationsViewModel == nil {
+//                recommendationsViewModel = RecommendationsViewModel(yandexViewModel: yandexViewModel)
+//            }
+//        }
     }
 }
 
@@ -414,7 +430,8 @@ struct NightStories: View {
                                                 image.resizable()
                                                 image.scaledToFill()
                                             } placeholder: {
-                                                ProgressView()
+                                                //ProgressView()
+                                                LoadingAnimationButton()
                                             }
                                             .padding()
                                             .frame(width: 200, height: 150)

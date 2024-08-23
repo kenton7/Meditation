@@ -146,6 +146,3 @@ extension CustomTabBar {
     }
 }
 
-//#Preview {
-//    CustomTabBar()
-//}

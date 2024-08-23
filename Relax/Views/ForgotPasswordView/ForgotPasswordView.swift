@@ -12,7 +12,7 @@ struct ForgotPasswordView: View {
     
     @Environment(\.dismiss) private var dismiss
     @State private var email: String = ""
-    @EnvironmentObject private var authViewModel: AuthWithEmailViewModel
+    @EnvironmentObject private var authViewModel: AuthViewModel
     @State private var hasSentRestorePassword = false
     @State private var isErrorWhenRestore = false
     @State private var errorMessage = ""
@@ -32,7 +32,7 @@ struct ForgotPasswordView: View {
                         hasSentRestorePassword = true
                     } else {
                         if let error = error {
-                            let authErrorCode = AuthErrorCode(_nsError: error)
+                            //_ = AuthErrorCode(_nsError: error)
                             isErrorWhenRestore = true
                             errorMessage = error.localizedDescription
                         }

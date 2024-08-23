@@ -15,14 +15,14 @@ import SwiftUI
 protocol DatabaseChangable: AnyObject {
     func asyncDownload(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool, lesson: Lesson) async throws -> URL
     func downloadAllCourse(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool?, lessons: [Lesson]) async throws -> [URL]
-    func userLiked(course: CourseAndPlaylistOfDayModel, type: IncrementDecrementLike, isLiked: Bool, user: User, courseType: Types)
+    func userLiked(course: CourseAndPlaylistOfDayModel, type: IncrementDecrementLike, isLiked: Bool, userID: String, courseType: Types)
     func updateListeners(course: CourseAndPlaylistOfDayModel, type: Types)
     func getListenersIn(course: CourseAndPlaylistOfDayModel, courseType: Types)
     func getLikesIn(course: CourseAndPlaylistOfDayModel, courseType: Types)
     func storyInfo(course: CourseAndPlaylistOfDayModel, isFemale: Bool)
-    func checkIfUserLiked(user: User, course: CourseAndPlaylistOfDayModel)
-    func writeToDatabaseIfUserViewedTutorial(user: User, isViewed: Bool)
-    func checkIfUserViewedTutorial(user: User) async
+    func checkIfUserLiked(userID: String, course: CourseAndPlaylistOfDayModel)
+    func writeToDatabaseIfUserViewedTutorial(userID: String, isViewed: Bool)
+    func checkIfUserViewedTutorial(userID: String) async -> Bool
     func updateDisplayName(newDisplayName: String) async throws
     func changeEmail(newEmail: String) async throws
     func updatePassword(newPassword: String, currentPassword: String) async throws
@@ -39,12 +39,19 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
     @Published var isLiked = false
     @Published var listeners = 0
     @Published var storyURL = ""
-    @Published var isTutorialViewed: Bool? = nil
+    @Published var isTutorialViewed: Bool = false 
     @Published var isDownloadStarted = false
     @Published var downloadProgress = 0.0
-    private var coursesViewModel = CoursesViewModel()
-    private var authViewModel = AuthWithEmailViewModel()
+    private var authViewModel = AuthViewModel()
     @State private var downloadURL: URL?
+    
+    static let shared = ChangeDataInDatabase()
+    
+    private init() {}
+    
+    public var isUserViewed: Bool {
+        return isTutorialViewed != false 
+    }
     
     func downloadAllCourse(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool?, lessons: [Lesson]) async throws -> [URL] {
         var results = [URL]()
@@ -59,7 +66,6 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
                 results.append(result)
             }
         }
-        
         return results
     }
     
@@ -110,7 +116,7 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
         }
     }
     
-    func userLiked(course: CourseAndPlaylistOfDayModel, type: IncrementDecrementLike, isLiked: Bool, user: User, courseType: Types) {
+    func userLiked(course: CourseAndPlaylistOfDayModel, type: IncrementDecrementLike, isLiked: Bool, userID: String, courseType: Types) {
         
         var likesCount = likes
         
@@ -118,12 +124,12 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
         case .increment:
             likesCount += 1
             self.isLiked = true
-            Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("likedPlaylists").updateChildValues([course.name: self.isLiked])
+            Database.database(url: .databaseURL).reference().child("users").child(userID).child("likedPlaylists").updateChildValues([course.name: self.isLiked])
         case .decrement:
             self.isLiked = false
             guard likesCount >= 0 else { return }
             likesCount -= 1
-            Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("likedPlaylists").child(course.name).removeValue()
+            Database.database(url: .databaseURL).reference().child("users").child(userID).child("likedPlaylists").child(course.name).removeValue()
         }
         
         switch courseType {
@@ -138,14 +144,14 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
         }
     }
     
-    func userLiked(lesson: Lesson, type: IncrementDecrementLike, isLiked: Bool, user: User) {
+    func userLiked(lesson: Lesson, type: IncrementDecrementLike, isLiked: Bool, userID: String) {
         switch type {
         case .increment:
             self.isLiked = true
-            Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("likedLessons").updateChildValues([lesson.name: self.isLiked])
+            Database.database(url: .databaseURL).reference().child("users").child(userID).child("likedLessons").updateChildValues([lesson.name: self.isLiked])
         case .decrement:
             self.isLiked = false
-            Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("likedLessons").child(lesson.name).removeValue()
+            Database.database(url: .databaseURL).reference().child("users").child(userID).child("likedLessons").child(lesson.name).removeValue()
         }
     }
     
@@ -248,9 +254,9 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
         }
     }
     
-    func checkIfUserLiked(user: User, course: CourseAndPlaylistOfDayModel) {
+    func checkIfUserLiked(userID: String, course: CourseAndPlaylistOfDayModel) {
         let ref = Database.database(url: .databaseURL).reference()
-        let likedPlaylistsRef = ref.child("users").child(user.uid).child("likedPlaylists")
+        let likedPlaylistsRef = ref.child("users").child(userID).child("likedPlaylists")
         
         likedPlaylistsRef.observeSingleEvent(of: .value) { snapshot in
             if let likedPlaylists = snapshot.value as? [String: Bool] {
@@ -268,9 +274,9 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
         }
     }
     
-    func checkIfUserLiked(lesson: Lesson, user: User) {
+    func checkIfUserLiked(lesson: Lesson, userID: String) {
         let ref = Database.database(url: .databaseURL).reference()
-        let likedLessonsRef = ref.child("users").child(user.uid).child("likedLessons")
+        let likedLessonsRef = ref.child("users").child(userID).child("likedLessons")
         likedLessonsRef.observe(.value) { snapshot in
             if let likedLesson = snapshot.value as? [String: Bool] {
                 if let isLiked = likedLesson[lesson.name] {
@@ -287,36 +293,70 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
         }
     }
     
-    func writeToDatabaseIfUserViewedTutorial(user: User, isViewed: Bool) {
-        Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("isTutorialViewed").setValue(isViewed)
+    func writeToDatabaseIfUserViewedTutorial(userID: String, isViewed: Bool) {
+        Database.database(url: .databaseURL).reference().child("users").child(userID).child("isTutorialViewed").setValue(isViewed)
+        self.isTutorialViewed = true
     }
     
-//    func checkIfUserViewedTutorial(user: User) async {
-//        Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("isTutorialViewed").observeSingleEvent(of: .value) { snapshot in
-//            if let isViewed = snapshot.value as? Bool {
-//                DispatchQueue.main.async {
-//                    self.isTutorialViewed = isViewed
-//                }
-//            } else {
-//                print("Значение isTutorialViewed не найдено")
-//            }
-//        }
-//    }
-    
-    func checkIfUserViewedTutorial(user: User) async {
-            Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("isTutorialViewed").observeSingleEvent(of: .value) { snapshot in
-                if let isViewed = snapshot.value as? Bool {
-                    DispatchQueue.main.async {
-                        self.isTutorialViewed = isViewed
-                    }
-                } else {
-                    DispatchQueue.main.async {
-                        self.isTutorialViewed = false  // Если значение не найдено, установите в false
-                    }
-                    print("Значение isTutorialViewed не найдено")
+    func checkIfFirebaseUserViewedTutorial(userID: String) async {
+        let ref = Database.database(url: .databaseURL).reference().child("users").child(userID).child("isTutorialViewed")
+        ref.observeSingleEvent(of: .value) { snapshot in
+            if let isViewed = snapshot.value as? Bool {
+                DispatchQueue.main.async {
+                    self.isTutorialViewed = isViewed
+                    print("isTutorialViewed updated to: \(isViewed)")
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.isTutorialViewed = false
+                    print("isTutorialViewed удалено или не найдено. isTutorialViewed = \(self.isTutorialViewed)")
                 }
             }
         }
+    }
+    
+//    func checkIfFirebaseUserViewedTutorial(userID: String) {
+//        let ref = Database.database(url: .databaseURL).reference().child("users").child(userID).child("isTutorialViewed")
+//        ref.observeSingleEvent(of: .value) { snapshot in
+//            DispatchQueue.main.async {
+//                if let isViewed = snapshot.value as? Bool {
+//                    self.isTutorialViewed = isViewed
+//                } else {
+//                    self.isTutorialViewed = false
+//                }
+//            }
+//        }
+//    }
+
+    
+    func checkIfUserViewedTutorial(userID: String) async -> Bool {
+        // Ссылка на путь в базе данных
+        let ref = Database.database(url: .databaseURL).reference().child("users").child(userID).child("isTutorialViewed")
+        
+        // Используем сессию с async/await для получения данных
+        do {
+            // Получаем данные из базы данных
+            let snapshot = try await ref.getData()
+            
+            // Преобразуем данные в Bool
+            if let isViewed = snapshot.value as? Bool {
+                // Возвращаем полученное значение
+                print("isTutorialViewed updated to: \(isViewed)")
+                return isViewed
+            } else {
+                // Возвращаем false, если данных нет или они не в формате Bool
+                print("isTutorialViewed удалено или не найдено. isTutorialViewed = false")
+                return false
+            }
+        } catch {
+            // Обработка ошибки
+            print("Error fetching data: \(error)")
+            return false
+        }
+    }
+
+
+
     
     func updateDisplayName(newDisplayName: String) async throws {
         guard let user = Auth.auth().currentUser else {

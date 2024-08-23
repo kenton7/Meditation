@@ -11,9 +11,9 @@ import FirebaseAuth
 import FirebaseDatabase
 import FirebaseStorage
 
-class EmergencyMeditationsViewModel: ObservableObject {
+final class EmergencyMeditationsViewModel: ObservableObject {
     
-    @StateObject private var databaseVM = ChangeDataInDatabase()
+    @StateObject private var databaseVM = ChangeDataInDatabase.shared
     @Published var emergencyMeditations: [CourseAndPlaylistOfDayModel] = []
     private let databaseRef = Database.database(url: .databaseURL).reference().child("emergencyMeditation")
     

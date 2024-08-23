@@ -8,6 +8,7 @@
 import SwiftUI
 import FirebaseAuth
 import CoreData
+import FirebaseDatabase
 
 struct Day {
     let name: String
@@ -23,9 +24,10 @@ struct RemindersScreen: View {
     private let coreDataService = CoreDataService.shared
     @FetchRequest(sortDescriptors: []) var savedDays: FetchedResults<Reminder>
     @EnvironmentObject var notificationService: NotificationsService
-    @StateObject private var databaseVM = ChangeDataInDatabase()
+    @StateObject private var databaseVM = ChangeDataInDatabase.shared
     @State private var selectedDays: [Day] = .init()
-    @EnvironmentObject var authViewModel: AuthWithEmailViewModel
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var yandexViewModel: YandexAuthorization
     @State private var isContinueOrSkipButtonPressed = false
     @State private var days: [Day] = [
             Day(name: "ПН", index: 2),
@@ -123,11 +125,24 @@ struct RemindersScreen: View {
                                                                             selectedDays: selectedDays,
                                                                             selectedTime: selectionTime)
                             if !isFromSettings {
-                                authViewModel.signedIn = true
-                                isContinueOrSkipButtonPressed = true
-                                if let user = Auth.auth().currentUser {
-                                    databaseVM.writeToDatabaseIfUserViewedTutorial(user: user, isViewed: isContinueOrSkipButtonPressed)
+//                                authViewModel.signedIn = true
+//                                isContinueOrSkipButtonPressed = true
+                                
+                                if let firebaseUserID = Auth.auth().currentUser?.uid {
+                                    databaseVM.writeToDatabaseIfUserViewedTutorial(userID: firebaseUserID, isViewed: true)
+                                } else {
+                                    databaseVM.writeToDatabaseIfUserViewedTutorial(userID: yandexViewModel.clientID, isViewed: true)
+                                    Task {
+                                        let userData = ["email": yandexViewModel.userInfo?.emails ?? [""], "name": yandexViewModel.userName ?? ""]
+                                        try await Database.database(url: .databaseURL).reference().child("users").child(yandexViewModel.clientID).setValue(userData)
+                                        await databaseVM.checkIfFirebaseUserViewedTutorial(userID: yandexViewModel.clientID)
+                                        authViewModel.signedIn = true
+                                        isContinueOrSkipButtonPressed = true
+                                    }
                                 }
+                                
+//                                guard let userID = Auth.auth().currentUser?.uid, !yandexViewModel.clientID.isEmpty else { return }
+//                                databaseVM.writeToDatabaseIfUserViewedTutorial(userID: userID, isViewed: isContinueOrSkipButtonPressed)
                             } else {
                                 dismiss()
                             }
@@ -146,8 +161,15 @@ struct RemindersScreen: View {
                                 authViewModel.signedIn = true
                                 coreDataService.saveSelectedDays(selectedDays, time: selectionTime)
                                 isContinueOrSkipButtonPressed = true
-                                if let user = Auth.auth().currentUser {
-                                    databaseVM.writeToDatabaseIfUserViewedTutorial(user: user, isViewed: true)
+                                if let firebaseUserID = Auth.auth().currentUser?.uid {
+                                    databaseVM.writeToDatabaseIfUserViewedTutorial(userID: firebaseUserID, isViewed: true)
+                                } else {
+                                    //databaseVM.writeToDatabaseIfUserViewedTutorial(userID: yandexViewModel.clientID, isViewed: true)
+//                                    Task {
+//                                        let userData = ["email": yandexViewModel.userInfo?.emails ?? [""], "name": yandexViewModel.userName ?? ""]
+//                                        try await Database.database(url: .databaseURL).reference().child("users").child(yandexViewModel.clientID).setValue(userData)
+//                                    }
+                                    databaseVM.writeToDatabaseIfUserViewedTutorial(userID: yandexViewModel.clientID, isViewed: true)
                                 }
                             }, label: {
                                 Text("Нет, спасибо")
@@ -160,7 +182,7 @@ struct RemindersScreen: View {
             }
             .padding(.bottom)
             .navigationDestination(isPresented: $isContinueOrSkipButtonPressed, destination: {
-                MainScreen()
+                CustomTabBar()
                     .navigationBarBackButtonHidden()
             })
             .onAppear {
@@ -180,6 +202,6 @@ struct RemindersScreen: View {
     }
 }
 
-#Preview {
-    RemindersScreen(isFromSettings: true)
-}
+//#Preview {
+//    RemindersScreen(isFromSettings: true)
+//}

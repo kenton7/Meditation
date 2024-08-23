@@ -143,6 +143,8 @@ xcuserdata
 
 # Ignore file with database url
 Relax/Extensions/String+Extensions.swift
+Relax/Relax/Info.plist
+Relax/Relax/GoogleService-Info.plist
 
 
 # End of https://www.toptal.com/developers/gitignore/api/swift,swiftpackagemanager,objective-c,cocoapods,carthage
