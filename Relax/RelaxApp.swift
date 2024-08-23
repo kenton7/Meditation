@@ -71,7 +71,6 @@ struct RelaxApp: App {
     @StateObject private var yandexViewModel = YandexAuthorization.shared
     @StateObject private var notificationsService = NotificationsService.shared
     @StateObject private var changeDatabase = ChangeDataInDatabase.shared
-    //@StateObject private var signInWithAppleVM = SignInWithAppleVM()
     let persistenceController = PersistenceController.shared
     
 
@@ -86,7 +85,6 @@ struct RelaxApp: App {
                 .environmentObject(notificationsService)
                 .environmentObject(changeDatabase)
                 .environmentObject(yandexViewModel)
-                //.environmentObject(signInWithAppleVM)
                 .environment(\.colorScheme, .light)
         }
         .environment(\.managedObjectContext, persistenceController.container.viewContext)
