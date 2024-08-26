@@ -83,7 +83,6 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
                 return Storage.storage().reference(withPath: "stories/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
             case .emergency:
                 let url = Storage.storage().reference(withPath: "emergency/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
-                print(url)
                 return Storage.storage().reference(withPath: "emergency/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
             }
         }

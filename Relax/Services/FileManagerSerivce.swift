@@ -46,7 +46,8 @@ final class FileManagerSerivce: IFileManagerSerivce {
             return false
         }
         
-        let fileURLStrDecoded = documentsDirectory.appendingPathComponent(course.name).appendingPathComponent(lesson.name).appendingPathExtension(for: .mp3).absoluteString.decodeURL() ?? ""
+        let fileURLStrDecoded = documentsDirectory.appendingPathComponent(lesson.name).appendingPathExtension(for: .mp3).absoluteString.decodeURL() ?? ""
+        //let fileURLStrDecoded = documentsDirectory.appendingPathComponent(course.name).appendingPathComponent(lesson.name).appendingPathExtension(for: .mp3).absoluteString.decodeURL() ?? ""
         let fileURL = URL(string: fileURLStrDecoded)!
         return fileManager.fileExists(atPath: fileURL.path)
     }
@@ -55,7 +56,6 @@ final class FileManagerSerivce: IFileManagerSerivce {
         guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
             return false
         }
-        
         let fileURL = documentsDirectory.appendingPathComponent(course.name)
         return fileManager.fileExists(atPath: fileURL.path)
     }

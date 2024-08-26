@@ -19,12 +19,14 @@ struct PlayerScreen: View {
     @StateObject private var databaseVM = ChangeDataInDatabase.shared
     @StateObject private var playerViewModel = PlayerViewModel.shared
     @EnvironmentObject private var yandexViewModel: YandexAuthorization
+    @EnvironmentObject private var premiumViewModel: PremiumViewModel
     @State private var trackName = ""
     @State private var errorDownloadingMessage = ""
     @State private var isDowndloadError = false
     @State private var isDownloaded = false
     private let currentUser = Auth.auth().currentUser
     private let fileManagerService: IFileManagerSerivce = FileManagerSerivce()
+    @State private var isPressedDownloadWithoutPremium = false
     
     let lesson: Lesson?
     let isFemale: Bool
@@ -63,20 +65,6 @@ struct PlayerScreen: View {
                                 } else {
                                     databaseVM.userLiked(lesson: lesson, type: .decrement, isLiked: isLiked, userID: userID)
                                 }
-//                                if let userID = currentUser?.uid ?? yandexViewModel.clientID {
-//                                    if isLiked {
-//                                        databaseVM.userLiked(lesson: lesson, type: .increment, isLiked: isLiked, userID: userID)
-//                                    } else {
-//                                        databaseVM.userLiked(lesson: lesson, type: .decrement, isLiked: isLiked, userID: userID)
-//                                    }
-//                                }
-//                                if let currentUser = currentUser {
-//                                    if isLiked {
-//                                        databaseVM.userLiked(lesson: lesson, type: .increment, isLiked: isLiked, user: currentUser)
-//                                    } else {
-//                                        databaseVM.userLiked(lesson: lesson, type: .decrement, isLiked: isLiked, user: currentUser)
-//                                    }
-//                                }
                             }, label: {
                                 Image(isLiked ? "LikeButton_fill" : "LikeButton")
                             })
@@ -84,23 +72,28 @@ struct PlayerScreen: View {
                             
                             if !isDownloaded {
                                 Button(action: {
-                                    Task.detached {
-                                        do {
-                                            let _ = try await databaseVM.asyncDownload(course: course,
-                                                                                       courseType: course.type,
-                                                                                       isFemale: isFemale,
-                                                                                       lesson: lesson)
-                                            await MainActor.run {
-                                                withAnimation {
-                                                    self.isDownloaded = true
+                                    if premiumViewModel.hasUnlockedPremuim {
+                                        isPressedDownloadWithoutPremium = false
+                                        Task.detached {
+                                            do {
+                                                let _ = try await databaseVM.asyncDownload(course: course,
+                                                                                           courseType: course.type,
+                                                                                           isFemale: isFemale,
+                                                                                           lesson: lesson)
+                                                await MainActor.run {
+                                                    withAnimation {
+                                                        self.isDownloaded = true
+                                                    }
+                                                }
+                                            } catch {
+                                                await MainActor.run {
+                                                    self.isDowndloadError = true
+                                                    self.errorDownloadingMessage = error.localizedDescription
                                                 }
                                             }
-                                        } catch {
-                                            await MainActor.run {
-                                                self.isDowndloadError = true
-                                                self.errorDownloadingMessage = error.localizedDescription
-                                            }
                                         }
+                                    } else {
+                                        isPressedDownloadWithoutPremium = true
                                     }
                                 }, label: {
                                     Image("DownloadButton")
@@ -259,6 +252,9 @@ struct PlayerScreen: View {
         .onChange(of: databaseVM.isLiked) { newValue in
             self.isLiked = newValue
         }
+        .sheet(isPresented: $isPressedDownloadWithoutPremium, content: {
+            PremiumScreen()
+        })
     }
 }
 

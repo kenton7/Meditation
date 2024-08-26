@@ -84,18 +84,6 @@ struct LogInView: View {
                             case .success(let authorization):
                                 Task {
                                     await viewModel.signInWithApple(authorization)
-                                    //await databaseVM.checkIfFirebaseUserViewedTutorial(userID: viewModel.userID)
-//                                    await MainActor.run {
-//                                        self.isLogIn = true
-//                                    }
-//                                    if let userID = Auth.auth().currentUser?.uid {
-//                                        print("userID after Sign in With Apple: \(userID)")
-//                                        await databaseVM.checkIfFirebaseUserViewedTutorial(userID: userID)
-////                                        try await Database.database(url: .databaseURL).reference().child("users").child(userID).child("email").setValue(viewModel.appleIDEmail)
-//                                        await MainActor.run {
-//                                            self.isLogIn = true
-//                                        }
-//                                    }
                                 }
                             case .failure(let error):
                                 errorMessage = error.localizedDescription

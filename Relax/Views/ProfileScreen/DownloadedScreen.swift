@@ -11,32 +11,34 @@ struct DownloadedScreen: View {
     
     @State private var downloadedFiles: [FileItem] = []
     let fileManagerSerivce: IFileManagerSerivce
+    @EnvironmentObject private var premiumViewModel: PremiumViewModel
     
     var body: some View {
         NavigationStack {
             if downloadedFiles.isEmpty {
                 VStack {
                     EmptyAnimation()
-//                    Text("Вы пока ничего не скачивали.")
-//                        .foregroundStyle(.black)
-//                        .font(.system(.title2, design: .rounded, weight: .bold))
                 }
             } else {
                 List(downloadedFiles) { file in
-                    NavigationLink {
-                        FolderContentsView(folderURL: file.url, fileManagerSerivce: fileManagerSerivce)
-                    } label: {
-                        Text(file.url.lastPathComponent)
-                    }
-                    .swipeActions {
-                        Button {
-                            if fileManagerSerivce.deleteFile(at: file.url) {
-                                downloadedFiles.removeAll { $0.id == file.id }
-                            }
+                    if premiumViewModel.hasUnlockedPremuim {
+                        NavigationLink {
+                            FolderContentsView(folderURL: file.url, fileManagerSerivce: fileManagerSerivce)
                         } label: {
-                            Label("Удалить", systemImage: "trash")
+                            Text(file.url.lastPathComponent)
                         }
-                        .tint(.red)
+                        .swipeActions {
+                            Button {
+                                if fileManagerSerivce.deleteFile(at: file.url) {
+                                    downloadedFiles.removeAll { $0.id == file.id }
+                                }
+                            } label: {
+                                Label("Удалить", systemImage: "trash")
+                            }
+                            .tint(.red)
+                        }
+                    } else {
+                        PremiumScreen()
                     }
                 }
             }

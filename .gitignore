@@ -145,6 +145,7 @@ xcuserdata
 Relax/Extensions/String+Extensions.swift
 Relax/Relax/Info.plist
 Relax/Relax/GoogleService-Info.plist
+Relax/Relax/Services/SubscriptionService.storekit
 
 
 # End of https://www.toptal.com/developers/gitignore/api/swift,swiftpackagemanager,objective-c,cocoapods,carthage

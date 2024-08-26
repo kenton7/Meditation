@@ -71,6 +71,7 @@ struct RelaxApp: App {
     @StateObject private var yandexViewModel = YandexAuthorization.shared
     @StateObject private var notificationsService = NotificationsService.shared
     @StateObject private var changeDatabase = ChangeDataInDatabase.shared
+    @StateObject private var premuimViewModel = PremiumViewModel()
     let persistenceController = PersistenceController.shared
     
 
@@ -85,6 +86,10 @@ struct RelaxApp: App {
                 .environmentObject(notificationsService)
                 .environmentObject(changeDatabase)
                 .environmentObject(yandexViewModel)
+                .environmentObject(premuimViewModel)
+                .task {
+                    await premuimViewModel.updatePurchasedProducts()
+                }
                 .environment(\.colorScheme, .light)
         }
         .environment(\.managedObjectContext, persistenceController.container.viewContext)

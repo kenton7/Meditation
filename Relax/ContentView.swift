@@ -38,14 +38,19 @@ struct ContentView: View {
             authViewModel.signedIn = authViewModel.isUserLoggedIn
             if !authViewModel.signedIn {
                 databaseVM.isTutorialViewed = false
+                isLoading = false
             }
             if !yandexViewModel.isLoggedIn && !databaseVM.isTutorialViewed {
-                isLoading = false
+                //isLoading = false
                 Task {
                     if let userID = Auth.auth().currentUser?.uid {
                         await databaseVM.checkIfFirebaseUserViewedTutorial(userID: userID)
+                        await MainActor.run {
+                            self.isLoading = false
+                        }
                     }
                 }
+                //isLoading = false
             }
         }
         .onChange(of: yandexViewModel.clientID) { newValue in
@@ -58,13 +63,14 @@ struct ContentView: View {
                 }
             }
         }
-        .onChange(of: yandexViewModel.isLoggedIn) { newValue in
-            if !newValue {
-                isLoading = false
-            }
-        }
+//        .onChange(of: yandexViewModel.isLoggedIn) { newValue in
+//            if !newValue {
+//                isLoading = false
+//            }
+//        }
         .onChange(of: databaseVM.isTutorialViewed) { newValue in
             print("onChange сработал, databaseVM.isTutorialViewed изменилось на \(newValue)")
+            isLoading = false
         }
     }
 }

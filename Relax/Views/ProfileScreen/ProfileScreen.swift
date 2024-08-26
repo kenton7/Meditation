@@ -8,6 +8,7 @@
 import SwiftUI
 import FirebaseAuth
 import FirebaseCore
+import StoreKit
 
 enum ProfileScreenModel: String, CaseIterable {
     case account = "Аккаунт"
@@ -23,6 +24,7 @@ struct ProfileScreen: View {
     
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject private var yandexViewModel: YandexAuthorization
+    @EnvironmentObject private var premiumViewModel: PremiumViewModel
     private var currentUser = Auth.auth().currentUser
     @State private var isBuyPremiumPressed = false
     @State private var aboutUsPressed = false
@@ -84,28 +86,32 @@ struct ProfileScreen: View {
                             }
                         })
                         .sheet(isPresented: $isBuyPremiumPressed, content: {
-                            //
+                            PremiumScreen()
                         })
                     }
                     
                     Section("Материалы") {
-                        NavigationLink {
-                            DownloadedScreen(fileManagerSerivce: fileManagerService)
-                        } label: {
-                            HStack {
-                                Image("downloaded")
-                                    .resizable()
-                                    .frame(width: 20, height: 20)
-                                Text("Скачанное")
+                            NavigationLink {
+                                if premiumViewModel.hasUnlockedPremuim {
+                                    DownloadedScreen(fileManagerSerivce: fileManagerService)
+                                } else {
+                                    PremiumScreen()
+                                }
+                            } label: {
+                                HStack {
+                                    Image("downloaded")
+                                        .resizable()
+                                        .frame(width: 20, height: 20)
+                                    Text("Скачанное")
+                                }
                             }
-                        }
                     }
                     
                     Section("Помощь") {
                         Button(action: {
                             openMail(emailTo: "serotonika.app@gmail.com",
                                      subject: "Серотоника",
-                                     body: nil)
+                                     body: "")
                         }, label: {
                             HStack {
                                 Image("email")
@@ -134,7 +140,13 @@ struct ProfileScreen: View {
                     }
                     
                     Button(action: {
-                        
+                        Task {
+                            do {
+                                try await AppStore.sync()
+                            } catch {
+                                print("Error when restoring purchases \(error)")
+                            }
+                        }
                     }, label: {
                         HStack {
                             Image("restorePurchases")

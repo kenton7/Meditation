@@ -1,0 +1,127 @@
+{
+  "identifier" : "EEFA9E01",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6636530807",
+    "_developerTeamID" : "44S95Z526W",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 746265945.84990203,
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21529348",
+      "localizations" : [
+
+      ],
+      "name" : "Подписки",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "2.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6664064006",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Оформите подписку на месяц",
+              "displayName" : "Ежемесячная подписка",
+              "locale" : "ru"
+            }
+          ],
+          "productID" : "monthly.subscription.serotonika.com",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Ежемесячная подписка",
+          "subscriptionGroupID" : "21529348",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "24.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6664064117",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Оформите подписку на год",
+              "displayName" : "Подписка на год",
+              "locale" : "ru"
+            }
+          ],
+          "productID" : "yearly.subscription.serotonika.com",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Подписка на год",
+          "subscriptionGroupID" : "21529348",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

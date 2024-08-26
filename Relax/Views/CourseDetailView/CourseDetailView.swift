@@ -22,13 +22,14 @@ struct CourseDetailView: View {
     @EnvironmentObject private var coursesViewModel: CoursesViewModel
     @EnvironmentObject private var playerViewModel: PlayerViewModel
     @EnvironmentObject private var yandexViewModel: YandexAuthorization
+    @EnvironmentObject private var premiumViewModel: PremiumViewModel
     private let user = Auth.auth().currentUser
     private let fileManagerService: IFileManagerSerivce = FileManagerSerivce()
     @State private var isFemale = true
     @State private var isSelected = false
     @State private var lessons = [Lesson]()
     @State private var isDownloaded = false
-    
+    @State private var isPressedDownloadWithoutPremium = false
     
     var body: some View {
         NavigationStack {
@@ -71,6 +72,9 @@ struct CourseDetailView: View {
         .task {
             lessons = await coursesViewModel.fetchCourseDetails(type: course.type, courseID: course.id)
         }
+        .sheet(isPresented: $isPressedDownloadWithoutPremium, content: {
+            PremiumScreen()
+        })
     }
     
     @ViewBuilder
@@ -130,16 +134,21 @@ struct CourseDetailView: View {
                         
                         if !isDownloaded {
                             Button(action: {
-                                Task.detached {
-                                    let _ = try await databaseViewModel.downloadAllCourse(course: course,
-                                                                                  courseType: course.type,
-                                                                                  isFemale: isFemale,
-                                                                                  lessons: lessons)
-                                    await MainActor.run {
-                                        withAnimation {
-                                            self.isDownloaded = true
+                                if premiumViewModel.hasUnlockedPremuim {
+                                    isPressedDownloadWithoutPremium = false
+                                    Task.detached {
+                                        let _ = try await databaseViewModel.downloadAllCourse(course: course,
+                                                                                              courseType: course.type,
+                                                                                              isFemale: isFemale,
+                                                                                              lessons: lessons)
+                                        await MainActor.run {
+                                            withAnimation {
+                                                self.isDownloaded = true
+                                            }
                                         }
                                     }
+                                } else {
+                                    isPressedDownloadWithoutPremium = true
                                 }
                             }, label: {
                                 Image(systemName: "arrow.down")

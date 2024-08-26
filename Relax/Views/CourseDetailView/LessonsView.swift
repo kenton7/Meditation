@@ -16,12 +16,14 @@ struct LessonsView: View {
     @State private var playingURL: String? = nil
     let course: CourseAndPlaylistOfDayModel
     @StateObject private var databaseViewModel = ChangeDataInDatabase.shared
+    @EnvironmentObject private var premiumViewModel: PremiumViewModel
     @State private var isTappedOnName = false
     @State private var lesson: Lesson?
     @State private var url: String = ""
     //@StateObject private var playerVM = PlayerViewModel.shared
     @EnvironmentObject private var playerVM: PlayerViewModel
     @State private var lessons = [Lesson]()
+    @State private var isPressedWithoutPremium = false
     
     var body: some View {
         NavigationStack {
@@ -29,18 +31,31 @@ struct LessonsView: View {
                 ForEach(lessons, id: \.name) { file in
                     HStack(spacing: 10) {
                         Button(action: {
-                            url = isFemale ? file.audioFemaleURL : file.audioMaleURL
-                            self.lesson = file
-                            if viewModel.isPlaying(urlString: url) {
-                                viewModel.pause()
+                            if premiumViewModel.hasUnlockedPremuim || file.trackIndex! == 0 {
+                                isPressedWithoutPremium = false
+                                url = isFemale ? file.audioFemaleURL : file.audioMaleURL
+                                self.lesson = file
+                                if viewModel.isPlaying(urlString: url) {
+                                    viewModel.pause()
+                                } else {
+                                    databaseViewModel.updateListeners(course: course, type: course.type)
+                                    playerVM.playAudio(from: url,
+                                                       playlist: lessons,
+                                                       trackIndex: file.trackIndex,
+                                                       type: course.type,
+                                                       isFemale: isFemale,
+                                                       course: course)
+                                }
                             } else {
-                                databaseViewModel.updateListeners(course: course, type: course.type)
-                                playerVM.playAudio(from: url,
-                                                   playlist: lessons,
-                                                   trackIndex: file.trackIndex,
-                                                   type: course.type,
-                                                   isFemale: isFemale,
-                                                   course: course)
+                                print("ELSE")
+                                guard let trackIndex = file.trackIndex else {
+                                    isPressedWithoutPremium = true
+                                    return
+                                }
+                                if trackIndex > 0 {
+                                    isPressedWithoutPremium = true
+                                    print("HERE")
+                                }
                             }
                         }, label: {
                             ZStack {
@@ -63,16 +78,27 @@ struct LessonsView: View {
                                     .bold()
                                     .foregroundStyle(course.type == .story ? .white : .black)
                                     .onTapGesture {
-                                        isTappedOnName = true
-                                        url = isFemale ? file.audioFemaleURL : file.audioMaleURL
-                                        playerVM.playAudio(from: url,
-                                                           playlist: lessons,
-                                                           trackIndex: file.trackIndex,
-                                                           type: course.type,
-                                                           isFemale: isFemale,
-                                                           course: course)
-                                        databaseViewModel.updateListeners(course: course, type: course.type)
-                                        self.lesson = file
+                                        if premiumViewModel.hasUnlockedPremuim || file.trackIndex! == 0 {
+                                            isTappedOnName = true
+                                            isPressedWithoutPremium = false
+                                            url = isFemale ? file.audioFemaleURL : file.audioMaleURL
+                                            playerVM.playAudio(from: url,
+                                                               playlist: lessons,
+                                                               trackIndex: file.trackIndex,
+                                                               type: course.type,
+                                                               isFemale: isFemale,
+                                                               course: course)
+                                            databaseViewModel.updateListeners(course: course, type: course.type)
+                                            self.lesson = file
+                                        } else {
+                                            guard let trackIndex = file.trackIndex else {
+                                                isPressedWithoutPremium = true
+                                                return
+                                            }
+                                            if trackIndex > 0 {
+                                                isPressedWithoutPremium = true
+                                            }
+                                        }
                                     }
                                 Spacer()
                             }
@@ -97,9 +123,16 @@ struct LessonsView: View {
                 }
             }
         }
+        .sheet(isPresented: $isPressedWithoutPremium, content: {
+            PremiumScreen()
+        })
         .padding()
         .task {
             lessons = await viewModel.fetchCourseDetails(type: course.type, courseID: course.id)
+        }
+        .onAppear {
+            //isPressedWithoutPremium = premiumViewModel.hasUnlockedPremuim
+            print(premiumViewModel.hasUnlockedPremuim)
         }
     }
 }
