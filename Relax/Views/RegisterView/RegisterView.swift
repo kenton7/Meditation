@@ -176,7 +176,7 @@ struct RegisterView: View {
                                     .font(.system(size: 9, weight: .light, design: .rounded))
                             })
                             .sheet(isPresented: $isPrivacyPolicyPressed, content: {
-                                WebView(url: URL(string: "https://firebasestorage.googleapis.com/v0/b/relax-8e1d3.appspot.com/o/Privacy.rtf?alt=media&token=8b23e1ac-d014-465f-adba-445426f0b37e")!)
+                                WebView(url: URL(string: "https://kenton7.github.io/Serotonika/Privacy")!)
                             })
                             
                             Button(action: {
