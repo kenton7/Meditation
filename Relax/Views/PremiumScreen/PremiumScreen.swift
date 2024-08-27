@@ -33,10 +33,10 @@ struct PremiumScreen: View {
                         
                         Group {
                             Text("Спасибо за вашу подписку на Серотонику! \nТеперь у вас есть полный доступ ко всем медитациям, урокам и персонализированным программам. Вы сделали важный шаг на пути к внутреннему покою и благополучию.")
-                                .padding()
+                                .padding(7)
                             
                             Text("Мы рады, что вы с нами! \nЕсли у вас возникнут вопросы или нужна помощь, наша команда всегда готова помочь. Наслаждайтесь каждым моментом с Серотоникой!")
-                                .padding(.horizontal)
+                                .padding(.horizontal, 7)
                         }
                         .foregroundStyle(Color(uiColor: .init(red: 63/255,
                                                               green: 65/255,
@@ -81,6 +81,8 @@ struct PremiumScreen: View {
                                                                       blue: 78/255,
                                                                       alpha: 1)))
                                 .multilineTextAlignment(.leading)
+                                .lineLimit(3)
+                                .minimumScaleFactor(0.5)
                             Spacer()
                         }
                         .padding(.horizontal)
@@ -95,6 +97,8 @@ struct PremiumScreen: View {
                                                                       blue: 78/255,
                                                                       alpha: 1)))
                                 .multilineTextAlignment(.leading)
+                                .lineLimit(3)
+                                .minimumScaleFactor(0.5)
                             Spacer()
                         }
                         .padding(.horizontal)
@@ -109,11 +113,13 @@ struct PremiumScreen: View {
                                                                       blue: 78/255,
                                                                       alpha: 1)))
                                 .multilineTextAlignment(.leading)
+                                .lineLimit(3)
+                                .minimumScaleFactor(0.5)
                             Spacer()
                         }
                         .padding(.horizontal)
                     }
-                    .padding()
+                    .padding(5)
                     
                     VStack {
                         Text("Выберите свой план:")

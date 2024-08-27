@@ -22,15 +22,17 @@ struct WelcomeScreen: View {
         NavigationStack {
             ZStack {
                 Color(uiColor: .init(red: 140/255, green: 150/255, blue: 255/255, alpha: 1)).ignoresSafeArea()
-                VStack(spacing: 70) {
+                VStack {
                     Text("Серотоника")
                         .padding()
                         .font(.system(.title2, design: .rounded)).bold()
                         .foregroundStyle(.white)
                     
+                    Spacer()
+                    
                     if let userName = Auth.auth().currentUser?.displayName ?? yandexViewModel.userName {
                         Text("Привет, \(userName)! \nДобро пожаловать \n в Серотонику")
-                            .padding(.horizontal)
+                            .padding(.bottom)
                             .multilineTextAlignment(.center)
                             .textInputAutocapitalization(.words)
                             .font(.system(.title, design: .rounded)).bold()
@@ -42,21 +44,25 @@ struct WelcomeScreen: View {
                         .foregroundStyle(.white)
                         .font(.system(.subheadline, design: .rounded, weight: .light))
                         .multilineTextAlignment(.center)
+                    
                     UserLearningAnimation()
 
-                    Button(action: {
-                        withAnimation {
-                            isGetStartedTapped = true
-                        }
-                    }, label: {
-                        Text("Давайте начнём")
-                            .foregroundStyle(.black)
-                    })
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(.white)
-                    .clipShape(.rect(cornerRadius: 20))
-                    .padding()
+                    VStack {
+                        Spacer()
+                        Button(action: {
+                            withAnimation {
+                                isGetStartedTapped = true
+                            }
+                        }, label: {
+                            Text("Давайте начнём")
+                                .foregroundStyle(.black)
+                        })
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(.white)
+                        .clipShape(.rect(cornerRadius: 20))
+                        .padding()
+                    }
                 }
             }
         }

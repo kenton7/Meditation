@@ -7,6 +7,7 @@
 
 import Foundation
 import StoreKit
+import FirebaseDatabase
 
 @MainActor
 class PremiumViewModel: ObservableObject {
@@ -44,6 +45,7 @@ class PremiumViewModel: ObservableObject {
         case let .success(.verified(transaction)):
             await transaction.finish()
             await updatePurchasedProducts()
+            //TODO: - Добавить на сервер инфу, что юзер премиум!
         case let .success(.unverified(_, error)):
             print(error)
             break

@@ -22,25 +22,26 @@ struct UserInterestsTopicScreen: View {
     
     var body: some View {
         
-        let columns = [GridItem(.flexible(maximum: 250)),
-                       GridItem(.flexible(maximum: 250))]
+        let columns = [GridItem(.flexible(minimum: 180, maximum: 250)),
+                       GridItem(.flexible(minimum: 180, maximum: 250))]
         
         NavigationStack {
             ZStack {
-                VStack {
+                //VStack {
                     Image("TopicsBackground").ignoresSafeArea()
-                }
+                //}
                 ScrollView {
                     VStack {
                         HStack {
                             Text("Что вам по душе?")
-                                .padding()
+                                .padding(.top)
+                                .padding(.horizontal)
                                 .foregroundStyle(Color(uiColor: .init(red: 63/255, green: 65/255, blue: 78/255, alpha: 1)))
                                 .font(.system(.title2, design: .rounded, weight: .bold))
                                 .multilineTextAlignment(.leading)
                             Spacer()
                         }
-                        .padding(.horizontal)
+                        .padding()
                         
                         HStack {
                             Text("Выберите темы, \nна которых вы хотели бы сфокусироваться:")
@@ -52,7 +53,7 @@ struct UserInterestsTopicScreen: View {
                         
                         Spacer()
                         ScrollView {
-                            LazyVGrid(columns: columns, alignment: .center, spacing: 20, content: {
+                            LazyVGrid(columns: columns, alignment: .center, spacing: 10, content: {
                                 ForEach($coursesVM.allCourses, id: \.id) { $topic in
                                     TopicButton(topic: $topic, selectedTopics: $selectedTopics)
                                 }
@@ -72,7 +73,12 @@ struct UserInterestsTopicScreen: View {
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                         .padding()
                         .disabled(selectedTopics.isEmpty)
+                        .padding(.bottom)
+                        .padding(.horizontal)
                     }
+                    .padding()
+                    .padding(.top)
+                    .padding(.bottom)
                 }
             }
         }
@@ -101,12 +107,10 @@ struct TopicButton: View {
                         selectedTopics.append(topic)
                         topic.isSelected = true
                         let topicDict = ["name": topic.name]
-                        //Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? "").child("selectedTopics").child(topic.name).setValue(topicDict)
                         Database.database(url: .databaseURL).reference().child("users").child(userID).child("selectedTopics").child(topic.name).setValue(topicDict)
                     } else {
                         selectedTopics.removeAll(where: { $0.name == topic.name })
                         topic.isSelected = false
-//                        Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? "").child("selectedTopics").child(topic.name).removeValue()
                         Database.database(url: .databaseURL).reference().child("users").child(userID).child("selectedTopics").child(topic.name).removeValue()
                     }
                 }
@@ -139,7 +143,6 @@ struct TopicButton: View {
                                 }
                             }
                     } placeholder: {
-                        //ProgressView()
                         LoadingAnimationButton()
                     }
                     .padding()
@@ -149,9 +152,10 @@ struct TopicButton: View {
                     HStack {
                         Text(topic.name)
                             .padding()
-                            .font(.system(size: 15, design: .rounded))
+                            .font(.system(size: 17, design: .rounded))
                             .foregroundStyle(.white).bold()
-                            .minimumScaleFactor(2)
+                            .minimumScaleFactor(0.5)
+                            .lineLimit(2)
                             .multilineTextAlignment(.leading)
                         Spacer()
                     }

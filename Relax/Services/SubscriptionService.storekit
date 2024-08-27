@@ -10,7 +10,9 @@
     "_applicationInternalID" : "6636530807",
     "_developerTeamID" : "44S95Z526W",
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 746265945.84990203,
+    "_lastSynchronizedDate" : 746474702.18941402,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
     "_storeKitErrors" : [
       {
         "current" : null,

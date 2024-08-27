@@ -77,9 +77,10 @@ struct RegisterView: View {
                             }
                         }
                     }
+                    .padding(.horizontal)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .padding()
+                    .padding(.horizontal)
                     .clipShape(.rect(cornerRadius: 16))
                     
                     //Кнопка Войти через Apple. НЕ должна быть доступна для пользователей из РФ!
@@ -131,6 +132,7 @@ struct RegisterView: View {
                             }
                             .allowsHitTesting(false)
                         }
+                        .padding(.horizontal)
                         .frame(height: 56)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -141,7 +143,7 @@ struct RegisterView: View {
                     Text("ИЛИ ЗАРЕГИСТРИРУЙТЕСЬ С ПОМОЩЬЮ EMAIL")
                         .font(.system(size: 15))
                         .foregroundStyle(.gray)
-                        .padding()
+                        .padding(.horizontal)
                     Spacer()
                     
                     TextField("Как Вас зовут?", text: $name)
@@ -150,23 +152,28 @@ struct RegisterView: View {
                         .clipShape(.rect(cornerRadius: 8))
                         .padding()
                         .autocorrectionDisabled(true)
+                        .padding(.horizontal)
                     
                     VStack {
                         EmailFieldView("Email", email: $email)
+                            .padding(.horizontal)
                         if let errorMessage = errorMessage {
                             Text(errorMessage)
-                                .padding()
+                                .padding(.horizontal)
                                 .bold()
                                 .foregroundStyle(.red)
                                 .font(.system(size: 15))
                         }
                     }
                     PasswordFieldView("Пароль", text: $password)
+                        .padding(.horizontal)
                     Spacer()
                     
                     Group {
-                        HStack {
+                        HStack(spacing: 3) {
                             Text("Я прочитал(-а)")
+                                .padding(.leading, 1)
+                                //.padding(.horizontal)
                                 .font(.system(size: 9, weight: .light, design: .rounded))
                             Button(action: {
                                 isPrivacyPolicyPressed = true
@@ -179,10 +186,13 @@ struct RegisterView: View {
                                 WebView(url: URL(string: "https://kenton7.github.io/Serotonika/Privacy")!)
                             })
                             
+                            Text("и")
+                                .font(.system(size: 9, weight: .light, design: .rounded))
+                            
                             Button(action: {
                                 isTermsAndConditionsPressed = true
                             }, label: {
-                                Text("и согласен(-на) с условиями")
+                                Text("согласен(-на) с условиями")
                                     .foregroundStyle(.blue)
                                     .font(.system(size: 9, weight: .light, design: .rounded))
                             })
@@ -206,8 +216,9 @@ struct RegisterView: View {
                                             .foregroundStyle(isAgreeWithPrivacy ? .green : .clear)
                                     }
                             })
+                            .padding(.trailing, 1)
                         }
-                        .padding(.vertical)
+                        //.padding(.vertical)
                     }
                     .padding(.horizontal)
                     
@@ -215,7 +226,7 @@ struct RegisterView: View {
                         isRegistration = true
                         Task {
                             do {
-                                try await viewModel.asyncRegisterWith(name: name, 
+                                try await viewModel.asyncRegisterWith(name: name,
                                                                       email: email,
                                                                       password: password)
                                 await MainActor.run {
@@ -245,6 +256,7 @@ struct RegisterView: View {
                     .disabled(name.isEmpty)
                     .disabled(password.isEmpty)
                     .disabled(!isAgreeWithPrivacy)
+                    .padding(.horizontal)
                     .padding()
                 }
             }
@@ -260,8 +272,3 @@ struct RegisterView: View {
     }
 }
 
-
-
-#Preview {
-    RegisterView()
-}

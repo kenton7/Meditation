@@ -21,12 +21,11 @@ struct HomeScreen: View {
     @State private var isShowing = false
     
     var body: some View {
-        
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack {
                     Text("Серотоника")
-                        .padding()
+                        .padding(.vertical)
                         .foregroundStyle(Color(uiColor: .init(red: 63/255,
                                                               green: 65/255,
                                                               blue: 78/255,
@@ -40,7 +39,7 @@ struct HomeScreen: View {
                     DailyThoughts(isShowing: $isShowing)
                     RecommendationsScreen(isShowing: $isShowing)
                     NightStories(isShowing: $isShowing)
-                    Spacer()
+                    //Spacer()
                 }
             }
         }
@@ -55,10 +54,6 @@ struct HomeScreen: View {
         }
         .onAppear {
             isShowing = true
-//            if recommendationsViewModel == nil {
-//                print("HERE")
-//                recommendationsViewModel = RecommendationsViewModel(yandexViewModel: yandexViewModel)
-//            }
         }
         .onDisappear {
             isShowing = false
@@ -78,29 +73,28 @@ struct GreetingView: View {
     var body: some View {
         VStack {
             HStack {
-                VStack(alignment: .leading) {
-                    Text(homeScreenViewModel.greeting)
-                        .padding()
-                        .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                              green: 65/255,
-                                                              blue: 78/255,
-                                                              alpha: 1)))
-                        .font(.system(.title, design: .rounded)).bold()
-                        .padding(.vertical, -15)
-                    Text(homeScreenViewModel.secondaryGreeting)
-                        .padding(.horizontal)
-                        .font(.system(.subheadline, design: .rounded))
-                        .foregroundStyle(Color(uiColor: .init(red: 161/255,
-                                                              green: 164/255,
-                                                              blue: 178/255,
-                                                              alpha: 1)))
-                }
+                Text(homeScreenViewModel.greeting)
+                    .foregroundStyle(Color(uiColor: .init(red: 63/255,
+                                                          green: 65/255,
+                                                          blue: 78/255,
+                                                          alpha: 1)))
+                    .font(.system(.title, design: .rounded)).bold()
                 Spacer()
             }
-            .padding(.vertical)
-            .offset(y: isShowing ? 0 : -200)
-            .animation(.bouncy, value: isShowing)
+            
+            HStack {
+                Text(homeScreenViewModel.secondaryGreeting)
+                    .font(.system(size: 13, weight: .light, design: .rounded))
+                    .foregroundStyle(Color(uiColor: .init(red: 161/255,
+                                                          green: 164/255,
+                                                          blue: 178/255,
+                                                          alpha: 1)))
+                Spacer()
+            }
         }
+        .padding()
+        .offset(y: isShowing ? 0 : -200)
+        .animation(.bouncy, value: isShowing)
         .onAppear {
             homeScreenViewModel.updateGreeting()
         }
@@ -126,22 +120,25 @@ struct DailyRecommendations: View {
     var body: some View {
         NavigationStack {
             VStack {
-                HStack {
-                    VStack(alignment: .leading) {
+                Group {
+                    HStack {
                         Text("Практика дня")
                             .foregroundStyle(.black)
                             .font(.system(.title2, design: .rounded, weight: .bold))
                             .multilineTextAlignment(.leading)
                         
+                        Spacer()
+                    }
+                    
+                    HStack {
                         Text("Обновляется ежедневно")
                             .font(.system(.subheadline, design: .rounded))
                             .foregroundStyle(Color(uiColor: .init(red: 161/255,
                                                                   green: 164/255,
                                                                   blue: 178/255,
                                                                   alpha: 1)))
-                            .multilineTextAlignment(.leading)
+                        Spacer()
                     }
-                    Spacer()
                 }
                 .padding(.horizontal)
                 .offset(y: isShowing ? 0 : -700)
@@ -183,7 +180,6 @@ struct DailyRecommendations: View {
                                                 .scaledToFit()
                                                 .frame(width: 200, height: 150)
                                         } placeholder: {
-                                            //ProgressView()
                                             LoadingAnimationButton()
                                         }
                                     }
@@ -216,12 +212,12 @@ struct DailyRecommendations: View {
                             }
                         })
                         .clipShape(.rect(cornerRadius: 20))
-                        .padding(.horizontal, 0)
+                        .padding(.horizontal)
                         .frame(maxWidth: .infinity, maxHeight: 230)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: 230)
-                .padding()
+                .padding(.vertical)
                 .offset(x: isShowing ? 0 : 700)
                 .animation(.bouncy, value: isShowing)
             }
@@ -253,33 +249,51 @@ struct DailyThoughts: View {
                     isDailyThoughtsTapped = true
                 }, label: {
                     ZStack {
-                        Color(uiColor: .init(red: 51/255,
-                                             green: 50/255,
-                                             blue: 66/255,
-                                             alpha: 1))
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color(uiColor: .init(red: 51/255,
+                                                       green: 50/255,
+                                                       blue: 66/255,
+                                                       alpha: 1)))
+                            .padding(.horizontal)
+                        
                         Image("DailyThoughtsBackground")
-                        HStack {
-                            VStack(alignment: .leading) {
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                            .padding(.horizontal)
+                        
+                        VStack {
+                            HStack {
                                 Text("Ежедневные мысли")
+                                    .padding(.horizontal)
                                     .foregroundStyle(.white)
                                     .font(.system(size: 20, design: .rounded)).bold()
+                                Spacer()
+                            }
+                            .padding(.horizontal)
+                            
+                            HStack {
                                 Text("МЕДИТАЦИЯ • 10-30 мин")
+                                    .padding(.horizontal)
                                     .lineLimit(1)
                                     .foregroundStyle(.white).bold()
                                     .font(.system(.caption, design: .rounded))
+                                Spacer()
                             }
-                            .padding()
-                            Spacer()
-                            
-                            Image(systemName: "play.circle.fill")
-                                .foregroundStyle(.white)
-                                .font(.system(size: 35))
-                                .padding()
+                            .padding(.horizontal)
                         }
+                        
+                        HStack {
+                            Spacer()
+                            Image(systemName: "play.circle.fill")
+                                            .foregroundStyle(.white)
+                                            .font(.system(size: 35))
+                                            .padding()
+                        }
+                        .padding(.trailing)
                     }
                 })
                 .clipShape(.rect(cornerRadius: 20))
-                .padding(.horizontal)
                 .frame(maxWidth: .infinity)
                 .offset(x: isShowing ? 0 : -700)
                 .animation(.bouncy, value: isShowing)
@@ -300,7 +314,6 @@ struct DailyThoughts: View {
 struct RecommendationsScreen: View {
     
     @EnvironmentObject var yandexViewModel: YandexAuthorization
-    //@State private var recommendationsViewModel: RecommendationsViewModel?
     @StateObject private var recommendationsViewModel = RecommendationsViewModel(yandexViewModel: YandexAuthorization.shared)
     
     @FetchRequest(
@@ -317,7 +330,8 @@ struct RecommendationsScreen: View {
             VStack {
                 HStack {
                     Text("Рекомендовано для Вас")
-                        .padding()
+                        .padding(.top)
+                        .padding(.horizontal)
                         .foregroundStyle(Color(uiColor: .init(red: 63/255,
                                                               green: 65/255,
                                                               blue: 78/255,
@@ -328,7 +342,6 @@ struct RecommendationsScreen: View {
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHGrid(rows: [GridItem(.fixed(200))], spacing: 0, content: {
-                        //if let recommendationsViewModel = recommendationsViewModel {
                             ForEach(recommendationsViewModel.recommendations, id: \.name) { course in
                                 Button(action: {
                                     selectedCourse = course
@@ -367,9 +380,8 @@ struct RecommendationsScreen: View {
                                             .font(.system(.caption, design: .rounded))
                                     }
                                 })
-                                .padding(.horizontal)
+                               .padding(.horizontal)
                             }
-                        //}
                     })
                 }
             }
@@ -381,11 +393,6 @@ struct RecommendationsScreen: View {
                 ReadyCourseDetailView(course: selectedCourse)
             }
         })
-//        .onAppear {
-//            if recommendationsViewModel == nil {
-//                recommendationsViewModel = RecommendationsViewModel(yandexViewModel: yandexViewModel)
-//            }
-//        }
     }
 }
 
@@ -403,7 +410,8 @@ struct NightStories: View {
             VStack {
                 HStack {
                     Text("Истории на ночь")
-                        .padding()
+                        .padding(.top)
+                        .padding(.horizontal)
                         .foregroundStyle(Color(uiColor: .init(red: 63/255,
                                                               green: 65/255,
                                                               blue: 78/255,
@@ -430,7 +438,6 @@ struct NightStories: View {
                                                 image.resizable()
                                                 image.scaledToFill()
                                             } placeholder: {
-                                                //ProgressView()
                                                 LoadingAnimationButton()
                                             }
                                             .padding()
@@ -446,7 +453,7 @@ struct NightStories: View {
                                             .font(.system(.callout, design: .rounded)).bold()
                                     }
                                 })
-                                .padding(.horizontal)
+                               .padding(.horizontal)
                             }
                             Button {
                                 selectedTab.wrappedValue = .sleep
@@ -478,14 +485,3 @@ struct NightStories: View {
     }
 }
 
-//#Preview {
-//    HomeScreen()
-//}
-//
-//#Preview("RecommendationsScreen") {
-//    RecommendationsScreen()
-//}
-//
-//#Preview("Night Stories") {
-//    NightStories()
-//}

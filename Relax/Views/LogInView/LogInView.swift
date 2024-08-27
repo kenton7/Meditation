@@ -68,9 +68,10 @@ struct LogInView: View {
                             }
                         }
                     }
+                    .padding(.horizontal)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .padding()
+                    .padding(.horizontal)
                     .clipShape(.rect(cornerRadius: 16))
                     
                     //Кнопка войти через Apple. НЕ должна быть доступна для пользователей из РФ
@@ -91,10 +92,11 @@ struct LogInView: View {
                                 self.isLogIn = false
                             }
                         }
+                        .foregroundStyle(scheme == .dark ? .black : .white)
+                        .clipShape(.rect(cornerRadius: 16))
                         .overlay {
                             ZStack {
                                 Capsule()
-                                    .clipShape(.rect(cornerRadius: 16))
                                 HStack {
                                     Image(systemName: "applelogo")
                                     Text("Вход с Apple")
@@ -104,23 +106,26 @@ struct LogInView: View {
                             }
                             .allowsHitTesting(false)
                         }
-                        .clipShape(.rect(cornerRadius: 16))
+                        .padding(.horizontal)
                         .frame(height: 56)
                         .frame(maxWidth: .infinity)
                         .padding()
+                        .clipShape(.rect(cornerRadius: 16))
                     }
-
+                    
                     Divider()
                     
                     Text("ИЛИ ВОЙТИ С ПОМОЩЬЮ EMAIL")
                         .font(.system(size: 15))
                         .foregroundStyle(.gray)
-                        .padding()
+                        .padding(.horizontal)
                     Spacer()
                     
                     VStack {
                         EmailFieldView("Email", email: $email)
+                            .padding(.horizontal)
                         PasswordFieldView("Пароль", text: $password)
+                            .padding(.horizontal)
                         if let errorMessage = errorMessage {
                             Text(errorMessage)
                                 .padding(.horizontal)
@@ -171,6 +176,9 @@ struct LogInView: View {
                     .padding()
                     .disabled(email.isEmpty)
                     .disabled(password.isEmpty)
+                    .padding(.horizontal)
+                    .padding()
+                    
                     Button(action: {
                         withAnimation {
                             isForgotPasswordPressed = true
@@ -184,12 +192,6 @@ struct LogInView: View {
             }
         }
         .navigationDestination(isPresented: $isLogIn) {
-//            if databaseVM.isTutorialViewed {
-//                CustomTabBar()
-//                    .navigationBarBackButtonHidden()
-//            } else {
-//                WelcomeScreen()
-//            }
             if isViewed {
                 CustomTabBar()
                     .navigationBarBackButtonHidden()
@@ -198,15 +200,14 @@ struct LogInView: View {
             }
         }
         .onReceive(yandexViewModel.$isLoggedIn) { isLoggedIn in
-                    if isLoggedIn {
-                        self.isLogIn = true
-                    }
-                }
+            if isLoggedIn {
+                self.isLogIn = true
+            }
+        }
         .onReceive(databaseVM.$isTutorialViewed) { isViewed in
-            //self.isLogIn = true
             self.isViewed = isViewed
             self.isLogIn = true
-                }
+        }
         .onChange(of: databaseVM.isTutorialViewed) { newValue in
             isViewed = newValue
         }
@@ -221,6 +222,3 @@ struct LogInView: View {
     }
 }
 
-#Preview {
-    LogInView()
-}

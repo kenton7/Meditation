@@ -96,7 +96,6 @@ struct RemindersScreen: View {
                                 } else {
                                     selectedDays.removeAll { $0.name == day.name }
                                 }
-                                //coreDataService.saveSelectedDays(selectedDays, time: selectionTime)
                             }, label: {
                                 Text(day.name)
                                     .foregroundColor(day.isSelected ? .white : Color(uiColor: .init(red: 161/255, green: 164/255, blue: 178/255, alpha: 1)))
@@ -108,7 +107,7 @@ struct RemindersScreen: View {
                                     )
                                     .clipShape(Circle())
                             })
-                            .padding(.horizontal, 5)
+                            .padding(.horizontal, 3)
                         }
                     })
                     .padding(.vertical, 10)
@@ -125,9 +124,6 @@ struct RemindersScreen: View {
                                                                             selectedDays: selectedDays,
                                                                             selectedTime: selectionTime)
                             if !isFromSettings {
-//                                authViewModel.signedIn = true
-//                                isContinueOrSkipButtonPressed = true
-                                
                                 if let firebaseUserID = Auth.auth().currentUser?.uid {
                                     databaseVM.writeToDatabaseIfUserViewedTutorial(userID: firebaseUserID, isViewed: true)
                                 } else {
@@ -140,9 +136,6 @@ struct RemindersScreen: View {
                                         isContinueOrSkipButtonPressed = true
                                     }
                                 }
-                                
-//                                guard let userID = Auth.auth().currentUser?.uid, !yandexViewModel.clientID.isEmpty else { return }
-//                                databaseVM.writeToDatabaseIfUserViewedTutorial(userID: userID, isViewed: isContinueOrSkipButtonPressed)
                             } else {
                                 dismiss()
                             }
@@ -164,11 +157,6 @@ struct RemindersScreen: View {
                                 if let firebaseUserID = Auth.auth().currentUser?.uid {
                                     databaseVM.writeToDatabaseIfUserViewedTutorial(userID: firebaseUserID, isViewed: true)
                                 } else {
-                                    //databaseVM.writeToDatabaseIfUserViewedTutorial(userID: yandexViewModel.clientID, isViewed: true)
-//                                    Task {
-//                                        let userData = ["email": yandexViewModel.userInfo?.emails ?? [""], "name": yandexViewModel.userName ?? ""]
-//                                        try await Database.database(url: .databaseURL).reference().child("users").child(yandexViewModel.clientID).setValue(userData)
-//                                    }
                                     databaseVM.writeToDatabaseIfUserViewedTutorial(userID: yandexViewModel.clientID, isViewed: true)
                                 }
                             }, label: {
