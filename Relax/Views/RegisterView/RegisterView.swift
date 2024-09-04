@@ -162,7 +162,9 @@ struct RegisterView: View {
                                 .padding(.horizontal)
                                 .bold()
                                 .foregroundStyle(.red)
-                                .font(.system(size: 15))
+                                .lineLimit(nil)
+                                .frame(maxWidth: .infinity)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     PasswordFieldView("Пароль", text: $password)

@@ -134,6 +134,9 @@ struct LogInView: View {
                                 .bold()
                                 .foregroundStyle(.red)
                                 .multilineTextAlignment(.center)
+                                .lineLimit(nil)
+                                .frame(maxWidth: .infinity)
+                                .fixedSize(horizontal: false, vertical: true) // Позволяем тексту расти по вертикали, если необходимо
                         }
                     }
                     
