@@ -15,6 +15,9 @@ final class EmergencyMeditationsViewModel: ObservableObject {
     
     @StateObject private var databaseVM = ChangeDataInDatabase.shared
     @Published var emergencyMeditations: [CourseAndPlaylistOfDayModel] = []
+    @Published var userLikedMaterials: [CourseAndPlaylistOfDayModel] = []
+    
+    private let yandexViewModel = YandexAuthorization.shared
     private let databaseRef = Database.database(url: .databaseURL).reference().child("emergencyMeditation")
     
     init() {
@@ -41,6 +44,15 @@ final class EmergencyMeditationsViewModel: ObservableObject {
             }
             self.emergencyMeditations = newFiles
         }
+    }
+    
+    func getCoursesUserLiked() async {
+        let snapshot = try? await Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? yandexViewModel.yandexUserID).child("likedPlaylists").getData()
+        guard let snapshot = snapshot, let likedPlaylists = snapshot.value as? [String: Bool] else { return }
+        let likedObjects = self.emergencyMeditations.filter { course in
+            return likedPlaylists.keys.contains(course.name)
+        }
+        self.userLikedMaterials = likedObjects
     }
     
 }
