@@ -20,6 +20,12 @@ enum ProfileScreenModel: String, CaseIterable {
     case restorePurchases = "Восстановить покупки"
 }
 
+enum NavigationDestination: Hashable {
+    case accountScreen
+    case notifications
+    case downloaded
+}
+
 struct ProfileScreen: View {
     
     @EnvironmentObject var authViewModel: AuthViewModel
@@ -29,28 +35,14 @@ struct ProfileScreen: View {
     @State private var isBuyPremiumPressed = false
     @State private var aboutUsPressed = false
     @State private var isRemindersPressed = false
+    @State private var userName = ""
     let fileManagerService: IFileManagerSerivce = FileManagerSerivce()
     @State private var path = NavigationPath()
     
     var body: some View {
         NavigationStack(path: $path) {
             VStack {
-                HStack {
-                    if let user = currentUser {
-                        Text("\(user.displayName ?? "")")
-                            .padding()
-                            .foregroundStyle(.black)
-                            .font(.system(.title, design: .rounded, weight: .bold))
-                    } else {
-                        Text("\(yandexViewModel.userName ?? "")")
-                            .padding()
-                            .foregroundStyle(.black)
-                            .font(.system(.title, design: .rounded, weight: .bold))
-                    }
-                    Spacer()
-                }
                 Spacer()
-                
                 List {
                     Section("Настройки") {
                         NavigationLink {
@@ -105,13 +97,25 @@ struct ProfileScreen: View {
                                     Text("Скачанное")
                                 }
                             }
+                        
+                        NavigationLink {
+                            UserLikedPlaylistsScreen()
+                        } label: {
+                            HStack {
+                                Image("like")
+                                    .resizable()
+                                    .frame(width: 20, height: 20)
+                                Text("Вам понравилось")
+                            }
+                        }
+
                     }
                     
                     Section("Помощь") {
                         Button(action: {
                             openMail(emailTo: "serotonika.app@gmail.com",
                                      subject: "Серотоника",
-                                     body: "")
+                                     body: "Версия: \(Bundle.main.appVersion), сборка: \(Bundle.main.appBuild)")
                         }, label: {
                             HStack {
                                 Image("email")
@@ -157,12 +161,29 @@ struct ProfileScreen: View {
                     })
                 }
                 .foregroundStyle(.black)
+                
+//                VStack {
+//                     Text("Версия: \(Bundle.main.appVersion)")
+//                     Text("Сборка: \(Bundle.main.appBuild)")
+//                 }
+//                 .padding()
+//                 .foregroundStyle(Color(uiColor: .secondaryTextColor))
+//                 .font(.system(size: 12, weight: .light, design: .rounded))
+//                 .padding(.bottom)
+            }
+            .navigationTitle(userName)
+        }
+        .onAppear {
+            if let userName = Auth.auth().currentUser?.displayName {
+                self.userName = userName
+            } else {
+                self.userName = yandexViewModel.userName ?? ""
             }
         }
     }
     
-    func openMail(emailTo: String, subject: String, body: String?) {
-        if let url = URL(string: "mailto:\(emailTo)?subject=\(subject.fixToBrowserString())&body=\(String(describing: body?.fixToBrowserString()))"),
+    func openMail(emailTo: String, subject: String, body: String) {
+        if let url = URL(string: "mailto:\(emailTo)?subject=\(subject.fixToBrowserString())&body=\(body)"),
            UIApplication.shared.canOpenURL(url)
         {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)

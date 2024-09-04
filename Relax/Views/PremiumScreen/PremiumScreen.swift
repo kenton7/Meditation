@@ -48,9 +48,13 @@ struct PremiumScreen: View {
                         Button(action: {
                             dismiss()
                         }, label: {
-                            Text("Закрыть")
-                                .foregroundStyle(.white)
-                                .font(.system(size: 20, weight: .bold, design: .rounded))
+                            HStack {
+                                Text("Закрыть")
+                                    .foregroundStyle(.white)
+                                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .contentShape(.rect)
                         })
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -145,9 +149,13 @@ struct PremiumScreen: View {
                                         }
                                     }
                                 }, label: {
-                                    Text("\(product.displayName): \(product.displayPrice)")
-                                        .foregroundStyle(.white)
-                                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                                    HStack {
+                                        Text("\(product.displayName): \(product.displayPrice)")
+                                            .foregroundStyle(.white)
+                                            .font(.system(size: 17, weight: .bold, design: .rounded))
+                                            .frame(maxWidth: .infinity)
+                                    }
+                                    .contentShape(.rect)
                                 })
                                 .padding(.horizontal)
                                 .frame(maxWidth: .infinity)

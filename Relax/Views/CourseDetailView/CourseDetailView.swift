@@ -23,6 +23,7 @@ struct CourseDetailView: View {
     @EnvironmentObject private var playerViewModel: PlayerViewModel
     @EnvironmentObject private var yandexViewModel: YandexAuthorization
     @EnvironmentObject private var premiumViewModel: PremiumViewModel
+    @EnvironmentObject private var downloadManager: DownloadManager
     private let user = Auth.auth().currentUser
     private let fileManagerService: IFileManagerSerivce = FileManagerSerivce()
     @State private var isFemale = true
@@ -65,9 +66,10 @@ struct CourseDetailView: View {
         }
         .onAppear {
             databaseViewModel.getLikesIn(course: course, courseType: course.type)
-            databaseViewModel.checkIfUserLiked(userID: user?.uid ?? yandexViewModel.clientID, course: course)
+            databaseViewModel.checkIfUserLiked(userID: user?.uid ?? yandexViewModel.yandexUserID, course: course)
             databaseViewModel.getListenersIn(course: course, courseType: course.type)
             databaseViewModel.storyInfo(course: course, isFemale: isFemale)
+            //isLiked = databaseViewModel.isLiked
         }
         .task {
             lessons = await coursesViewModel.fetchCourseDetails(type: course.type, courseID: course.id)
@@ -94,22 +96,22 @@ struct CourseDetailView: View {
                 
                     HStack {
                         Spacer()
-                        
                         Button(action: {
                             withAnimation {
-                                isLiked.toggle()
+                                //isLiked.toggle()
+                                databaseViewModel.isLiked.toggle()
                             }
-                            if isLiked {
+                            if databaseViewModel.isLiked {
                                 databaseViewModel.userLiked(course: course,
                                                             type: .increment,
-                                                            isLiked: isLiked,
-                                                            userID: user?.uid ?? yandexViewModel.clientID,
+                                                            isLiked: true,
+                                                            userID: user?.uid ?? yandexViewModel.yandexUserID,
                                                             courseType: course.type)
                             } else {
                                 databaseViewModel.userLiked(course: course,
                                                             type: .decrement,
-                                                            isLiked: isLiked,
-                                                            userID: user?.uid ?? yandexViewModel.clientID,
+                                                            isLiked: false,
+                                                            userID: user?.uid ?? yandexViewModel.yandexUserID,
                                                             courseType: course.type)
                             }
                         }, label: {
@@ -137,7 +139,7 @@ struct CourseDetailView: View {
                                 if premiumViewModel.hasUnlockedPremuim {
                                     isPressedDownloadWithoutPremium = false
                                     Task.detached {
-                                        let _ = try await databaseViewModel.downloadAllCourse(course: course,
+                                        let _ = try await downloadManager.downloadAllCourse(course: course,
                                                                                               courseType: course.type,
                                                                                               isFemale: isFemale,
                                                                                               lessons: lessons)
@@ -173,12 +175,12 @@ struct CourseDetailView: View {
                                         .stroke(Color.gray, lineWidth: 4)
                                         .padding(10)
                                     Circle()
-                                        .trim(from: 0, to: databaseViewModel.downloadProgress)
+                                        .trim(from: 0, to: downloadManager.totalProgress / 100)
                                         .stroke(Color.green, lineWidth: 4)
                                         .padding(10)
                                         .rotationEffect(.degrees(-90))
                                 }
-                                .opacity(databaseViewModel.downloadProgress >= 100 ? 0 : 1)
+                                .opacity(downloadManager.totalProgress >= 100 ? 0 : 1)
                             }
                         }
                     }

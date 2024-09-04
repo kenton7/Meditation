@@ -112,7 +112,6 @@ final class AuthViewModel: NSObject, ObservableObject, Authable {
                 if let userID = Auth.auth().currentUser?.uid {
                     self.userID = userID
                     self.signedIn = true
-                    self.isAppleLogin = true
 
                     Task {
                         await ChangeDataInDatabase.shared.checkIfFirebaseUserViewedTutorial(userID: self.userID)
@@ -180,7 +179,6 @@ final class AuthViewModel: NSObject, ObservableObject, Authable {
             DispatchQueue.main.async {
                 self.signedIn = false
                 self.userID = ""
-                self.isAppleLogin = false
                 self.currentNonce = nil
                 ChangeDataInDatabase.shared.isTutorialViewed = false
                 print("Пользователь вышел из системы. signedOut: \(self.signedIn), userID: \(self.userID)")

@@ -8,9 +8,12 @@
 import Foundation
 import FirebaseDatabase
 import AVFoundation
+import FirebaseAuth
 
 final class MusicFilesViewModel: ObservableObject {
     @Published var files: [CourseAndPlaylistOfDayModel] = []
+    @Published var userLikedMaterials: [CourseAndPlaylistOfDayModel] = []
+    private let yandexViewModel = YandexAuthorization.shared
     
     private let databaseRef = Database.database(url: .databaseURL).reference().child("music")
     
@@ -18,7 +21,7 @@ final class MusicFilesViewModel: ObservableObject {
         fetchFiles()
     }
     
-    private func fetchFiles() {
+    func fetchFiles() {
         databaseRef.observe(.value) { snapshot in
             var newFiles: [CourseAndPlaylistOfDayModel] = []
             for child in snapshot.children {
@@ -38,6 +41,15 @@ final class MusicFilesViewModel: ObservableObject {
             }
             self.files = newFiles
         }
+    }
+    
+    func getCoursesUserLiked() async {
+        let snapshot = try? await Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? yandexViewModel.yandexUserID).child("likedPlaylists").getData()
+        guard let snapshot = snapshot, let likedPlaylists = snapshot.value as? [String: Bool] else { return }
+        let likedObjects = self.files.filter { course in
+            return likedPlaylists.keys.contains(course.name)
+        }
+        self.userLikedMaterials = likedObjects
     }
     
     func getSongDuration(from urlString: String, completion: @escaping (Double?) -> Void) {

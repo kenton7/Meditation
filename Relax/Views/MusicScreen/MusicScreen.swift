@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AVKit
+import Kingfisher
 
 struct MusicScreen: View {
     @StateObject private var viewModel = MusicFilesViewModel()
@@ -18,7 +19,7 @@ struct MusicScreen: View {
                 MusicHeaderView(isShowing: $isShowing)
                 AllMusicPlaylists(isShowing: $isShowing)
                     .environmentObject(viewModel)
-           }
+            }
             .onAppear {
                 isShowing = true
             }
@@ -27,6 +28,13 @@ struct MusicScreen: View {
             }
         }
         .padding(.bottom)
+        .refreshable {
+            Task {
+                await MainActor.run {
+                    viewModel.fetchFiles()
+                }
+            }
+        }
     }
 }
 
@@ -66,48 +74,47 @@ struct AllMusicPlaylists: View {
     
     var body: some View {
         NavigationStack {
-                ScrollView {
-                    LazyVGrid(columns: [
-                        GridItem(.flexible()),
-                        GridItem(.flexible())
-                    ], spacing: 20, content: {
-                        ForEach(musicViewModel.files, id: \.name) { file in
-                            Button(action: {
-                                isSelected = true
-                                selectedPlaylist = file
-                            }, label: {
-                                LazyVStack {
-                                    AsyncImage(url: URL(string: file.imageURL), scale: 2.0) { image in
-                                        image.resizable()
-                                            .scaledToFit()
-                                            .clipShape(.rect(cornerRadius: 16))
-                                            .padding(.horizontal)
-                                            .frame(width: 200, height: 150)
-                                    } placeholder: {
-                                        //ProgressView()
+            ScrollView {
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: 20, content: {
+                    ForEach(musicViewModel.files, id: \.name) { file in
+                        Button(action: {
+                            isSelected = true
+                            selectedPlaylist = file
+                        }, label: {
+                            VStack {
+                                KFImage(URL(string: file.imageURL))
+                                    .resizable()
+                                    .placeholder {
                                         LoadingAnimationButton()
                                     }
-                                    
-                                    Text(file.name)
-                                        .foregroundStyle(.black)
-                                        .font(.system(size: 17, design: .rounded)).bold()
-                                    
-                                    Text("\(file.duration) мин.")
-                                        .padding(.horizontal, 10)
-                                        .foregroundStyle(Color(uiColor: .init(red: 152/255,
-                                                                              green: 161/255,
-                                                                              blue: 189/255,
-                                                                              alpha: 1)))
-                                        .font(.system(size: 13, weight: .bold, design: .rounded))
-                                        .multilineTextAlignment(.leading)
-                                    Spacer()
-                                }
-                            })
-                        }
-                    })
-                }
-                .offset(x: isShowing ? 0 : -1000)
-                .animation(.bouncy, value: isShowing)
+                                    .scaledToFit()
+                                    .clipShape(.rect(cornerRadius: 16))
+                                    .padding(.horizontal)
+                                    .frame(width: 200, height: 150)
+                                
+                                Text(file.name)
+                                    .foregroundStyle(.black)
+                                    .font(.system(size: 17, design: .rounded)).bold()
+                                
+                                Text("\(file.duration) мин.")
+                                    .padding(.horizontal, 10)
+                                    .foregroundStyle(Color(uiColor: .init(red: 152/255,
+                                                                          green: 161/255,
+                                                                          blue: 189/255,
+                                                                          alpha: 1)))
+                                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                                    .multilineTextAlignment(.leading)
+                                Spacer()
+                            }
+                        })
+                    }
+                })
+            }
+            .offset(x: isShowing ? 0 : -1000)
+            .animation(.bouncy, value: isShowing)
         }
         .navigationDestination(isPresented: $isSelected) {
             if let selectedPlaylist {
@@ -115,9 +122,4 @@ struct AllMusicPlaylists: View {
             }
         }
     }
-}
-
-
-#Preview("AllMusic") {
-    AllMusicPlaylists(isShowing: .constant(true))
 }

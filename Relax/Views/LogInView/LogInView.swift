@@ -44,14 +44,16 @@ struct LogInView: View {
                     
                     Button {
                         if let rootViewController = getRootViewController() {
+                            DispatchQueue.main.async {
+                                self.isLogining = true
+                            }
                             do {
-                                isLogining = true
-                                try YandexLoginSDK.shared.authorize(with: rootViewController,
-                                                                    customValues: nil,
-                                                                    authorizationStrategy: .default)
+                                try YandexLoginSDK.shared.authorize(with: rootViewController, authorizationStrategy: .default)
                             } catch {
-                                print("Ошибка запуска авторизации: \(error.localizedDescription)")
-                                isLogining = false
+                                print("Ошибка запуска авторизации через Яндекс: \(error.localizedDescription)")
+                                DispatchQueue.main.async {
+                                    self.isLogining = false
+                                }
                             }
                         }
                     } label: {
@@ -75,7 +77,7 @@ struct LogInView: View {
                     .clipShape(.rect(cornerRadius: 16))
                     
                     //Кнопка войти через Apple. НЕ должна быть доступна для пользователей из РФ
-                    if locale.identifier == "ru_RU" {
+                    if locale.identifier != "ru_RU" {
                         SignInWithAppleButton(.signIn) { request in
                             isLogining = true
                             request.requestedScopes = [.fullName, .email]
@@ -164,8 +166,12 @@ struct LogInView: View {
                             LoadingAnimationButton()
                                 .frame(width: 40, height: 40)
                         } else {
-                            Text("Войти")
-                                .foregroundStyle(.white)
+                            HStack {
+                                Text("Войти")
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .contentShape(Rectangle())
                         }
                     })
                     .padding()
@@ -199,17 +205,18 @@ struct LogInView: View {
                 WelcomeScreen()
             }
         }
-        .onReceive(yandexViewModel.$isLoggedIn) { isLoggedIn in
-            if isLoggedIn {
-                self.isLogIn = true
-            }
-        }
         .onReceive(databaseVM.$isTutorialViewed) { isViewed in
             self.isViewed = isViewed
             self.isLogIn = true
         }
         .onChange(of: databaseVM.isTutorialViewed) { newValue in
             isViewed = newValue
+            isLogIn = true
+        }
+        .onChange(of: yandexViewModel.isLoggedIn) { newValue in
+            if newValue {
+                isLogIn = true
+            }
         }
         .navigationDestination(isPresented: $isForgotPasswordPressed) {
             ForgotPasswordView()

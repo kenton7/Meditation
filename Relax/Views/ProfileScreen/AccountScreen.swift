@@ -29,12 +29,10 @@ struct AccountScreen: View {
     @EnvironmentObject var viewModel: AuthViewModel
     @EnvironmentObject private var yandexViewModel: YandexAuthorization
     @StateObject private var databaseVM = ChangeDataInDatabase.shared
-    //@EnvironmentObject private var signInWithAppleVM: SignInWithAppleVM
     
     
     var body: some View {
         NavigationStack {
-            //if viewModel.signedIn || yandexViewModel.isLoggedIn {
                 List {
                     if !yandexViewModel.isLoggedIn {
                         Section("Ваше имя") {
@@ -65,14 +63,20 @@ struct AccountScreen: View {
                                         try await databaseVM.updateDisplayName(newDisplayName: newUserName)
                                         await MainActor.run {
                                             self.isUpdatingName = false
+                                            userName = newUserName
+                                            newUserName = ""
                                         }
                                     }
                                 }, label: {
                                     if isUpdatingName {
                                         LoadingAnimationButton()
                                     } else {
-                                        Text("Обновить имя").bold()
-                                            .foregroundStyle(.white)
+                                        HStack {
+                                            Text("Обновить имя").bold()
+                                                .foregroundStyle(.white)
+                                                .frame(maxWidth: .infinity)
+                                        }
+                                        .contentShape(.rect)
                                     }
                                 })
                                 .padding()
@@ -103,6 +107,8 @@ struct AccountScreen: View {
                                             try await databaseVM.changeEmail(newEmail: newEmail)
                                             await MainActor.run {
                                                 self.isUpdatingEmail = false
+                                                currentEmail = newEmail
+                                                newEmail = ""
                                             }
                                         } catch {
                                             await MainActor.run {
@@ -115,8 +121,12 @@ struct AccountScreen: View {
                                     if isUpdatingEmail {
                                         LoadingAnimationButton()
                                     } else {
-                                        Text("Обновить email").bold()
-                                            .foregroundStyle(.white)
+                                        HStack {
+                                            Text("Обновить email").bold()
+                                                .foregroundStyle(.white)
+                                                .frame(maxWidth: .infinity)
+                                        }
+                                        .contentShape(.rect)
                                     }
                                 })
                                 .padding()
@@ -163,8 +173,12 @@ struct AccountScreen: View {
                                     if isUpdatingPassword {
                                         LoadingAnimationButton()
                                     } else {
-                                        Text("Обновить пароль").bold()
-                                            .foregroundStyle(.white)
+                                        HStack {
+                                            Text("Обновить пароль").bold()
+                                                .foregroundStyle(.white)
+                                                .frame(maxWidth: .infinity)
+                                        }
+                                        .contentShape(.rect)
                                     }
                                 })
                                 .padding()
@@ -187,8 +201,12 @@ struct AccountScreen: View {
                                 yandexViewModel.logout()
                             }
                         }, label: {
-                            Text("Выйти")
-                                .foregroundStyle(.white).bold()
+                            HStack {
+                                Text("Выйти")
+                                    .foregroundStyle(.white).bold()
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .contentShape(.rect)
                         })
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -205,8 +223,12 @@ struct AccountScreen: View {
                             if isDeletingAccount {
                                 LoadingAnimationButton()
                             } else {
-                                Text("Удалить аккаунт").bold()
-                                    .foregroundStyle(.white)
+                                HStack {
+                                    Text("Удалить аккаунт").bold()
+                                        .foregroundStyle(.white)
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .contentShape(.rect)
                             }
                         })
                         .padding()
@@ -226,11 +248,10 @@ struct AccountScreen: View {
                                         }
                                     } else {
                                         Task {
-                                            try await Database.database(url: .databaseURL).reference().child("users").child(yandexViewModel.clientID).child("isTutorialViewed").setValue(false)
+                                            try await Database.database(url: .databaseURL).reference().child("users").child(yandexViewModel.yandexUserID).child("isTutorialViewed").setValue(false)
                                             await yandexViewModel.deleteYandexAccount()
                                             self.isDeletingAccount = false
                                         }
-                                        //yandexViewModel.deleteYandexAccount()
                                     }
                                 }
                                 Button("Отменить", role: .cancel) {

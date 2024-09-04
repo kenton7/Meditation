@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct MeditationScreen: View {
     @StateObject private var emergencyVM = EmergencyMeditationsViewModel()
@@ -26,12 +27,18 @@ struct MeditationScreen: View {
         }
         .padding(.bottom)
         .refreshable {
-            meditationsVM.filteredStories.removeAll()
-            emergencyVM.emergencyMeditations.removeAll()
-            emergencyVM.fetchEmergencyMeditations()
-            Task.detached {
+            Task {
                 await meditationsVM.getCourses(isDaily: false)
+                await MainActor.run {
+                    emergencyVM.fetchEmergencyMeditations()
+                }
             }
+//            meditationsVM.filteredStories.removeAll()
+//            emergencyVM.emergencyMeditations.removeAll()
+//            emergencyVM.fetchEmergencyMeditations()
+//            Task.detached {
+//                await meditationsVM.getCourses(isDaily: false)
+//            }
         }
         .onAppear {
             isShowing = true
@@ -101,15 +108,14 @@ struct EmergencyHelp: View {
                             selectedCourse = emergencyLesson
                         }, label: {
                             VStack {
-                                AsyncImage(url: URL(string: emergencyLesson.imageURL)) { image in
-                                    image.resizable()
-                                        .scaledToFit()
-                                        .clipShape(.rect(cornerRadius: 16))
-                                        .padding(.horizontal)
-                                } placeholder: {
-                                    //ProgressView()
-                                    LoadingAnimationButton()
-                                }
+                                KFImage(URL(string: emergencyLesson.imageURL))
+                                    .resizable()
+                                    .placeholder {
+                                        LoadingAnimationButton()
+                                    }
+                                    .scaledToFit()
+                                    .clipShape(.rect(cornerRadius: 16))
+                                    .padding(.horizontal)
                                 Text(emergencyLesson.name)
                                     .foregroundStyle(.black)
                                     .font(.system(size: 15, design: .rounded)).bold()
@@ -163,38 +169,70 @@ struct AllMeditationsView: View {
                                 selectedCourse = course
                             }, label: {
                                 VStack {
-                                    AsyncImage(url: URL(string: course.imageURL)) { image in
-                                        image.resizable()
-                                            .scaledToFit()
-                                            .clipShape(.rect(cornerRadius: 16))
-                                            .overlay {
-                                                ZStack {
-                                                    VStack {
-                                                        Spacer()
-                                                        Rectangle()
-                                                            .fill(Color(uiColor: .init(red: CGFloat(course.color.red) / 255,
-                                                                                       green: CGFloat(course.color.green) / 255,
-                                                                                       blue: CGFloat(course.color.blue) / 255,
-                                                                                       alpha: 1)))
-                                                            .frame(maxWidth: .infinity, maxHeight: 40)
-                                                            .clipShape(.rect(bottomLeadingRadius: 16, 
-                                                                             bottomTrailingRadius: 16,
-                                                                             style: .continuous))
-                                                            .overlay {
-                                                                Text(course.name)
-                                                                    .foregroundStyle(.white)
-                                                                    .font(.system(size: 14, 
-                                                                                  weight: .bold,
-                                                                                  design: .rounded))
-                                                                    .shadow(color: .gray, radius: 5)
-                                                            }
-                                                    }
+                                    KFImage(URL(string: course.imageURL))
+                                        .resizable()
+                                        .placeholder {
+                                            LoadingAnimationButton()
+                                        }
+                                        .scaledToFit()
+                                        .clipShape(.rect(cornerRadius: 16))
+                                        .overlay {
+                                            ZStack {
+                                                VStack {
+                                                    Spacer()
+                                                    Rectangle()
+                                                        .fill(Color(uiColor: .init(red: CGFloat(course.color.red) / 255,
+                                                                                   green: CGFloat(course.color.green) / 255,
+                                                                                   blue: CGFloat(course.color.blue) / 255,
+                                                                                   alpha: 1)))
+                                                        .frame(maxWidth: .infinity, maxHeight: 40)
+                                                        .clipShape(.rect(bottomLeadingRadius: 16,
+                                                                         bottomTrailingRadius: 16,
+                                                                         style: .continuous))
+                                                        .overlay {
+                                                            Text(course.name)
+                                                                .foregroundStyle(.white)
+                                                                .font(.system(size: 14,
+                                                                              weight: .bold,
+                                                                              design: .rounded))
+                                                                .shadow(color: .gray, radius: 5)
+                                                        }
                                                 }
                                             }
-                                    } placeholder: {
-                                        //ProgressView()
-                                        LoadingAnimationButton()
-                                    }
+                                        }
+                                    
+//                                    AsyncImage(url: URL(string: course.imageURL)) { image in
+//                                        image.resizable()
+//                                            .scaledToFit()
+//                                            .clipShape(.rect(cornerRadius: 16))
+//                                            .overlay {
+//                                                ZStack {
+//                                                    VStack {
+//                                                        Spacer()
+//                                                        Rectangle()
+//                                                            .fill(Color(uiColor: .init(red: CGFloat(course.color.red) / 255,
+//                                                                                       green: CGFloat(course.color.green) / 255,
+//                                                                                       blue: CGFloat(course.color.blue) / 255,
+//                                                                                       alpha: 1)))
+//                                                            .frame(maxWidth: .infinity, maxHeight: 40)
+//                                                            .clipShape(.rect(bottomLeadingRadius: 16, 
+//                                                                             bottomTrailingRadius: 16,
+//                                                                             style: .continuous))
+//                                                            .overlay {
+//                                                                Text(course.name)
+//                                                                    .foregroundStyle(.white)
+//                                                                    .font(.system(size: 14, 
+//                                                                                  weight: .bold,
+//                                                                                  design: .rounded))
+//                                                                    .shadow(color: .gray, radius: 5)
+//                                                            }
+//                                                    }
+//                                                }
+//                                            }
+//                                    } placeholder: {
+//                                        //ProgressView()
+//                                        LoadingAnimationButton()
+//                                    }
                                     .padding()
                                 }
                             })
@@ -216,8 +254,8 @@ struct AllMeditationsView: View {
     }
 }
 
-#Preview {
-    let vm = CoursesViewModel()
-    return MeditationScreen()
-        .environmentObject(vm)
-}
+//#Preview {
+//    let vm = CoursesViewModel()
+//    return MeditationScreen()
+//        .environmentObject(vm)
+//}

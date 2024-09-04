@@ -9,6 +9,7 @@ import SwiftUI
 import FirebaseDatabase
 import FirebaseAuth
 import FirebaseStorage
+import Kingfisher
 
 struct UserInterestsTopicScreen: View {
     
@@ -101,7 +102,7 @@ struct TopicButton: View {
     var body: some View {
                 
         Button(action: {
-            if let userID = Auth.auth().currentUser?.uid ?? yandexViewModel.userInfo?.client_id {
+            if let userID = Auth.auth().currentUser?.uid ?? yandexViewModel.userInfo?.id {
                 withAnimation {
                     if !selectedTopics.contains(where: { $0.name == topic.name }) {
                         selectedTopics.append(topic)
@@ -122,29 +123,30 @@ struct TopicButton: View {
                                      blue: CGFloat(topic.color.blue) / 255,
                                      alpha: 1))
                 VStack {
-                    AsyncImage(url: URL(string: topic.imageURL)) { image in
-                        image.resizable()
-                            .scaledToFit()
-                            .clipShape(.rect(cornerRadius: 16))
-                            .overlay {
-                                ZStack {
-                                    VStack {
-                                        Spacer()
-                                        Rectangle()
-                                            .fill(Color(uiColor: .init(red: CGFloat(topic.color.red) / 255,
-                                                                       green: CGFloat(topic.color.green) / 255,
-                                                                       blue: CGFloat(topic.color.blue) / 255,
-                                                                       alpha: 1)))
-                                            .frame(maxWidth: .infinity, maxHeight: 40)
-                                            .clipShape(.rect(bottomLeadingRadius: 16,
-                                                             bottomTrailingRadius: 16,
-                                                             style: .continuous))
-                                    }
+                    
+                    KFImage(URL(string: topic.imageURL))
+                        .resizable()
+                        .placeholder {
+                            LoadingAnimation()
+                        }
+                        .scaledToFit()
+                        .clipShape(.rect(cornerRadius: 16))
+                        .overlay {
+                            ZStack {
+                                VStack {
+                                    Spacer()
+                                    Rectangle()
+                                        .fill(Color(uiColor: .init(red: CGFloat(topic.color.red) / 255,
+                                                                   green: CGFloat(topic.color.green) / 255,
+                                                                   blue: CGFloat(topic.color.blue) / 255,
+                                                                   alpha: 1)))
+                                        .frame(maxWidth: .infinity, maxHeight: 40)
+                                        .clipShape(.rect(bottomLeadingRadius: 16,
+                                                         bottomTrailingRadius: 16,
+                                                         style: .continuous))
                                 }
                             }
-                    } placeholder: {
-                        LoadingAnimationButton()
-                    }
+                        }
                     .padding()
                 }
                 VStack {
@@ -169,8 +171,4 @@ struct TopicButton: View {
         })
         .padding(.horizontal)
     }
-}
-
-#Preview {
-    UserInterestsTopicScreen()
 }

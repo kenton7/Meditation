@@ -127,21 +127,20 @@ struct RemindersScreen: View {
                                 if let firebaseUserID = Auth.auth().currentUser?.uid {
                                     databaseVM.writeToDatabaseIfUserViewedTutorial(userID: firebaseUserID, isViewed: true)
                                 } else {
-                                    databaseVM.writeToDatabaseIfUserViewedTutorial(userID: yandexViewModel.clientID, isViewed: true)
-                                    Task {
-                                        let userData = ["email": yandexViewModel.userInfo?.emails ?? [""], "name": yandexViewModel.userName ?? ""]
-                                        try await Database.database(url: .databaseURL).reference().child("users").child(yandexViewModel.clientID).setValue(userData)
-                                        await databaseVM.checkIfFirebaseUserViewedTutorial(userID: yandexViewModel.clientID)
-                                        authViewModel.signedIn = true
-                                        isContinueOrSkipButtonPressed = true
-                                    }
+                                    databaseVM.writeToDatabaseIfUserViewedTutorial(userID: yandexViewModel.yandexUserID, isViewed: true)
+                                    authViewModel.signedIn = true
+                                    isContinueOrSkipButtonPressed = true
                                 }
                             } else {
                                 dismiss()
                             }
                         }, label: {
-                            Text("Сохранить")
-                                .foregroundStyle(.white)
+                            HStack {
+                                Text("Сохранить")
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .contentShape(.rect)
                         })
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -157,7 +156,7 @@ struct RemindersScreen: View {
                                 if let firebaseUserID = Auth.auth().currentUser?.uid {
                                     databaseVM.writeToDatabaseIfUserViewedTutorial(userID: firebaseUserID, isViewed: true)
                                 } else {
-                                    databaseVM.writeToDatabaseIfUserViewedTutorial(userID: yandexViewModel.clientID, isViewed: true)
+                                    databaseVM.writeToDatabaseIfUserViewedTutorial(userID: yandexViewModel.yandexUserID, isViewed: true)
                                 }
                             }, label: {
                                 Text("Нет, спасибо")

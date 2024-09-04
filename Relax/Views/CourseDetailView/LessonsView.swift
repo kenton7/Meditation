@@ -24,12 +24,13 @@ struct LessonsView: View {
     @EnvironmentObject private var playerVM: PlayerViewModel
     @State private var lessons = [Lesson]()
     @State private var isPressedWithoutPremium = false
+    @State private var isErrorWhenPlaying = false
     
     var body: some View {
         NavigationStack {
             VStack {
                 ForEach(lessons, id: \.name) { file in
-                    HStack(spacing: 10) {
+                    HStack(spacing: 20) {
                         Button(action: {
                             if premiumViewModel.hasUnlockedPremuim || file.trackIndex! == 0 {
                                 isPressedWithoutPremium = false
@@ -47,14 +48,12 @@ struct LessonsView: View {
                                                        course: course)
                                 }
                             } else {
-                                print("ELSE")
                                 guard let trackIndex = file.trackIndex else {
                                     isPressedWithoutPremium = true
                                     return
                                 }
                                 if trackIndex > 0 {
                                     isPressedWithoutPremium = true
-                                    print("HERE")
                                 }
                             }
                         }, label: {
@@ -72,51 +71,63 @@ struct LessonsView: View {
                         })
                         .padding(.vertical)
                         
-                        VStack {
+                        Button(action: {
+                            if premiumViewModel.hasUnlockedPremuim || file.trackIndex! == 0 {
+                                isTappedOnName = true
+                                isPressedWithoutPremium = false
+                                url = isFemale ? file.audioFemaleURL : file.audioMaleURL
+                                if !url.isEmpty {
+                                    playerVM.playAudio(from: url,
+                                                       playlist: lessons,
+                                                       trackIndex: file.trackIndex,
+                                                       type: course.type,
+                                                       isFemale: isFemale,
+                                                       course: course)
+                                    databaseViewModel.updateListeners(course: course, type: course.type)
+                                    self.lesson = file
+                                } else {
+                                    isErrorWhenPlaying = true
+                                }
+                            } else {
+                                guard let trackIndex = file.trackIndex else {
+                                    isPressedWithoutPremium = true
+                                    return
+                                }
+                                if trackIndex > 0 {
+                                    isPressedWithoutPremium = true
+                                }
+                            }
+                        }, label: {
                             HStack {
-                                Text(file.name)
-                                    .bold()
-                                    .foregroundStyle(course.type == .story ? .white : .black)
-                                    .onTapGesture {
-                                        if premiumViewModel.hasUnlockedPremuim || file.trackIndex! == 0 {
-                                            isTappedOnName = true
-                                            isPressedWithoutPremium = false
-                                            url = isFemale ? file.audioFemaleURL : file.audioMaleURL
-                                            playerVM.playAudio(from: url,
-                                                               playlist: lessons,
-                                                               trackIndex: file.trackIndex,
-                                                               type: course.type,
-                                                               isFemale: isFemale,
-                                                               course: course)
-                                            databaseViewModel.updateListeners(course: course, type: course.type)
-                                            self.lesson = file
-                                        } else {
-                                            guard let trackIndex = file.trackIndex else {
-                                                isPressedWithoutPremium = true
-                                                return
-                                            }
-                                            if trackIndex > 0 {
-                                                isPressedWithoutPremium = true
-                                            }
-                                        }
+                                VStack {
+                                    HStack {
+                                        Text(file.name).bold()
+                                            .padding(.vertical, 2)
+                                            .foregroundStyle(course.type == .story ? .white : .black)
+                                            .multilineTextAlignment(.leading)
+                                        Spacer()
                                     }
+                                    HStack {
+                                        Text("\(file.duration) мин.")
+                                            .foregroundStyle(Color(uiColor: .secondaryTextColor))
+                                            .multilineTextAlignment(.leading)
+                                        Spacer()
+                                    }
+                                }
                                 Spacer()
                             }
-                            HStack {
-                                Text("\(file.duration) мин.")
-                                    .font(.system(.callout, design: .rounded, weight: .light))
-                                    .foregroundStyle(Color(uiColor: .init(red: 161/255,
-                                                                          green: 164/255,
-                                                                          blue: 178/255,
-                                                                          alpha: 1)))
-                                Spacer()
-                            }
-                        }
+                            .contentShape(.rect)
+                            .frame(maxWidth: .infinity)
+                        })
                         .fullScreenCover(isPresented: $isTappedOnName, content: {
                             if let lesson = lesson {
                                 PlayerScreen(lesson: lesson, isFemale: isFemale, course: course, url: isFemale ? lesson.audioFemaleURL : lesson.audioMaleURL)
                             }
                         })
+                        .alert("Ошибка при воспроизведении. Голос для данного материала пока недоступен.",
+                               isPresented: $isErrorWhenPlaying) {
+                            Button("OK", role: .cancel) {}
+                        }
                         Spacer()
                     }
                     Divider()
@@ -129,10 +140,6 @@ struct LessonsView: View {
         .padding()
         .task {
             lessons = await viewModel.fetchCourseDetails(type: course.type, courseID: course.id)
-        }
-        .onAppear {
-            //isPressedWithoutPremium = premiumViewModel.hasUnlockedPremuim
-            print(premiumViewModel.hasUnlockedPremuim)
         }
     }
 }

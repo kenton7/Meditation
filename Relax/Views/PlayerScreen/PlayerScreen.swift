@@ -13,20 +13,20 @@ import FirebaseAuth
 struct PlayerScreen: View {
     
     @Environment(\.dismiss) private var dismiss
-    @State private var isLiked = false
     @State private var sliderValue: Double = 0.0
     @ObservedObject private var fetchDatabaseVM = CoursesViewModel()
     @StateObject private var databaseVM = ChangeDataInDatabase.shared
     @StateObject private var playerViewModel = PlayerViewModel.shared
     @EnvironmentObject private var yandexViewModel: YandexAuthorization
     @EnvironmentObject private var premiumViewModel: PremiumViewModel
-    @State private var trackName = ""
+    @EnvironmentObject private var downloadManager: DownloadManager
     @State private var errorDownloadingMessage = ""
     @State private var isDowndloadError = false
     @State private var isDownloaded = false
     private let currentUser = Auth.auth().currentUser
     private let fileManagerService: IFileManagerSerivce = FileManagerSerivce()
     @State private var isPressedDownloadWithoutPremium = false
+    @State private var isListenersUpdated = false
     
     let lesson: Lesson?
     let isFemale: Bool
@@ -57,26 +57,13 @@ struct PlayerScreen: View {
                     if let lesson {
                         HStack {
                             Spacer()
-                            Button(action: {
-                                isLiked.toggle()
-                                guard let userID = currentUser?.uid, !yandexViewModel.clientID.isEmpty else { return }
-                                if isLiked {
-                                    databaseVM.userLiked(lesson: lesson, type: .increment, isLiked: isLiked, userID: userID)
-                                } else {
-                                    databaseVM.userLiked(lesson: lesson, type: .decrement, isLiked: isLiked, userID: userID)
-                                }
-                            }, label: {
-                                Image(isLiked ? "LikeButton_fill" : "LikeButton")
-                            })
-                            .padding(.horizontal)
-                            
                             if !isDownloaded {
                                 Button(action: {
                                     if premiumViewModel.hasUnlockedPremuim {
                                         isPressedDownloadWithoutPremium = false
                                         Task.detached {
                                             do {
-                                                let _ = try await databaseVM.asyncDownload(course: course,
+                                                let _ = try await downloadManager.asyncDownload(course: course,
                                                                                            courseType: course.type,
                                                                                            isFemale: isFemale,
                                                                                            lesson: lesson)
@@ -106,12 +93,12 @@ struct PlayerScreen: View {
                                                 .stroke(Color.gray, lineWidth: 4)
                                                 .padding()
                                             Circle()
-                                                .trim(from: 0, to: databaseVM.downloadProgress)
+                                                .trim(from: 0, to: downloadManager.totalProgress / 100)
                                                 .stroke(Color.green, lineWidth: 4)
                                                 .padding()
                                                 .rotationEffect(.degrees(-90))
                                         }
-                                        .opacity(databaseVM.downloadProgress >= 100 ? 0 : 1)
+                                        .opacity(downloadManager.totalProgress >= 100 ? 0 : 1)
                                     }
                                 }
                                 .alert("Ошибка при скачивании файла", isPresented: $isDowndloadError) {
@@ -145,9 +132,12 @@ struct PlayerScreen: View {
                 
                 VStack {
                     HStack(spacing: 60) {
-                        
                         Button(action: {
-                            playerViewModel.seek(by: -15)
+                            playerViewModel.seek(by: -15) { isPremium in
+                                if !isPremium && playerViewModel.currentTrackIndex > 0 {
+                                    isPressedDownloadWithoutPremium = true
+                                }
+                            }
                         }, label: {
                             Image(systemName: "gobackward.15")
                                 .font(.system(size: 35))
@@ -158,7 +148,8 @@ struct PlayerScreen: View {
                             if let lesson {
                                 let url = isFemale ? lesson.audioFemaleURL : lesson.audioMaleURL
                                 Task {
-                                    let lessons = await fetchDatabaseVM.fetchCourseDetails(type: course.type, courseID: course.id)
+                                    let lessons = await fetchDatabaseVM.fetchCourseDetails(type: course.type, 
+                                                                                           courseID: course.id)
                                     DispatchQueue.main.async {
                                         fetchDatabaseVM.lessons = lessons
                                         if playerViewModel.isAudioPlaying() {
@@ -199,7 +190,12 @@ struct PlayerScreen: View {
                         }
                         
                         Button(action: {
-                            playerViewModel.seek(by: 15)
+                            playerViewModel.seek(by: 15) { isPremium in
+                                if !isPremium && playerViewModel.currentTrackIndex > 0 {
+                                    playerViewModel.player?.pause()
+                                    isPressedDownloadWithoutPremium = true
+                                }
+                            }
                         }, label: {
                             Image(systemName: "goforward.15")
                                 .foregroundStyle(course.type == .story ? .white : .gray)
@@ -209,21 +205,39 @@ struct PlayerScreen: View {
                     .padding()
                     
                     
-                    Slider(value: Binding(get: {
-                        self.sliderValue
-                    }, set: { newValue in
-                        sliderValue = newValue
-                        let newTime = CMTime(seconds: newValue * self.playerViewModel.duration.seconds, preferredTimescale: 600)
-                        playerViewModel.player?.seek(to: newTime)
-                        playerViewModel.currentTime = newTime
-                    }), in: 0...1)
-                    .padding()
-                    .tint(course.type == .story ? .white : .black)
-                    .onChange(of: playerViewModel.currentTime) { newValue in
-                        if playerViewModel.duration.seconds.isFinite && playerViewModel.duration.seconds > 0 {
-                            self.sliderValue = newValue.seconds / playerViewModel.duration.seconds
+                    ZStack {
+                        
+                        if playerViewModel.totalTime > 0 {
+                            // Фоновый слой для отображения прогресса буферизации
+                            ProgressView(value: playerViewModel.bufferedTime, total: playerViewModel.totalTime)
+                                .progressViewStyle(LinearProgressViewStyle(tint: .gray.opacity(0.6))) // Стиль для отображения серого прогресса буферизации
+                                            .padding(.horizontal)
+                            
+                            Slider(value: Binding(get: {
+                                self.sliderValue
+                            }, set: { newValue in
+                                sliderValue = newValue
+                                let newTime = CMTime(seconds: newValue * self.playerViewModel.duration.seconds, preferredTimescale: 600)
+                                playerViewModel.player?.seek(to: newTime)
+                                playerViewModel.currentTime = newTime
+                            }), in: 0...1)
+                            .padding()
+                            .tint(course.type == .story ? .white : .black)
+                            .onChange(of: playerViewModel.currentTime) { newValue in
+                                if playerViewModel.duration.seconds.isFinite && playerViewModel.duration.seconds > 0 {
+                                    self.sliderValue = newValue.seconds / playerViewModel.duration.seconds
+                                }
+                                
+                                
+                                if sliderValue == 0.5 {
+                                    databaseVM.updateListeners(course: course, type: course.type)
+                                }
+                            }
+                        } else {
+                            LoadingAnimationButton()
                         }
                     }
+                    
                     
                     HStack {
                         Text(playerViewModel.formatTime(time: playerViewModel.currentTime))
@@ -243,15 +257,14 @@ struct PlayerScreen: View {
             }
         }
         .onAppear {
-            if let userID = currentUser?.uid, !yandexViewModel.clientID.isEmpty, let lesson = lesson {
-                databaseVM.checkIfUserLiked(lesson: lesson, userID: userID)
+            if let _ = currentUser?.uid, !yandexViewModel.yandexUserID.isEmpty, let lesson = lesson {
                 isDownloaded = fileManagerService.isDownloaded(lesson: lesson, course: course)
             }
             
         }
-        .onChange(of: databaseVM.isLiked) { newValue in
-            self.isLiked = newValue
-        }
+        .sheet(isPresented: $isPressedDownloadWithoutPremium, content: {
+            PremiumScreen()
+        })
         .sheet(isPresented: $isPressedDownloadWithoutPremium, content: {
             PremiumScreen()
         })

@@ -11,6 +11,7 @@ import FirebaseDatabase
 import FirebaseCore
 import CoreData
 import AVKit
+import Kingfisher
 
 struct HomeScreen: View {
     
@@ -39,18 +40,19 @@ struct HomeScreen: View {
                     DailyThoughts(isShowing: $isShowing)
                     RecommendationsScreen(isShowing: $isShowing)
                     NightStories(isShowing: $isShowing)
-                    //Spacer()
                 }
             }
         }
         .tint(.white)
         .refreshable {
-            Task.detached {
+            Task {
                 await viewModel.getCourses(isDaily: true)
                 await viewModel.getCourses(isDaily: false)
+                await MainActor.run {
+                    recommendationsViewModel.fetchRecommendations()
+                    nightStoriesViewModel.fetchNightStories()
+                }
             }
-            recommendationsViewModel.fetchRecommendations()
-            nightStoriesViewModel.fetchNightStories()
         }
         .onAppear {
             isShowing = true
@@ -59,8 +61,6 @@ struct HomeScreen: View {
             isShowing = false
         }
     }
-    
-    
 }
 
 //MARK: - GreetingView
@@ -159,7 +159,8 @@ struct DailyRecommendations: View {
                                     VStack {
                                         HStack {
                                             ZStack {
-                                                Capsule()
+                                                RoundedRectangle(cornerRadius: 20)
+                                                //Capsule()
                                                     .fill(Color.red)
                                                     .padding(.horizontal)
                                                     .frame(maxWidth: 100, maxHeight: 40)
@@ -175,13 +176,13 @@ struct DailyRecommendations: View {
                                 VStack {
                                     HStack {
                                         Spacer()
-                                        AsyncImage(url: URL(string: course.imageURL)) { image in
-                                            image.resizable()
-                                                .scaledToFit()
-                                                .frame(width: 200, height: 150)
-                                        } placeholder: {
-                                            LoadingAnimationButton()
-                                        }
+                                        KFImage(URL(string: course.imageURL))
+                                            .resizable()
+                                            .placeholder {
+                                                LoadingAnimation()
+                                            }
+                                            .scaledToFit()
+                                            .frame(width: 200, height: 150)
                                     }
                                     Spacer()
                                     HStack {
@@ -198,7 +199,8 @@ struct DailyRecommendations: View {
                                             .padding(.horizontal)
                                             .foregroundStyle(.white)
                                             .font(.system(size: 15, design: .rounded))
-                                        Capsule()
+                                        RoundedRectangle(cornerRadius: 20)
+                                        //Capsule()
                                             .fill(Color.white)
                                             .frame(width: 80, height: 40)
                                             .padding(10)
@@ -354,13 +356,13 @@ struct RecommendationsScreen: View {
                                                                  blue: CGFloat(course.color.blue) / 255,
                                                                  alpha: 1))
                                             
-                                            AsyncImage(url: URL(string: course.imageURL)) { image in
-                                                image.resizable()
-                                                    .scaledToFit()
-                                                    .frame(width: 200, height: 150)
-                                            } placeholder: {
-                                                LoadingAnimationButton()
-                                            }
+                                            KFImage(URL(string: course.imageURL))
+                                                .resizable()
+                                                .placeholder {
+                                                    LoadingAnimationButton()
+                                                }
+                                                .scaledToFit()
+                                                .frame(width: 200, height: 150)
                                         }
                                         .clipShape(.rect(cornerRadius: 10))
                                         Spacer()
@@ -434,14 +436,15 @@ struct NightStories: View {
                                                                  green: CGFloat(nightStory.color.green) / 255,
                                                                  blue: CGFloat(nightStory.color.blue) / 255,
                                                                  alpha: 1))
-                                            AsyncImage(url: URL(string: nightStory.imageURL)!, scale: 3.4) { image in
-                                                image.resizable()
-                                                image.scaledToFill()
-                                            } placeholder: {
-                                                LoadingAnimationButton()
-                                            }
-                                            .padding()
-                                            .frame(width: 200, height: 150)
+                                            KFImage(URL(string: nightStory.imageURL)!)
+                                                .resizable()
+                                                .placeholder {
+                                                    LoadingAnimationButton()
+                                                }
+                                                .scaledToFill()
+                                                .padding()
+                                                .frame(width: 200, height: 150)
+                                                .scaleEffect(CGSize(width: 1.5, height: 1.1))
                                         }
                                         .clipShape(.rect(cornerRadius: 10))
                                         Spacer()

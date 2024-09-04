@@ -84,7 +84,7 @@ struct RegisterView: View {
                     .clipShape(.rect(cornerRadius: 16))
                     
                     //Кнопка Войти через Apple. НЕ должна быть доступна для пользователей из РФ!
-                    if locale.identifier == "ru_RU" {
+                    if locale.identifier != "ru_RU" {
                         SignInWithAppleButton(.signUp) { request in
                             guard isAgreeWithPrivacy else {
                                     errorMessage = "Сначала нужно принять условия использования."
@@ -244,8 +244,12 @@ struct RegisterView: View {
                         if isRegistration {
                             LoadingAnimationButton()
                         } else {
-                            Text("Зарегистрироваться")
-                                .foregroundStyle(.white)
+                            HStack {
+                                Text("Зарегистрироваться")
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .contentShape(.rect)
                         }
                     })
                     .padding()

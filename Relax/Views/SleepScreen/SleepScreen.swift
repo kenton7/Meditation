@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct SleepScreen: View {
     @EnvironmentObject var nightStoriesVM: NightStoriesViewModel
@@ -38,7 +39,11 @@ struct SleepScreen: View {
             }
         }
         .refreshable {
-            nightStoriesVM.fetchNightStories()
+            Task {
+                await MainActor.run {
+                    nightStoriesVM.fetchNightStories()
+                }
+            }
         }
     }
 }
@@ -176,16 +181,15 @@ struct AllStoriesView: View {
                         selectedStory = story
                     }, label: {
                         VStack {
-                            AsyncImage(url: URL(string: story.imageURL)) { image in
-                                image.resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .clipShape(.rect(cornerRadius: 16))
-                            } placeholder: {
-                                //ProgressView()
-                                LoadingAnimationButton()
-                            }
-                            .padding()
-                            
+                            KFImage(URL(string: story.imageURL))
+                                .resizable()
+                                .placeholder {
+                                    LoadingAnimationButton()
+                                }
+                                .scaledToFit()
+                                .clipShape(.rect(cornerRadius: 16))
+                                .padding(.horizontal)
+
                             VStack {
                                 HStack {
                                     Text(story.name)
@@ -228,6 +232,3 @@ struct AllStoriesView: View {
     }
 }
 
-#Preview {
-    SleepScreen()
-}

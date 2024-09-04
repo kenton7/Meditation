@@ -29,21 +29,33 @@ final class PlayerViewModel: ObservableObject {
     @Published private var playlist: [Lesson] = []
     @Published private var course: CourseAndPlaylistOfDayModel?
     @Published private var isFemale = true
+    @Published var isPremium = false
+    @Published var totalTime: Double = 1
+    @Published var bufferedTime: Double = 0
     private let contentItem = MPContentItem()
+    private let databaseVM = ChangeDataInDatabase.shared
     
     private var audioSession = AVAudioSession.sharedInstance()
     private var observers: [NSKeyValueObservation] = []
     
+    private var timeObserverToken: Any?
+    private var cancellables: Set<AnyCancellable> = []
     
     private init() {
         setupNotifications()
         configureAudioSession()
         createRemoteControlActions()
+        Task {
+            await MainActor.run {
+                isPremium = PremiumViewModel.shared.hasUnlockedPremuim
+            }
+        }
     }
+    
     
     private func configureAudioSession() {
         do {
-            try audioSession.setCategory(.playback, mode: .default, 
+            try audioSession.setCategory(.playback, mode: .default,
                                          options: [.allowAirPlay, .allowBluetooth, .allowBluetoothA2DP])
             try audioSession.setActive(true)
         } catch {
@@ -54,6 +66,10 @@ final class PlayerViewModel: ObservableObject {
     deinit {
         removeTimeObserver()
         removeEndObserver()
+        
+        if let timeObserverToken = timeObserverToken {
+            player?.removeTimeObserver(timeObserverToken)
+        }
     }
     
     func createRemoteControlActions() {
@@ -92,6 +108,10 @@ final class PlayerViewModel: ObservableObject {
                 currentPlayingURL = nextAudioURL
                 return .success
             }
+            
+            //            commandCenter.changePlaybackRateCommand.addTarget { [unowned self] event in
+            //
+            //            }
         }
         
         //Previous Track
@@ -118,7 +138,7 @@ final class PlayerViewModel: ObservableObject {
     
     func setupNowPlaying() async {
         guard let player = player, let playerItem = player.currentItem else { return }
-
+        
         var nowPlayingInfo = [String: Any]()
         if !playlist.isEmpty {
             nowPlayingInfo[MPMediaItemPropertyTitle] = playlist[currentTrackIndex].name
@@ -144,7 +164,7 @@ final class PlayerViewModel: ObservableObject {
         
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime as NSNumber
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate as NSNumber
-
+        
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
     
@@ -155,22 +175,43 @@ final class PlayerViewModel: ObservableObject {
     }
     
     func stopTimer() {
-            timer?.invalidate()
-            timer = nil
-        }
+        timer?.invalidate()
+        timer = nil
+    }
     
     @objc func updateNowPlaying() {
-           guard let player = player else { return }
-
-           var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [String: Any]()
-           nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(player.currentTime()) as NSNumber
-           nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate as NSNumber
-
-           MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-       }
+        guard let player = player else { return }
+        
+        var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [String: Any]()
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(player.currentTime()) as NSNumber
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate as NSNumber
+            
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    //    func autoPlayingNextTrack(playlist: [Lesson], trackIndex: Int) {
+    //        currentTrackIndex += 1
+    //        if currentTrackIndex < playlist.count {
+    //            let nextAudioURL = isFemale ? playlist[currentTrackIndex].audioFemaleURL : playlist[currentTrackIndex].audioMaleURL
+    //            playAudio(from: nextAudioURL, playlist: playlist, trackIndex: currentTrackIndex, type: .playlist, isFemale: isFemale, course: course!)
+    //        } else {
+    //            currentTrackIndex = 0
+    //            currentPlayingURL = nil
+    //        }
+    //    }
     
     func autoPlayingNextTrack(playlist: [Lesson], trackIndex: Int) {
-            currentTrackIndex += 1
+        currentTrackIndex += 1
+        
+        Task {
+            guard await PremiumViewModel.shared.hasUnlockedPremuim else {
+                currentTrackIndex = 0
+                currentPlayingURL = nil
+                isPremium = false
+                print("Am I premium? \(await PremiumViewModel.shared.hasUnlockedPremuim)")
+                return
+            }
+            isPremium = await PremiumViewModel.shared.hasUnlockedPremuim
             if currentTrackIndex < playlist.count {
                 let nextAudioURL = isFemale ? playlist[currentTrackIndex].audioFemaleURL : playlist[currentTrackIndex].audioMaleURL
                 playAudio(from: nextAudioURL, playlist: playlist, trackIndex: currentTrackIndex, type: .playlist, isFemale: isFemale, course: course!)
@@ -178,7 +219,50 @@ final class PlayerViewModel: ObservableObject {
                 currentTrackIndex = 0
                 currentPlayingURL = nil
             }
+        }
     }
+    
+    func checkIfAudioAvailable(url: String, isPremium: Bool, trackIndex: Int?) -> Bool {
+        guard let _ = URL(string: url), let trackIndex else {
+            print("Invalid URL Or track index is nil")
+            return false
+        }
+        
+        if isPremium && trackIndex >= 0 {
+            return true
+        } else if trackIndex == 0 && !isPremium {
+            return true
+        } else {
+            return false
+        }
+    }
+    
+    //    func autoPlayingNextTrack(playlist: [Lesson], trackIndex: Int) {
+    //        currentTrackIndex += 1
+    //
+    //        Task {
+    //            guard await PremiumViewModel().hasUnlockedPremuim else {
+    //                currentTrackIndex = 0
+    //                currentPlayingURL = nil
+    //                print(await PremiumViewModel().checkPremium())
+    //                return
+    //            }
+    ////            guard await PremiumViewModel().hasUnlockedPremuim else {
+    ////                currentTrackIndex = 0
+    ////                currentPlayingURL = nil
+    ////                return
+    ////            }
+    //
+    //            if currentTrackIndex < playlist.count {
+    //                let nextAudioURL = isFemale ? playlist[currentTrackIndex].audioFemaleURL : playlist[currentTrackIndex].audioMaleURL
+    //                playAudio(from: nextAudioURL, playlist: playlist, trackIndex: currentTrackIndex, type: .playlist, isFemale: isFemale, course: course!)
+    //            } else {
+    //                currentTrackIndex = 0
+    //                currentPlayingURL = nil
+    //            }
+    //        }
+    //    }
+    
     
     func playLocalAudioFrom(url: URL, lessonName: String) {
         guard FileManager.default.fileExists(atPath: url.path) else {
@@ -188,7 +272,7 @@ final class PlayerViewModel: ObservableObject {
         
         let urlString = url.absoluteString
         let decodedURLString = urlString.decodeURL() ?? ""
-
+        
         if currentPlayingURL != decodedURLString {
             removeTimeObserver()
             playerItem = AVPlayerItem(url: url)
@@ -210,6 +294,7 @@ final class PlayerViewModel: ObservableObject {
             return
         }
         
+        
         self.isFemale = isFemale
         self.playlist = playlist
         self.course = course
@@ -229,6 +314,24 @@ final class PlayerViewModel: ObservableObject {
             currentTime = .zero
             setupTimeObserver()
             observePlayerItemStatus()
+            // Используем Combine для наблюдения за изменениями буферизации
+                    playerItem?.publisher(for: \.loadedTimeRanges)
+                        .sink { [weak self] timeRanges in
+                            if let timeRange = timeRanges.first?.timeRangeValue {
+                                let bufferedTime = CMTimeGetSeconds(timeRange.start) + CMTimeGetSeconds(timeRange.duration)
+                                DispatchQueue.main.async {
+                                    self?.bufferedTime = bufferedTime
+                                }
+                            }
+                        }
+                        .store(in: &cancellables)
+            
+            // Используем Combine для наблюдения за изменениями длительности
+            playerItem?.publisher(for: \.duration)
+                .sink { [weak self] duration in
+                    self?.totalTime = CMTimeGetSeconds(duration)
+                }
+                .store(in: &cancellables)
         }
         
         player?.play()
@@ -313,6 +416,7 @@ final class PlayerViewModel: ObservableObject {
             self?.currentTime = time
             if let duration = self?.playerItem?.duration {
                 self?.duration = duration
+                
             }
         })
     }
@@ -356,15 +460,23 @@ final class PlayerViewModel: ObservableObject {
                 }
             }
         }
+        
         observers.append(statusObserver)
     }
     
-    func seek(by seconds: Double) {
+    func seek(by seconds: Double, completion: @escaping (Bool) async -> Void) {
         guard let player = player else { return }
         let currentTime = CMTimeGetSeconds(player.currentTime())
-        let newTime = currentTime + seconds
+        var newTime = currentTime + seconds
+        guard let duration = playerItem?.duration.seconds else { return }
+        if newTime > duration {
+            newTime = duration
+        }
         let seekTime = CMTime(seconds: newTime, preferredTimescale: 600)
         player.seek(to: seekTime)
         self.currentTime = seekTime
+        Task {
+            await completion(PremiumViewModel.shared.hasUnlockedPremuim)
+        }
     }
 }

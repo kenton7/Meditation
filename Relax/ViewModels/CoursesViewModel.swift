@@ -32,10 +32,12 @@ final class CoursesViewModel: ObservableObject {
     @Published var isPlaying: Bool = false
     @Published var likesCount = 0
     @Published var filteredStories: [CourseAndPlaylistOfDayModel] = []
+    @Published var userLikedMaterials: [CourseAndPlaylistOfDayModel] = []
     @Published var dailyCourses: [CourseAndPlaylistOfDayModel] = []
     @Published var isSelected = false
     @Published var lessons: [Lesson] = []
     private var playerViewModel = PlayerViewModel.shared
+    private let yandexViewModel = YandexAuthorization.shared
     private var cancellables = Set<AnyCancellable>()
     private var lastUpdate: Date?
     var dailyCourse: CourseAndPlaylistOfDayModel?
@@ -158,6 +160,16 @@ final class CoursesViewModel: ObservableObject {
         } else {
             self.filteredStories = self.allCourses.filter { $0.genre == genre }
         }
+    }
+    
+    
+    func getCoursesUserLiked() async {
+        let snapshot = try? await Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? yandexViewModel.yandexUserID).child("likedPlaylists").getData()
+        guard let snapshot = snapshot, let likedPlaylists = snapshot.value as? [String: Bool] else { return }
+        let likedObjects = self.allCourses.filter { course in
+            return likedPlaylists.keys.contains(course.name)
+        }
+        self.userLikedMaterials = likedObjects
     }
     
     func pause() {

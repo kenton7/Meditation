@@ -13,8 +13,6 @@ import SwiftUI
 
 
 protocol DatabaseChangable: AnyObject {
-    func asyncDownload(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool, lesson: Lesson) async throws -> URL
-    func downloadAllCourse(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool?, lessons: [Lesson]) async throws -> [URL]
     func userLiked(course: CourseAndPlaylistOfDayModel, type: IncrementDecrementLike, isLiked: Bool, userID: String, courseType: Types)
     func updateListeners(course: CourseAndPlaylistOfDayModel, type: Types)
     func getListenersIn(course: CourseAndPlaylistOfDayModel, courseType: Types)
@@ -39,107 +37,39 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
     @Published var isLiked = false
     @Published var listeners = 0
     @Published var storyURL = ""
-    @Published var isTutorialViewed: Bool = false 
-    @Published var isDownloadStarted = false
-    @Published var downloadProgress = 0.0
+    @Published var isTutorialViewed: Bool = false
     private var authViewModel = AuthViewModel()
-    @State private var downloadURL: URL?
     
     static let shared = ChangeDataInDatabase()
     
     private init() {}
     
     public var isUserViewed: Bool {
-        return isTutorialViewed != false 
-    }
-    
-    func downloadAllCourse(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool?, lessons: [Lesson]) async throws -> [URL] {
-        var results = [URL]()
-        
-        try await withThrowingTaskGroup(of: URL.self) { [unowned self] group in
-            for lesson in lessons {
-                group.addTask {
-                    return try await self.asyncDownload(course: course, courseType: courseType, isFemale: isFemale ?? true, lesson: lesson)
-                }
-            }
-            for try await result in group {
-                results.append(result)
-            }
-        }
-        return results
-    }
-    
-    func asyncDownload(course: CourseAndPlaylistOfDayModel, courseType: Types, isFemale: Bool, lesson: Lesson) async throws -> URL {
-        
-        var localURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        
-        var storageRef: StorageReference {
-            switch courseType {
-            case .playlist:
-                return Storage.storage().reference(withPath: "music/\(course.id)/\(lesson.lessonID).mp3")
-            case .meditation:
-                return Storage.storage().reference(withPath: "meditations/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
-            case .story:
-                return Storage.storage().reference(withPath: "stories/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
-            case .emergency:
-                let url = Storage.storage().reference(withPath: "emergency/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
-                return Storage.storage().reference(withPath: "emergency/\(course.id)/\(isFemale ? "female" : "male")/\(lesson.lessonID)\(isFemale ? "Female" : "Male").mp3")
-            }
-        }
-        
-        localURL.append(path: "\(course.name)/\(lesson.name)", directoryHint: .isDirectory)
-        localURL.appendPathExtension(for: .mp3)
-        
-        return try await withCheckedThrowingContinuation { continuation in
-            let downloadTask = storageRef.write(toFile: localURL) { url, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume(returning: localURL)
-                }
-            }
-            
-            downloadTask.observe(.progress) { snapshot in
-                let percentComplete = 100 * Double(snapshot.progress!.completedUnitCount) / Double(snapshot.progress!.totalUnitCount)
-                print("Загрузка: \(percentComplete)% завершено")
-                DispatchQueue.main.async {
-                    self.downloadProgress = percentComplete
-                }
-            }
-            
-            downloadTask.observe(.failure) { snapshot in
-                if let error = snapshot.error {
-                    continuation.resume(throwing: error)
-                }
-            }
-        }
+        return isTutorialViewed != false
     }
     
     func userLiked(course: CourseAndPlaylistOfDayModel, type: IncrementDecrementLike, isLiked: Bool, userID: String, courseType: Types) {
-        
-        var likesCount = likes
-        
         switch type {
         case .increment:
-            likesCount += 1
+            likes += 1
             self.isLiked = true
             Database.database(url: .databaseURL).reference().child("users").child(userID).child("likedPlaylists").updateChildValues([course.name: self.isLiked])
         case .decrement:
             self.isLiked = false
-            guard likesCount >= 0 else { return }
-            likesCount -= 1
+            guard likes >= 1 else { return }
+            likes -= 1
             Database.database(url: .databaseURL).reference().child("users").child(userID).child("likedPlaylists").child(course.name).removeValue()
         }
         
         switch courseType {
         case .playlist:
-            Database.database(url: .databaseURL).reference().child("music").child(course.id).updateChildValues(["likes": likesCount])
+            Database.database(url: .databaseURL).reference().child("music").child(course.id).updateChildValues(["likes": likes])
         case .meditation:
-            Database.database(url: .databaseURL).reference().child("courses").child(course.id).updateChildValues(["likes": likesCount])
+            Database.database(url: .databaseURL).reference().child("courses").child(course.id).updateChildValues(["likes": likes])
         case .story:
-            Database.database(url: .databaseURL).reference().child("nightStories").child(course.id).updateChildValues(["likes": likesCount])
+            Database.database(url: .databaseURL).reference().child("nightStories").child(course.id).updateChildValues(["likes": likes])
         case .emergency:
-            Database.database(url: .databaseURL).reference().child("emergencyMeditation").child(course.id).updateChildValues(["likes": likesCount])
+            Database.database(url: .databaseURL).reference().child("emergencyMeditation").child(course.id).updateChildValues(["likes": likes])
         }
     }
     
@@ -262,32 +192,19 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
                 if let isLiked = likedPlaylists[course.name] {
                     DispatchQueue.main.async {
                         self.isLiked = isLiked
-                        print("isLiked? \(isLiked)")
+                        print("Курс \(course.name) лайкнут? \(isLiked)")
                     }
                 } else {
                     print("Значение для курса \(course.name) не найдено или не является Bool")
+                    DispatchQueue.main.async {
+                        self.isLiked = false
+                    }
                 }
             } else {
                 print("Значения курсов не найдены или не в ожидаемом формате")
-            }
-        }
-    }
-    
-    func checkIfUserLiked(lesson: Lesson, userID: String) {
-        let ref = Database.database(url: .databaseURL).reference()
-        let likedLessonsRef = ref.child("users").child(userID).child("likedLessons")
-        likedLessonsRef.observe(.value) { snapshot in
-            if let likedLesson = snapshot.value as? [String: Bool] {
-                if let isLiked = likedLesson[lesson.name] {
-                    DispatchQueue.main.async {
-                        self.isLiked = isLiked
-                        print(self.isLiked)
-                    }
-                } else {
-                    print("Значение для урока \(lesson.name) не найдено или не является Bool")
+                DispatchQueue.main.async {
+                    self.isLiked = false
                 }
-            } else {
-                print("Значения уроков не найдены или не в ожидаемом формате")
             }
         }
     }
@@ -314,19 +231,19 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
         }
     }
     
-//    func checkIfFirebaseUserViewedTutorial(userID: String) {
-//        let ref = Database.database(url: .databaseURL).reference().child("users").child(userID).child("isTutorialViewed")
-//        ref.observeSingleEvent(of: .value) { snapshot in
-//            DispatchQueue.main.async {
-//                if let isViewed = snapshot.value as? Bool {
-//                    self.isTutorialViewed = isViewed
-//                } else {
-//                    self.isTutorialViewed = false
-//                }
-//            }
-//        }
-//    }
-
+    //    func checkIfFirebaseUserViewedTutorial(userID: String) {
+    //        let ref = Database.database(url: .databaseURL).reference().child("users").child(userID).child("isTutorialViewed")
+    //        ref.observeSingleEvent(of: .value) { snapshot in
+    //            DispatchQueue.main.async {
+    //                if let isViewed = snapshot.value as? Bool {
+    //                    self.isTutorialViewed = isViewed
+    //                } else {
+    //                    self.isTutorialViewed = false
+    //                }
+    //            }
+    //        }
+    //    }
+    
     
     func checkIfUserViewedTutorial(userID: String) async -> Bool {
         // Ссылка на путь в базе данных
@@ -353,9 +270,9 @@ final class ChangeDataInDatabase: ObservableObject, DatabaseChangable {
             return false
         }
     }
-
-
-
+    
+    
+    
     
     func updateDisplayName(newDisplayName: String) async throws {
         guard let user = Auth.auth().currentUser else {

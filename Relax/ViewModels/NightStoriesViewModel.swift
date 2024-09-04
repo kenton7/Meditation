@@ -16,8 +16,10 @@ final class NightStoriesViewModel: ObservableObject {
     @StateObject private var databaseVM = ChangeDataInDatabase.shared
     @Published var nightStories: [CourseAndPlaylistOfDayModel] = []
     @Published var filteredStories: [CourseAndPlaylistOfDayModel] = []
+    @Published var userLikedMaterials: [CourseAndPlaylistOfDayModel] = []
     private var playerViewModel = PlayerViewModel.shared
     private let databaseRef = Database.database(url: .databaseURL).reference().child("nightStories")
+    private let yandexViewModel = YandexAuthorization.shared
     
     
     init() {
@@ -46,6 +48,15 @@ final class NightStoriesViewModel: ObservableObject {
             self.nightStories = newFiles
             self.filteredStories = newFiles
         }
+    }
+    
+    func getCoursesUserLiked() async {
+        let snapshot = try? await Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? yandexViewModel.yandexUserID).child("likedPlaylists").getData()
+        guard let snapshot = snapshot, let likedPlaylists = snapshot.value as? [String: Bool] else { return }
+        let likedObjects = self.nightStories.filter { story in
+            return likedPlaylists.keys.contains(story.name)
+        }
+        self.userLikedMaterials = likedObjects
     }
     
     func filterResults(by genre: String) {

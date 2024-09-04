@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct AnyShape: Shape, @unchecked Sendable {
     private let path: (CGRect) -> Path
@@ -58,18 +59,15 @@ final class HeaderDetailCourse: ObservableObject {
 //                        
 //                        let bottomPadding: CGFloat = 16
                         //let resizedOffsetY = (midY - (minimumHeaderHeight - halfScaledHeight - bottomPadding))
-                        
-                        AsyncImage(url: URL(string: course.imageURL)) { image in
-                            image.resizable()
-                                .frame(width: rect.width, height: rect.height)
-                                .clipShape(self.offsetY < 0 ? AnyShape(.circle) : AnyShape(.rect(bottomLeadingRadius: 16, bottomTrailingRadius: 16, style: .circular)))
-                                .scaleEffect(1 - (progress * 0.5), anchor: .center)
-                                .padding(.top, self.offsetY < 0 ? 16 : 0)
-                                //.offset(x: (rect.minX - 16) * progress, y: -resizedOffsetY * progress - (progress * 16))
-                        } placeholder: {
-                            //ProgressView()
-                            LoadingAnimationButton()
-                        }
+                        KFImage(URL(string: course.imageURL))
+                            .resizable()
+                            .placeholder {
+                                LoadingAnimationButton()
+                            }
+                            .frame(width: rect.width, height: rect.height)
+                            .clipShape(self.offsetY < 0 ? AnyShape(.circle) : AnyShape(.rect(bottomLeadingRadius: 16, bottomTrailingRadius: 16, style: .circular)))
+                            .scaleEffect(1 - (progress * 0.5), anchor: .center)
+                            .padding(.top, self.offsetY < 0 ? 16 : 0)
                     }
                     .onChange(of: progress) { newValue in
                         if self.offsetY > 0 {

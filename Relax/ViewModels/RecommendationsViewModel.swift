@@ -25,7 +25,7 @@ final class RecommendationsViewModel: ObservableObject {
     
     init(yandexViewModel: YandexAuthorization) {
         self.yandexViewModel = yandexViewModel
-        self.userSelectedTopicsRef = Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? yandexViewModel.clientID).child("selectedTopics")
+        self.userSelectedTopicsRef = Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? yandexViewModel.yandexUserID).child("selectedTopics")
         getTopicsWhichUserSelected()
     }
     

@@ -71,7 +71,8 @@ struct RelaxApp: App {
     @StateObject private var yandexViewModel = YandexAuthorization.shared
     @StateObject private var notificationsService = NotificationsService.shared
     @StateObject private var changeDatabase = ChangeDataInDatabase.shared
-    @StateObject private var premuimViewModel = PremiumViewModel()
+    @StateObject private var premuimViewModel = PremiumViewModel.shared
+    @StateObject private var downloadManager = DownloadManager()
     let persistenceController = PersistenceController.shared
     
 
@@ -87,6 +88,7 @@ struct RelaxApp: App {
                 .environmentObject(changeDatabase)
                 .environmentObject(yandexViewModel)
                 .environmentObject(premuimViewModel)
+                .environmentObject(downloadManager)
                 .task {
                     await premuimViewModel.updatePurchasedProducts()
                 }
