@@ -46,8 +46,10 @@ struct HomeScreen: View {
         .tint(.white)
         .refreshable {
             Task {
-                await viewModel.getCourses(isDaily: true)
-                await viewModel.getCourses(isDaily: false)
+                //await viewModel.getCourses(isDaily: true)
+                //await viewModel.getCourses(isDaily: false)
+                await viewModel.getCoursesNew(isDaily: true, path: .allCourses)
+                await viewModel.getCoursesNew(isDaily: false, path: .allCourses)
                 await MainActor.run {
                     recommendationsViewModel.fetchRecommendations()
                     nightStoriesViewModel.fetchNightStories()
@@ -200,7 +202,6 @@ struct DailyRecommendations: View {
                                             .foregroundStyle(.white)
                                             .font(.system(size: 15, design: .rounded))
                                         RoundedRectangle(cornerRadius: 20)
-                                        //Capsule()
                                             .fill(Color.white)
                                             .frame(width: 80, height: 40)
                                             .padding(10)
@@ -230,7 +231,8 @@ struct DailyRecommendations: View {
             }
         }
         .task {
-            await viewModel.getCourses(isDaily: true)
+            //await viewModel.getCourses(isDaily: true)
+            await viewModel.getCoursesNew(isDaily: true, path: .allCourses)
         }
     }
 }
@@ -307,7 +309,8 @@ struct DailyThoughts: View {
             }
         }
         .task {
-            await viewModel.getCourses(isDaily: false)
+            //await viewModel.getCourses(isDaily: false)
+            await viewModel.getCoursesNew(isDaily: false, path: .allCourses)
         }
     }
 }

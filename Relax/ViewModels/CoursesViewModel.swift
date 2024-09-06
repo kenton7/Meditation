@@ -20,15 +20,17 @@ final class CoursesViewModel: ObservableObject {
     }
     
     enum Paths: String {
-        case playlistOfDay = "courseAndPlaylistOfDay"
-        case meditationOfDay = "courseOfDay"
         case allCourses = "courses"
         case allPlaylists = "music"
         case nightStories = "nightStories"
+        case emergencyMeditations = "emergencyMeditation"
     }
     
     @Published var allCourses: [CourseAndPlaylistOfDayModel] = []
+    @Published var emergencyMeditations: [CourseAndPlaylistOfDayModel] = []
     @Published var dailyRecommendations: [CourseAndPlaylistOfDayModel] = []
+    @Published var playlists: [CourseAndPlaylistOfDayModel] = []
+    @Published var nightStories: [CourseAndPlaylistOfDayModel] = []
     @Published var isPlaying: Bool = false
     @Published var likesCount = 0
     @Published var filteredStories: [CourseAndPlaylistOfDayModel] = []
@@ -87,89 +89,109 @@ final class CoursesViewModel: ObservableObject {
         }
     }
 
-
-    
     @MainActor
-    func getCourses(isDaily: Bool) async {
-        let databaseURL = Database.database(url: .databaseURL).reference().child("courses")
+    func getCoursesNew(isDaily: Bool, path: Paths) async {
+        let databaseURL = Database.database(url: .databaseURL).reference().child(path.rawValue)
+        
         do {
             let snapshot = try await databaseURL.getData()
-            var localCourses: [CourseAndPlaylistOfDayModel] = []
+            var tempCourses: [CourseAndPlaylistOfDayModel] = []
             for child in snapshot.children {
                 if let snapshot = child as? DataSnapshot, let data = snapshot.value as? [String: Any] {
                     let jsonData = try JSONSerialization.data(withJSONObject: data)
                     let courseData = try JSONDecoder().decode(CourseAndPlaylistOfDayModel.self, from: jsonData)
-                    localCourses.append(courseData)
+                    tempCourses.append(courseData)
                 }
             }
             if isDaily {
-                self.allCourses = localCourses
+                self.allCourses = tempCourses
                 self.dailyCourses = allCourses.filter { $0.isDaily == true }
             } else {
-                self.allCourses = localCourses
-                self.filteredStories = localCourses
-                self.likesCount = localCourses.reduce(0) { $0 + $1.likes }
+                switch path {
+                case .allCourses:
+                    self.allCourses = tempCourses
+                case .allPlaylists:
+                    self.playlists = tempCourses
+                case .nightStories:
+                    self.nightStories = tempCourses
+                case .emergencyMeditations:
+                    self.emergencyMeditations = tempCourses
+                }
             }
         } catch {
             print("Error decoding snapshot: \(error)")
         }
+
     }
+
     
-    func randomDailyCourse() {
-        if let lastUpdate {
-            if Calendar.current.isDateInYesterday(lastUpdate) {
-                //Если дата - это вчера, то выбираем новый дневной курс, устанавливая в бэке isDaily = true и меняем у старого курса isDaily = false
-                Database.database(url: .databaseURL).reference().child("courses").child(self.dailyCourse!.id).updateChildValues(["isDaily": false])
-                self.dailyCourse = allCourses.randomElement()
-                Database.database(url: .databaseURL).reference().child("courses").child(self.dailyCourse!.id).updateChildValues(["isDaily": true])
-                DispatchQueue.main.async {
-                    self.dailyCourses = self.allCourses.filter { $0.isDaily == true }
-                }
-            } else {
-                //Если не вчера
-                DispatchQueue.main.async {
-                    self.dailyCourses = self.allCourses.filter { $0.isDaily == true }
-                }
-            }
-        } else {
-            self.dailyCourse = allCourses.randomElement()
-            DispatchQueue.main.async {
-                self.dailyCourses = self.allCourses.filter { $0.isDaily == true }
-            }
-            Database.database(url: .databaseURL).reference().child("courses").child(self.dailyCourse!.id).updateChildValues(["isDaily": true])
-            self.lastUpdate = Date()
-            UserDefaults.standard.set(self.lastUpdate, forKey: "lastUpdate")
-        }
-    }
+//    @MainActor
+//    func getCourses(isDaily: Bool) async {
+//        let databaseURL = Database.database(url: .databaseURL).reference().child("courses")
+//        do {
+//            let snapshot = try await databaseURL.getData()
+//            var localCourses: [CourseAndPlaylistOfDayModel] = []
+//            for child in snapshot.children {
+//                if let snapshot = child as? DataSnapshot, let data = snapshot.value as? [String: Any] {
+//                    let jsonData = try JSONSerialization.data(withJSONObject: data)
+//                    let courseData = try JSONDecoder().decode(CourseAndPlaylistOfDayModel.self, from: jsonData)
+//                    localCourses.append(courseData)
+//                }
+//            }
+//            if isDaily {
+//                self.allCourses = localCourses
+//                self.dailyCourses = allCourses.filter { $0.isDaily == true }
+//            } else {
+//                self.allCourses = localCourses
+//                self.filteredStories = localCourses
+//                self.likesCount = localCourses.reduce(0) { $0 + $1.likes }
+//            }
+//        } catch {
+//            print("Error decoding snapshot: \(error)")
+//        }
+//    }
     
-    @MainActor
-    func filterResults(by genre: String) async {
-        if genre == "Всё" {
-            await getCourses(isDaily: false)
-        } else if genre == "Любимое" {
-            if let user = Auth.auth().currentUser {
-                let snapshot = try? await Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("likedPlaylists").getData()
-                
-                guard let snapshot = snapshot, let likedPlaylists = snapshot.value as? [String: Bool] else { return }
-                
-                let likedObjects = self.allCourses.filter { story in
-                    return story.type == .meditation && likedPlaylists.keys.contains(story.name)
-                }
-                self.filteredStories = likedObjects
-            }
-        } else {
-            self.filteredStories = self.allCourses.filter { $0.genre == genre }
-        }
-    }
+//    @MainActor
+//    func filterResults(by genre: String) async {
+//        if genre == "Всё" {
+//            await getCourses(isDaily: false)
+//        } else if genre == "Любимое" {
+//            if let user = Auth.auth().currentUser {
+//                let snapshot = try? await Database.database(url: .databaseURL).reference().child("users").child(user.uid).child("likedPlaylists").getData()
+//                
+//                guard let snapshot = snapshot, let likedPlaylists = snapshot.value as? [String: Bool] else { return }
+//                
+//                let likedObjects = self.allCourses.filter { story in
+//                    return story.type == .meditation && likedPlaylists.keys.contains(story.name)
+//                }
+//                self.filteredStories = likedObjects
+//            }
+//        } else {
+//            self.filteredStories = self.allCourses.filter { $0.genre == genre }
+//        }
+//    }
     
     
     func getCoursesUserLiked() async {
         let snapshot = try? await Database.database(url: .databaseURL).reference().child("users").child(Auth.auth().currentUser?.uid ?? yandexViewModel.yandexUserID).child("likedPlaylists").getData()
         guard let snapshot = snapshot, let likedPlaylists = snapshot.value as? [String: Bool] else { return }
-        let likedObjects = self.allCourses.filter { course in
-            return likedPlaylists.keys.contains(course.name)
+        
+        await getCoursesNew(isDaily: false, path: .allCourses)
+        await getCoursesNew(isDaily: false, path: .emergencyMeditations)
+        await getCoursesNew(isDaily: false, path: .allPlaylists)
+        await getCoursesNew(isDaily: false, path: .nightStories)
+        
+        await MainActor.run {
+            let likedMeditations = self.allCourses.filter { likedPlaylists.keys.contains($0.name) }
+            let likedEmergency = self.emergencyMeditations.filter { likedPlaylists.keys.contains($0.name) }
+            let likedMusic = self.playlists.filter { likedPlaylists.keys.contains($0.name) }
+            let likedStories = self.nightStories.filter { likedPlaylists.keys.contains($0.name) }
+            
+            self.userLikedMaterials = likedMeditations
+            self.userLikedMaterials += likedEmergency
+            self.userLikedMaterials += likedMusic
+            self.userLikedMaterials += likedStories
         }
-        self.userLikedMaterials = likedObjects
     }
     
     func pause() {

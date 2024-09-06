@@ -108,10 +108,16 @@ final class PlayerViewModel: ObservableObject {
                 currentPlayingURL = nextAudioURL
                 return .success
             }
-            
-            //            commandCenter.changePlaybackRateCommand.addTarget { [unowned self] event in
-            //
-            //            }
+        }
+        
+        //Перемотка через Control Center
+        commandCenter.changePlaybackPositionCommand.addTarget { event in
+            let event = event as! MPChangePlaybackPositionCommandEvent
+            self.player?.seek(to: CMTimeMakeWithSeconds(event.positionTime, preferredTimescale: 600))
+            Task {
+                await self.setupNowPlaying()
+            }
+            return .success
         }
         
         //Previous Track
@@ -135,6 +141,13 @@ final class PlayerViewModel: ObservableObject {
             }
         }
     }
+    
+    func performSetupNowPlaying() {
+        Task {
+            await self.setupNowPlaying()
+        }
+    }
+
     
     func setupNowPlaying() async {
         guard let player = player, let playerItem = player.currentItem else { return }

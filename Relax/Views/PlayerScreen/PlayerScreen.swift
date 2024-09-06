@@ -26,7 +26,7 @@ struct PlayerScreen: View {
     private let currentUser = Auth.auth().currentUser
     private let fileManagerService: IFileManagerSerivce = FileManagerSerivce()
     @State private var isPressedDownloadWithoutPremium = false
-    @State private var isListenersUpdated = false
+    @State private var isListenersUpdated: Bool?
     
     let lesson: Lesson?
     let isFemale: Bool
@@ -228,10 +228,12 @@ struct PlayerScreen: View {
                                     self.sliderValue = newValue.seconds / playerViewModel.duration.seconds
                                 }
                                 
-                                
-                                if sliderValue == 0.5 {
-                                    databaseVM.updateListeners(course: course, type: course.type)
-                                }
+//                                if isListenersUpdated == false || isListenersUpdated == nil {
+//                                    if sliderValue >= 0.5 {
+//                                        databaseVM.updateListeners(course: course, type: course.type)
+//                                        isListenersUpdated = true
+//                                    }
+//                                }
                             }
                         } else {
                             LoadingAnimationButton()
@@ -260,7 +262,6 @@ struct PlayerScreen: View {
             if let _ = currentUser?.uid, !yandexViewModel.yandexUserID.isEmpty, let lesson = lesson {
                 isDownloaded = fileManagerService.isDownloaded(lesson: lesson, course: course)
             }
-            
         }
         .sheet(isPresented: $isPressedDownloadWithoutPremium, content: {
             PremiumScreen()

@@ -25,27 +25,14 @@ struct UserLikedPlaylistsScreen: View {
                 } else {
                     ScrollView {
                         VStack {
-                            Text("Если помощь нужна здесь и сейчас")
-                                .padding()
-                                .foregroundStyle(Color(uiColor: .init(red: 160/255,
-                                                                      green: 163/255,
-                                                                      blue: 177/255,
-                                                                      alpha: 1)))
-                                .font(.system(.headline, design: .rounded, weight: .light))
-                                .multilineTextAlignment(.center)
-                            EmergencyLiked(isSelected: $isSelected,
-                                           isLoading: $isLoading,
-                                           isShowing: $isShowing,
-                                           selectedPlaylist: $selectedCourse)
-                            
-                            Text("Медитации")
-                                .padding()
-                                .foregroundStyle(Color(uiColor: .init(red: 160/255,
-                                                                      green: 163/255,
-                                                                      blue: 177/255,
-                                                                      alpha: 1)))
-                                .font(.system(.headline, design: .rounded, weight: .light))
-                                .multilineTextAlignment(.center)
+//                            Text("Медитации")
+//                                .padding()
+//                                .foregroundStyle(Color(uiColor: .init(red: 160/255,
+//                                                                      green: 163/255,
+//                                                                      blue: 177/255,
+//                                                                      alpha: 1)))
+//                                .font(.system(.headline, design: .rounded, weight: .light))
+//                                .multilineTextAlignment(.center)
                             LazyVGrid(columns: [GridItem(.flexible()),
                                                 GridItem(.flexible())],
                                       spacing: 20,
@@ -92,33 +79,33 @@ struct UserLikedPlaylistsScreen: View {
                                     })
                                 }
                             })
-                            
-                            Text("Истории на ночь")
-                                .padding()
-                                .foregroundStyle(Color(uiColor: .init(red: 160/255,
-                                                                      green: 163/255,
-                                                                      blue: 177/255,
-                                                                      alpha: 1)))
-                                .font(.system(.headline, design: .rounded, weight: .light))
-                                .multilineTextAlignment(.center)
-                            LikedNightStoriesView(isSelected: $isSelected,
-                                                  isLoading: $isLoading,
-                                                  isShowing: $isShowing,
-                                                  selectedStory: $selectedCourse)
-                            
-                            Text("Музыка")
-                                .padding()
-                                .foregroundStyle(Color(uiColor: .init(red: 160/255,
-                                                                      green: 163/255,
-                                                                      blue: 177/255,
-                                                                      alpha: 1)))
-                                .font(.system(.headline, design: .rounded, weight: .light))
-                                .multilineTextAlignment(.center)
-                            
-                            LikedMusicView(isSelected: $isSelected,
-                                           isLoading: $isLoading,
-                                           isShowing: $isShowing,
-                                           selectedPlaylist: $selectedCourse)
+//                            
+//                            Text("Истории на ночь")
+//                                .padding()
+//                                .foregroundStyle(Color(uiColor: .init(red: 160/255,
+//                                                                      green: 163/255,
+//                                                                      blue: 177/255,
+//                                                                      alpha: 1)))
+//                                .font(.system(.headline, design: .rounded, weight: .light))
+//                                .multilineTextAlignment(.center)
+//                            LikedNightStoriesView(isSelected: $isSelected,
+//                                                  isLoading: $isLoading,
+//                                                  isShowing: $isShowing,
+//                                                  selectedStory: $selectedCourse)
+//                            
+//                            Text("Музыка")
+//                                .padding()
+//                                .foregroundStyle(Color(uiColor: .init(red: 160/255,
+//                                                                      green: 163/255,
+//                                                                      blue: 177/255,
+//                                                                      alpha: 1)))
+//                                .font(.system(.headline, design: .rounded, weight: .light))
+//                                .multilineTextAlignment(.center)
+//                            
+//                            LikedMusicView(isSelected: $isSelected,
+//                                           isLoading: $isLoading,
+//                                           isShowing: $isShowing,
+//                                           selectedPlaylist: $selectedCourse)
                         }
                         .padding(.bottom)
                         
@@ -284,75 +271,3 @@ struct LikedMusicView: View {
         }
     }
 }
-
-struct EmergencyLiked: View {
-    
-    @StateObject private var emergencyVM = EmergencyMeditationsViewModel()
-    @Binding var isSelected: Bool
-    @Binding var isLoading: Bool
-    @Binding var isShowing: Bool
-    @Binding var selectedPlaylist: CourseAndPlaylistOfDayModel?
-    
-    var body: some View {
-        NavigationStack {
-            LazyVGrid(columns: [GridItem(.flexible()),
-                                GridItem(.flexible())],
-                      spacing: 20,
-                      content: {
-                ForEach(emergencyVM.userLikedMaterials) { file in
-                    Button(action: {
-                        isSelected = true
-                        selectedPlaylist = file
-                    }, label: {
-                        VStack {
-                            KFImage(URL(string: file.imageURL))
-                                .resizable()
-                                .placeholder {
-                                    LoadingAnimation()
-                                }
-                                .scaledToFit()
-                                .clipShape(.rect(cornerRadius: 16))
-                                .overlay {
-                                    ZStack {
-                                        VStack {
-                                            Spacer()
-                                            Rectangle()
-                                                .fill(Color(uiColor: .init(red: CGFloat(file.color.red) / 255,
-                                                                           green: CGFloat(file.color.green) / 255,
-                                                                           blue: CGFloat(file.color.blue) / 255,
-                                                                           alpha: 1)))
-                                                .frame(maxWidth: .infinity, maxHeight: 40)
-                                                .clipShape(.rect(bottomLeadingRadius: 16,
-                                                                 bottomTrailingRadius: 16,
-                                                                 style: .continuous))
-                                                .overlay {
-                                                    Text(file.name)
-                                                        .foregroundStyle(.white)
-                                                        .font(.system(size: 14,
-                                                                      weight: .bold,
-                                                                      design: .rounded))
-                                                        .shadow(color: .gray, radius: 5)
-                                                }
-                                        }
-                                    }
-                                }
-                                .padding()
-                        }
-                    })
-                }
-            })
-        }
-        .offset(x: isShowing ? 0 : -1000)
-        .animation(.bouncy, value: isShowing)
-        .task {
-            await emergencyVM.getCoursesUserLiked()
-            await MainActor.run {
-                isLoading = false
-            }
-        }
-    }
-}
-
-//#Preview {
-//    UserLikedPlaylistsScreen()
-//}

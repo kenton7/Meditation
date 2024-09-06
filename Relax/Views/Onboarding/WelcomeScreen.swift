@@ -54,8 +54,12 @@ struct WelcomeScreen: View {
                                 isGetStartedTapped = true
                             }
                         }, label: {
-                            Text("Давайте начнём")
-                                .foregroundStyle(.black)
+                            HStack {
+                                Text("Давайте начнём")
+                                    .foregroundStyle(.black)
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .contentShape(.rect)
                         })
                         .padding()
                         .frame(maxWidth: .infinity)

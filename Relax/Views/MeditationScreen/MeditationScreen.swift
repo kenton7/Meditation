@@ -28,9 +28,12 @@ struct MeditationScreen: View {
         .padding(.bottom)
         .refreshable {
             Task {
-                await meditationsVM.getCourses(isDaily: false)
+                //await meditationsVM.getCourses(isDaily: false)
+                await meditationsVM.getCoursesNew(isDaily: false, path: .allCourses)
+                await meditationsVM.getCoursesNew(isDaily: false, path: .emergencyMeditations)
                 await MainActor.run {
-                    emergencyVM.fetchEmergencyMeditations()
+                    //emergencyVM.fetchEmergencyMeditations()
+                    //meditationsVM.getCoursesNew(isDaily: false, path: .emergencyMeditations)
                 }
             }
 //            meditationsVM.filteredStories.removeAll()
@@ -81,6 +84,7 @@ struct MeditationHeaderView: View {
 struct EmergencyHelp: View {
     
     @EnvironmentObject private var emergencyViewModel: EmergencyMeditationsViewModel
+    @EnvironmentObject private var coursesViewModel: CoursesViewModel
     @State private var isSelected = false
     @State var selectedCourse: CourseAndPlaylistOfDayModel?
     
@@ -102,7 +106,7 @@ struct EmergencyHelp: View {
                     GridItem(.flexible()),
                     GridItem(.flexible())
                 ], spacing: 20, content: {
-                    ForEach(emergencyViewModel.emergencyMeditations) { emergencyLesson in
+                    ForEach(coursesViewModel.emergencyMeditations) { emergencyLesson in
                         Button(action: {
                             isSelected = true
                             selectedCourse = emergencyLesson
@@ -131,6 +135,9 @@ struct EmergencyHelp: View {
             if let course = selectedCourse {
                 ReadyCourseDetailView(course: course)
             }
+        }
+        .task {
+            await coursesViewModel.getCoursesNew(isDaily: false, path: .emergencyMeditations)
         }
     }
 }
@@ -163,7 +170,7 @@ struct AllMeditationsView: View {
                                         GridItem(.flexible())
                                        ], spacing: 20,
                               content: {
-                        ForEach(meditationsViewModel.filteredStories) { course in
+                        ForEach(meditationsViewModel.allCourses) { course in
                             Button(action: {
                                 isSelected = true
                                 selectedCourse = course
@@ -200,39 +207,6 @@ struct AllMeditationsView: View {
                                                 }
                                             }
                                         }
-                                    
-//                                    AsyncImage(url: URL(string: course.imageURL)) { image in
-//                                        image.resizable()
-//                                            .scaledToFit()
-//                                            .clipShape(.rect(cornerRadius: 16))
-//                                            .overlay {
-//                                                ZStack {
-//                                                    VStack {
-//                                                        Spacer()
-//                                                        Rectangle()
-//                                                            .fill(Color(uiColor: .init(red: CGFloat(course.color.red) / 255,
-//                                                                                       green: CGFloat(course.color.green) / 255,
-//                                                                                       blue: CGFloat(course.color.blue) / 255,
-//                                                                                       alpha: 1)))
-//                                                            .frame(maxWidth: .infinity, maxHeight: 40)
-//                                                            .clipShape(.rect(bottomLeadingRadius: 16, 
-//                                                                             bottomTrailingRadius: 16,
-//                                                                             style: .continuous))
-//                                                            .overlay {
-//                                                                Text(course.name)
-//                                                                    .foregroundStyle(.white)
-//                                                                    .font(.system(size: 14, 
-//                                                                                  weight: .bold,
-//                                                                                  design: .rounded))
-//                                                                    .shadow(color: .gray, radius: 5)
-//                                                            }
-//                                                    }
-//                                                }
-//                                            }
-//                                    } placeholder: {
-//                                        //ProgressView()
-//                                        LoadingAnimationButton()
-//                                    }
                                     .padding()
                                 }
                             })
@@ -249,13 +223,9 @@ struct AllMeditationsView: View {
         .offset(x: isShowing ? 0 : -1000)
         .animation(.bouncy, value: isShowing)
         .task {
-            await meditationsViewModel.getCourses(isDaily: false)
+            //await meditationsViewModel.getCourses(isDaily: false)
+            await meditationsViewModel.getCoursesNew(isDaily: false, path: .allCourses)
         }
     }
 }
 
-//#Preview {
-//    let vm = CoursesViewModel()
-//    return MeditationScreen()
-//        .environmentObject(vm)
-//}

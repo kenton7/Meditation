@@ -65,8 +65,12 @@ struct UserInterestsTopicScreen: View {
                         Button(action: {
                             isContinueTapped = true
                         }, label: {
-                            Text("Продолжить")
-                                .foregroundStyle(.white)
+                            HStack {
+                                Text("Продолжить")
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .contentShape(.rect)
                         })
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -87,7 +91,8 @@ struct UserInterestsTopicScreen: View {
             RemindersScreen(isFromSettings: false)
         })
         .task {
-            await coursesVM.getCourses(isDaily: false)
+            //await coursesVM.getCourses(isDaily: false)
+            await coursesVM.getCoursesNew(isDaily: false, path: .allCourses)
         }
         .navigationBarBackButtonHidden()
     }

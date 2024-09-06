@@ -86,80 +86,80 @@ struct HeaderView: View {
 }
 
 //MARK: - StoryGenresView
-struct StoryGenresView: View {
-    
-    @State private var isSelected = false
-    @StateObject private var selectGenreVM = SelectGenreViewModel()
-    @EnvironmentObject var nightStoriesVM: NightStoriesViewModel
-    @EnvironmentObject var meditationVM: CoursesViewModel
-    let type: Types
-    @State private var isShowing = false
-    
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHGrid(rows: [GridItem(.flexible())], content: {
-                HStack {
-                    ForEach(selectGenreVM.genres.indices, id: \.self) { index in
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.6)) {
-                                selectGenreVM.selectGenre(at: index)
-                                nightStoriesVM.filterResults(by: selectGenreVM.selectedGenre)
-                                if type == .story {
-                                    Task.detached {
-                                        await nightStoriesVM.filterResults(by: selectGenreVM.selectedGenre)
-                                    }
-                                } else {
-                                    Task.detached {
-                                        await meditationVM.filterResults(by: selectGenreVM.selectedGenre)
-                                    }
-                                }
-                            }
-                        }, label: {
-                            VStack {
-                                ZStack {
-                                    Circle()
-                                        .frame(width: 70, height: 70)
-                                        .foregroundStyle(selectGenreVM.genres[index].isSelected ? Color(uiColor: .init(red: 142/255,
-                                                                                                                       green: 151/255,
-                                                                                                                       blue: 253/255
-                                                                                                                       , alpha: 1)) : Color(uiColor: .init(red: 88/255, green: 104/255,
-                                                                                                                                                           blue: 148/255,
-                                                                                                                                                           alpha: 1)))
-                                    Image(systemName: selectGenreVM.genres[index].image)
-                                        .foregroundStyle(.white)
-                                        .font(.system(size: 25))
-                                }
-                                Text(selectGenreVM.genres[index].genre)
-                                
-                                    .foregroundStyle(
-                                        (type == .story && selectGenreVM.genres[index].isSelected) ? .white : (type == .meditation && selectGenreVM.genres[index].isSelected ? .black : .gray)
-                                    )
-                                    .bold()
-                            }
-                        })
-                        .padding(.horizontal)
-                    }
-                }
-                .padding()
-            })
-            .padding(.horizontal)
-            .frame(height: 100)
-            .offset(x: isShowing ? 0 : 1000)
-            .animation(.easeInOut, value: isShowing)
-        }
-        .padding(.top, -30)
-        .padding(.bottom)
-        .onAppear {
-            withAnimation {
-                selectGenreVM.selectGenre(at: 0)
-            }
-            isShowing = true
-        }
-        .onDisappear {
-            isShowing = false
-        }
-    }
-}
+//struct StoryGenresView: View {
+//    
+//    @State private var isSelected = false
+//    @StateObject private var selectGenreVM = SelectGenreViewModel()
+//    @EnvironmentObject var nightStoriesVM: NightStoriesViewModel
+//    @EnvironmentObject var meditationVM: CoursesViewModel
+//    let type: Types
+//    @State private var isShowing = false
+//    
+//    var body: some View {
+//        ScrollView(.horizontal, showsIndicators: false) {
+//            LazyHGrid(rows: [GridItem(.flexible())], content: {
+//                HStack {
+//                    ForEach(selectGenreVM.genres.indices, id: \.self) { index in
+//                        Button(action: {
+//                            withAnimation(.easeInOut(duration: 0.6)) {
+//                                selectGenreVM.selectGenre(at: index)
+//                                nightStoriesVM.filterResults(by: selectGenreVM.selectedGenre)
+//                                if type == .story {
+//                                    Task.detached {
+//                                        await nightStoriesVM.filterResults(by: selectGenreVM.selectedGenre)
+//                                    }
+//                                } else {
+//                                    Task.detached {
+//                                        await meditationVM.filterResults(by: selectGenreVM.selectedGenre)
+//                                    }
+//                                }
+//                            }
+//                        }, label: {
+//                            VStack {
+//                                ZStack {
+//                                    Circle()
+//                                        .frame(width: 70, height: 70)
+//                                        .foregroundStyle(selectGenreVM.genres[index].isSelected ? Color(uiColor: .init(red: 142/255,
+//                                                                                                                       green: 151/255,
+//                                                                                                                       blue: 253/255
+//                                                                                                                       , alpha: 1)) : Color(uiColor: .init(red: 88/255, green: 104/255,
+//                                                                                                                                                           blue: 148/255,
+//                                                                                                                                                           alpha: 1)))
+//                                    Image(systemName: selectGenreVM.genres[index].image)
+//                                        .foregroundStyle(.white)
+//                                        .font(.system(size: 25))
+//                                }
+//                                Text(selectGenreVM.genres[index].genre)
+//                                
+//                                    .foregroundStyle(
+//                                        (type == .story && selectGenreVM.genres[index].isSelected) ? .white : (type == .meditation && selectGenreVM.genres[index].isSelected ? .black : .gray)
+//                                    )
+//                                    .bold()
+//                            }
+//                        })
+//                        .padding(.horizontal)
+//                    }
+//                }
+//                .padding()
+//            })
+//            .padding(.horizontal)
+//            .frame(height: 100)
+//            .offset(x: isShowing ? 0 : 1000)
+//            .animation(.easeInOut, value: isShowing)
+//        }
+//        .padding(.top, -30)
+//        .padding(.bottom)
+//        .onAppear {
+//            withAnimation {
+//                selectGenreVM.selectGenre(at: 0)
+//            }
+//            isShowing = true
+//        }
+//        .onDisappear {
+//            isShowing = false
+//        }
+//    }
+//}
 
 
 //MARK: - AllStoriesView

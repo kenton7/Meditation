@@ -39,7 +39,7 @@ struct LessonsView: View {
                                 if viewModel.isPlaying(urlString: url) {
                                     viewModel.pause()
                                 } else {
-                                    databaseViewModel.updateListeners(course: course, type: course.type)
+                                    //databaseViewModel.updateListeners(course: course, type: course.type)
                                     playerVM.playAudio(from: url,
                                                        playlist: lessons,
                                                        trackIndex: file.trackIndex,
@@ -83,7 +83,7 @@ struct LessonsView: View {
                                                        type: course.type,
                                                        isFemale: isFemale,
                                                        course: course)
-                                    databaseViewModel.updateListeners(course: course, type: course.type)
+                                    //databaseViewModel.updateListeners(course: course, type: course.type)
                                     self.lesson = file
                                 } else {
                                     isErrorWhenPlaying = true
