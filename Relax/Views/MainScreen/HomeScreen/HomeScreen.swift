@@ -20,6 +20,9 @@ struct HomeScreen: View {
     @EnvironmentObject var yandexViewModel: YandexAuthorization
     @StateObject private var recommendationsViewModel = RecommendationsViewModel(yandexViewModel: YandexAuthorization.shared)
     @State private var isShowing = false
+    @EnvironmentObject var navigationService: NavigationService
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     var body: some View {
         NavigationStack {
@@ -27,10 +30,10 @@ struct HomeScreen: View {
                 VStack {
                     Text("Серотоника")
                         .padding(.vertical)
-                        .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                              green: 65/255,
-                                                              blue: 78/255,
-                                                              alpha: 1)))
+                        .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
+                                                                                         green: 65/255,
+                                                                                         blue: 78/255,
+                                                                                         alpha: 1)))
                         .font(.system(.title2, design: .rounded)).bold()
                         .offset(y: isShowing ? 0 : -1000)
                         .animation(.bouncy, value: isShowing)
@@ -46,8 +49,6 @@ struct HomeScreen: View {
         .tint(.white)
         .refreshable {
             Task {
-                //await viewModel.getCourses(isDaily: true)
-                //await viewModel.getCourses(isDaily: false)
                 await viewModel.getCoursesNew(isDaily: true, path: .allCourses)
                 await viewModel.getCoursesNew(isDaily: false, path: .allCourses)
                 await MainActor.run {
@@ -71,15 +72,17 @@ struct GreetingView: View {
     @StateObject private var homeScreenViewModel = HomeScreenViewModel()
     @EnvironmentObject var yandexViewModel: YandexAuthorization
     @Binding var isShowing: Bool
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     var body: some View {
         VStack {
             HStack {
                 Text(homeScreenViewModel.greeting)
-                    .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                          green: 65/255,
-                                                          blue: 78/255,
-                                                          alpha: 1)))
+                    .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
+                                                                                     green: 65/255,
+                                                                                     blue: 78/255,
+                                                                                     alpha: 1)))
                     .font(.system(.title, design: .rounded)).bold()
                 Spacer()
             }
@@ -87,10 +90,10 @@ struct GreetingView: View {
             HStack {
                 Text(homeScreenViewModel.secondaryGreeting)
                     .font(.system(size: 13, weight: .light, design: .rounded))
-                    .foregroundStyle(Color(uiColor: .init(red: 161/255,
-                                                          green: 164/255,
-                                                          blue: 178/255,
-                                                          alpha: 1)))
+                    .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 161/255,
+                                                                                     green: 164/255,
+                                                                                     blue: 178/255,
+                                                                                     alpha: 1)))
                 Spacer()
             }
         }
@@ -109,7 +112,10 @@ struct DailyRecommendations: View {
     @EnvironmentObject var viewModel: CoursesViewModel
     @State private var isCourseTapped: Bool = false
     @State private var selectedCourse: CourseAndPlaylistOfDayModel?
+    @State private var navigationPath = NavigationPath()
     @Binding var isShowing: Bool
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     var currentDate: String = {
         let date = Date()
@@ -120,12 +126,12 @@ struct DailyRecommendations: View {
     
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             VStack {
                 Group {
                     HStack {
                         Text("Практика дня")
-                            .foregroundStyle(.black)
+                            .foregroundStyle(activeDarkModel ? .white : .black)
                             .font(.system(.title2, design: .rounded, weight: .bold))
                             .multilineTextAlignment(.leading)
                         
@@ -135,10 +141,10 @@ struct DailyRecommendations: View {
                     HStack {
                         Text("Обновляется ежедневно")
                             .font(.system(.subheadline, design: .rounded))
-                            .foregroundStyle(Color(uiColor: .init(red: 161/255,
-                                                                  green: 164/255,
-                                                                  blue: 178/255,
-                                                                  alpha: 1)))
+                            .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 161/255,
+                                                                                             green: 164/255,
+                                                                                             blue: 178/255,
+                                                                                             alpha: 1)))
                         Spacer()
                     }
                 }
@@ -320,11 +326,8 @@ struct RecommendationsScreen: View {
     
     @EnvironmentObject var yandexViewModel: YandexAuthorization
     @StateObject private var recommendationsViewModel = RecommendationsViewModel(yandexViewModel: YandexAuthorization.shared)
-    
-    @FetchRequest(
-        entity: Topic.entity(),
-        sortDescriptors: []
-    ) var selectedTopics: FetchedResults<Topic>
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     @State private var isSelected = false
     @State private var selectedCourse: CourseAndPlaylistOfDayModel?
@@ -337,10 +340,10 @@ struct RecommendationsScreen: View {
                     Text("Рекомендовано для Вас")
                         .padding(.top)
                         .padding(.horizontal)
-                        .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                              green: 65/255,
-                                                              blue: 78/255,
-                                                              alpha: 1)))
+                        .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
+                                                                                         green: 65/255,
+                                                                                         blue: 78/255,
+                                                                                         alpha: 1)))
                         .font(.system(.title2, design: .rounded)).bold()
                     Spacer()
                 }
@@ -371,17 +374,17 @@ struct RecommendationsScreen: View {
                                         Spacer()
                                         
                                         Text(course.name)
-                                            .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                                                  green: 65/255,
-                                                                                  blue: 78/255,
-                                                                                  alpha: 1)))
+                                            .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
+                                                                                                             green: 65/255,
+                                                                                                             blue: 78/255,
+                                                                                                             alpha: 1)))
                                             .font(.system(.callout, design: .rounded)).bold()
                                         
                                         Text(course.type.rawValue)
-                                            .foregroundStyle(Color(uiColor: .init(red: 161/255,
-                                                                                  green: 164/255,
-                                                                                  blue: 178/255,
-                                                                                  alpha: 1)))
+                                            .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 161/255,
+                                                                                                             green: 164/255,
+                                                                                                             blue: 178/255,
+                                                                                                             alpha: 1)))
                                             .font(.system(.caption, design: .rounded))
                                     }
                                 })
@@ -409,6 +412,8 @@ struct NightStories: View {
     @State private var selectedStory: CourseAndPlaylistOfDayModel?
     @Binding var isShowing: Bool
     @Environment(\.currentTab) private var selectedTab
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     var body: some View {
         NavigationStack {
@@ -417,10 +422,10 @@ struct NightStories: View {
                     Text("Истории на ночь")
                         .padding(.top)
                         .padding(.horizontal)
-                        .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                              green: 65/255,
-                                                              blue: 78/255,
-                                                              alpha: 1)))
+                        .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
+                                                                                         green: 65/255,
+                                                                                         blue: 78/255,
+                                                                                         alpha: 1)))
                         .font(.system(.title2, design: .rounded)).bold()
                     Spacer()
                 }
@@ -452,10 +457,10 @@ struct NightStories: View {
                                         .clipShape(.rect(cornerRadius: 10))
                                         Spacer()
                                         Text(nightStory.name)
-                                            .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                                                  green: 65/255,
-                                                                                  blue: 78/255,
-                                                                                  alpha: 1)))
+                                            .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
+                                                                                                             green: 65/255,
+                                                                                                             blue: 78/255,
+                                                                                                             alpha: 1)))
                                             .font(.system(.callout, design: .rounded)).bold()
                                     }
                                 })

@@ -12,6 +12,13 @@ import UIKit
 
 struct EmptyAnimation: UIViewRepresentable {
     
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
+    
+    init() {
+        emptyText.textColor = activeDarkModel ? .white : .black
+    }
+    
     private let onboardingAnimation: LottieAnimationView = {
        let animation = LottieAnimationView()
         animation.animation = LottieAnimation.named("EmptyAnimation")
@@ -28,7 +35,7 @@ struct EmptyAnimation: UIViewRepresentable {
         label.text = "Вы пока ничего не скачивали"
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 20, weight: .bold)
-        label.textColor = .black
+        //label.textColor = .black
         return label
     }()
     

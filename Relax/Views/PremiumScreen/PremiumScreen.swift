@@ -14,6 +14,9 @@ struct PremiumScreen: View {
     @Environment(\.dismiss) private var dismiss
     @State private var isLoading = true
     @State private var isRestoringPurchases = false
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
+    
     
     var body: some View {
         VStack {
@@ -22,10 +25,10 @@ struct PremiumScreen: View {
                     VStack(spacing: 20) {
                         Text("Добро пожаловать в мир спокойствия!")
                             .padding()
-                            .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                                  green: 65/255,
-                                                                  blue: 78/255,
-                                                                  alpha: 1)))
+                            .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
+                                                                                             green: 65/255,
+                                                                                             blue: 78/255,
+                                                                                             alpha: 1)))
                             .font(.system(.title, design: .rounded, weight: .bold))
                             .multilineTextAlignment(.center)
                         CompletePurchaseAnimation()
@@ -38,10 +41,10 @@ struct PremiumScreen: View {
                             Text("Мы рады, что вы с нами! \nЕсли у вас возникнут вопросы или нужна помощь, наша команда всегда готова помочь. Наслаждайтесь каждым моментом с Серотоникой!")
                                 .padding(.horizontal, 7)
                         }
-                        .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                              green: 65/255,
-                                                              blue: 78/255,
-                                                              alpha: 1)))
+                        .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
+                                                                                         green: 65/255,
+                                                                                         blue: 78/255,
+                                                                                         alpha: 1)))
                         .font(.system(size: 15, weight: .bold, design: .rounded))
                         .multilineTextAlignment(.leading)
                         
@@ -70,20 +73,20 @@ struct PremiumScreen: View {
                 Group {
                     Text("Разблокируйте все возможности!")
                         .padding(.horizontal)
-                        .foregroundStyle(Color(uiColor: .init(red: 161/255,
-                                                              green: 164/255,
-                                                              blue: 178/255,
-                                                              alpha: 1)))
+                        .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 161/255,
+                                                                                         green: 164/255,
+                                                                                         blue: 178/255,
+                                                                                         alpha: 1)))
                     VStack {
                         HStack {
                             Image(systemName: "checkmark.square.fill")
                                 .foregroundStyle(.green)
                                 .frame(width: 15, height: 15)
                             Text("Неограниченные медитации: открывайте для себя новые практики каждый день;")
-                                .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                                      green: 65/255,
-                                                                      blue: 78/255,
-                                                                      alpha: 1)))
+                                .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
+                                                                                                 green: 65/255,
+                                                                                                 blue: 78/255,
+                                                                                                 alpha: 1)))
                                 .multilineTextAlignment(.leading)
                                 .lineLimit(3)
                                 .minimumScaleFactor(0.5)
@@ -96,10 +99,10 @@ struct PremiumScreen: View {
                                 .foregroundStyle(.green)
                                 .frame(width: 15, height: 15)
                             Text("Эксклюзивные материалы: глубокие уроки по осознанности, управлению стрессом и улучшению сна;")
-                                .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                                      green: 65/255,
-                                                                      blue: 78/255,
-                                                                      alpha: 1)))
+                                .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
+                                                                                                 green: 65/255,
+                                                                                                 blue: 78/255,
+                                                                                                 alpha: 1)))
                                 .multilineTextAlignment(.leading)
                                 .lineLimit(3)
                                 .minimumScaleFactor(0.5)
@@ -112,10 +115,10 @@ struct PremiumScreen: View {
                                 .foregroundStyle(.green)
                                 .frame(width: 15, height: 15)
                             Text("Скачивайте уроки или весь плейлист в оффлайн: практикуйтесь даже там, где нет интернета.")
-                                .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                                      green: 65/255,
-                                                                      blue: 78/255,
-                                                                      alpha: 1)))
+                                .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
+                                                                                                 green: 65/255,
+                                                                                                 blue: 78/255,
+                                                                                                 alpha: 1)))
                                 .multilineTextAlignment(.leading)
                                 .lineLimit(3)
                                 .minimumScaleFactor(0.5)
@@ -128,10 +131,10 @@ struct PremiumScreen: View {
                     VStack {
                         Text("Выберите свой план:")
                             .padding()
-                            .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                                  green: 65/255,
-                                                                  blue: 78/255,
-                                                                  alpha: 1)))
+                            .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
+                                                                                             green: 65/255,
+                                                                                             blue: 78/255,
+                                                                                             alpha: 1)))
                             .font(.system(.title2, design: .rounded, weight: .bold))
                             .multilineTextAlignment(.center)
                         
@@ -169,10 +172,7 @@ struct PremiumScreen: View {
                     
                     Text("Оплата будет снята с вашего аккаунта App Store после подтверждения покупки. Подписка автоматически продлевается, если автообновление не будет отключено за 24 часа до окончания текущего периода. Управление подпиской и отключение автообновления доступны в настройках вашего аккаунта App Store.")
                         .padding(10)
-                        .foregroundStyle(Color(uiColor: .init(red: 161/255,
-                                                              green: 164/255,
-                                                              blue: 178/255,
-                                                              alpha: 1)))
+                        .foregroundStyle(Color(uiColor: .secondaryTextColor))
                         .font(.system(size: 11, weight: .light, design: .rounded))
                     
                     Button(action: {
@@ -193,17 +193,17 @@ struct PremiumScreen: View {
                                 .frame(width: 40, height: 40)
                         } else {
                             Text("Восстановить покупки").bold()
-                                .foregroundStyle(Color(uiColor: .init(red: 63/255,
-                                                                      green: 65/255,
-                                                                      blue: 78/255,
-                                                                      alpha: 1)))
+                                .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
+                                                                                                 green: 65/255,
+                                                                                                 blue: 78/255,
+                                                                                                 alpha: 1)))
                         }
                     })
                 }
                 Spacer()
             }
         }
-        .preferredColorScheme(.light)
+        .preferredColorScheme(activeDarkModel ? .dark : .light)
         .task {
             do {
                 try await premuimViewModel.loadProducts()
@@ -217,6 +217,3 @@ struct PremiumScreen: View {
     }
 }
 
-#Preview {
-    PremiumScreen()
-}

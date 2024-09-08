@@ -29,6 +29,8 @@ struct AccountScreen: View {
     @EnvironmentObject var viewModel: AuthViewModel
     @EnvironmentObject private var yandexViewModel: YandexAuthorization
     @StateObject private var databaseVM = ChangeDataInDatabase.shared
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     
     var body: some View {
@@ -42,7 +44,7 @@ struct AccountScreen: View {
                                         .padding()
                                         .foregroundStyle(.black)
                                         .textFieldStyle(.plain)
-                                        .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
+                                        .background(activeDarkModel ? .black : Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
                                         .clipShape(.rect(cornerRadius: 8))
                                         .focused($isFocused)
                                         .onTapGesture {

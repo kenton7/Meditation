@@ -27,6 +27,8 @@ struct PlayerScreen: View {
     private let fileManagerService: IFileManagerSerivce = FileManagerSerivce()
     @State private var isPressedDownloadWithoutPremium = false
     @State private var isListenersUpdated: Bool?
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     let lesson: Lesson?
     let isFemale: Bool
@@ -38,11 +40,16 @@ struct PlayerScreen: View {
             if course.type == .story {
                 Color(uiColor: .init(red: 3/255, green: 23/255, blue: 76/255, alpha: 1)).ignoresSafeArea()
             } else {
-                Color(uiColor: .init(red: 250/255,
-                                     green: 247/255,
-                                     blue: 242/255,
-                                     alpha: 1))
-                .ignoresSafeArea()
+                if activeDarkModel {
+                    Color.black
+                        .ignoresSafeArea()
+                } else {
+                    Color(uiColor: .init(red: 250/255,
+                                         green: 247/255,
+                                         blue: 242/255,
+                                         alpha: 1))
+                    .ignoresSafeArea()
+                }
             }
             VStack {
                 HStack {
@@ -117,7 +124,7 @@ struct PlayerScreen: View {
                 VStack {
                     Spacer()
                     Text((playerViewModel.lessonName == "" ? lesson?.name : playerViewModel.lessonName) ?? "")
-                        .foregroundStyle(course.type == .story ? .white : .black)
+                        .foregroundStyle(course.type == .story || activeDarkModel ? .white : .black)
                         .font(.system(.title, design: .rounded, weight: .bold))
                         .multilineTextAlignment(.center)
                     Text(course.name)
@@ -141,7 +148,7 @@ struct PlayerScreen: View {
                         }, label: {
                             Image(systemName: "gobackward.15")
                                 .font(.system(size: 35))
-                                .foregroundStyle(course.type == .story ? .white : .gray)
+                                .foregroundStyle(course.type == .story || activeDarkModel ? .white : .gray)
                         })
                         
                         Button(action: {
@@ -198,7 +205,7 @@ struct PlayerScreen: View {
                             }
                         }, label: {
                             Image(systemName: "goforward.15")
-                                .foregroundStyle(course.type == .story ? .white : .gray)
+                                .foregroundStyle(course.type == .story || activeDarkModel ? .white : .gray)
                                 .font(.system(size: 35))
                         })
                     }
@@ -222,7 +229,7 @@ struct PlayerScreen: View {
                                 playerViewModel.currentTime = newTime
                             }), in: 0...1)
                             .padding()
-                            .tint(course.type == .story ? .white : .black)
+                            .tint(course.type == .story || activeDarkModel ? .white : .black)
                             .onChange(of: playerViewModel.currentTime) { newValue in
                                 if playerViewModel.duration.seconds.isFinite && playerViewModel.duration.seconds > 0 {
                                     self.sliderValue = newValue.seconds / playerViewModel.duration.seconds
@@ -243,11 +250,11 @@ struct PlayerScreen: View {
                     
                     HStack {
                         Text(playerViewModel.formatTime(time: playerViewModel.currentTime))
-                            .foregroundStyle(course.type == .story ? .white : .black)
+                            .foregroundStyle(course.type == .story || activeDarkModel ? .white : .black)
                         Spacer()
                         if playerViewModel.duration != .zero {
                             Text(playerViewModel.formatTime(time: playerViewModel.duration))
-                                .foregroundStyle(course.type == .story ? .white : .black)
+                                .foregroundStyle(course.type == .story || activeDarkModel ? .white : .black)
                         } else {
                             LoadingAnimationButton()
                         }

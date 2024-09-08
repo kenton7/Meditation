@@ -11,6 +11,8 @@ struct OnboardingScreen: View {
     
     @EnvironmentObject var viewModel: AuthViewModel
     @State private var hasAccount = false
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     var body: some View {
         NavigationStack {
@@ -23,6 +25,7 @@ struct OnboardingScreen: View {
                 VStack {
                     Text("Серотоника")
                         .font(.system(.title, design: .rounded)).bold()
+                        .foregroundStyle(.black)
                     OnboardingAnimation()
                         .frame(width: 200, height: 200)
                     Spacer()

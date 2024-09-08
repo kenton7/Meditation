@@ -73,9 +73,12 @@ struct RelaxApp: App {
     @StateObject private var changeDatabase = ChangeDataInDatabase.shared
     @StateObject private var premuimViewModel = PremiumViewModel.shared
     @StateObject private var downloadManager = DownloadManager()
+    @StateObject private var navigationService = NavigationService()
     let persistenceController = PersistenceController.shared
     
 
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     var body: some Scene {
         WindowGroup {
@@ -89,10 +92,12 @@ struct RelaxApp: App {
                 .environmentObject(yandexViewModel)
                 .environmentObject(premuimViewModel)
                 .environmentObject(downloadManager)
+                .environmentObject(navigationService)
                 .task {
                     await premuimViewModel.updatePurchasedProducts()
                 }
-                .environment(\.colorScheme, .light)
+                .environment(\.colorScheme, activeDarkModel ? .dark : .light)
+                //.environment(\.colorScheme, .light)
         }
         .environment(\.managedObjectContext, persistenceController.container.viewContext)
     }

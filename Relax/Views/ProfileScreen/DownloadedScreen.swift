@@ -12,6 +12,8 @@ struct DownloadedScreen: View {
     @State private var downloadedFiles: [FileItem] = []
     let fileManagerSerivce: IFileManagerSerivce
     @EnvironmentObject private var premiumViewModel: PremiumViewModel
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     var body: some View {
         NavigationStack {
@@ -26,6 +28,7 @@ struct DownloadedScreen: View {
                             FolderContentsView(folderURL: file.url, fileManagerSerivce: fileManagerSerivce)
                         } label: {
                             Text(file.url.lastPathComponent)
+                                .foregroundStyle(activeDarkModel ? .white : .black)
                         }
                         .swipeActions {
                             Button {
@@ -56,6 +59,8 @@ struct FolderContentsView: View {
     @State private var contents: [FileItem] = []
     @State private var isSelected = false
     @EnvironmentObject private var playerViewModel: PlayerViewModel
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
 
     var body: some View {
         List(contents) { item in
@@ -74,7 +79,7 @@ struct FolderContentsView: View {
                             .font(.system(size: 15, design: .rounded)).bold()
                     }
                     Text(item.url.deletingPathExtension().lastPathComponent)
-                        .foregroundStyle(.black)
+                        .foregroundStyle(activeDarkModel ? .white : .black)
                         .font(.system(size: 17, design: .rounded)).bold()
                 }
             })

@@ -39,7 +39,8 @@ struct RemindersScreen: View {
             Day(name: "ВС", index: 1)
         ]
     let isFromSettings: Bool
-    //@State private var days: [Day] = []
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     var body: some View {
         ScrollView {
@@ -48,7 +49,7 @@ struct RemindersScreen: View {
                     HStack {
                         Text("В какое время вам удобнее было бы медитировать?")
                             .padding(.horizontal)
-                            .foregroundStyle(Color(uiColor: .init(red: 63/255, green: 65/255, blue: 78/255, alpha: 1)))
+                            .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255, green: 65/255, blue: 78/255, alpha: 1)))
                             .font(.system(.title2, design: .rounded, weight: .bold))
                             .multilineTextAlignment(.leading)
                         Spacer()
@@ -58,7 +59,7 @@ struct RemindersScreen: View {
                         Text("Вы можете выбрать любое время, \nно мы советуем заниматься утром.")
                             .padding(.horizontal)
                             .padding(.vertical, 5)
-                            .foregroundStyle(Color(uiColor: .init(red: 161/255, green: 164/255, blue: 178/255, alpha: 1)))
+                            .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 161/255, green: 164/255, blue: 178/255, alpha: 1)))
                         Spacer()
                     }
                     
@@ -71,7 +72,7 @@ struct RemindersScreen: View {
                         Text("В какой день вам было бы удобнее медитировать?")
                             .padding(.horizontal)
                             .padding(.vertical, 5)
-                            .foregroundStyle(Color(uiColor: .init(red: 63/255, green: 65/255, blue: 78/255, alpha: 1)))
+                            .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255, green: 65/255, blue: 78/255, alpha: 1)))
                             .font(.system(.title2, design: .rounded, weight: .bold))
                             .multilineTextAlignment(.leading)
                         Spacer()
@@ -80,7 +81,7 @@ struct RemindersScreen: View {
                     HStack {
                         Text("Каждый день – это лучший вариант, \nно мы советуем выбрать как минимум \n5 дней в неделю.")
                             .padding(.horizontal)
-                            .foregroundStyle(Color(uiColor: .init(red: 161/255, green: 164/255, blue: 178/255, alpha: 1)))
+                            .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 161/255, green: 164/255, blue: 178/255, alpha: 1)))
                         Spacer()
                     }
                     
@@ -160,7 +161,7 @@ struct RemindersScreen: View {
                                 }
                             }, label: {
                                 Text("Нет, спасибо")
-                                    .foregroundStyle(Color(uiColor: .noThanksButtonColor))
+                                    .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .noThanksButtonColor))
                             })
                         }
                     }

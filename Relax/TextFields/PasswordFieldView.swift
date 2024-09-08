@@ -14,6 +14,9 @@ struct PasswordFieldView: View {
     private var title: String
     @FocusState private var isFocused: Bool
     
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
+    
     init(_ title: String, text: Binding<String>) {
         self.title = title
         self._text = text
@@ -25,7 +28,7 @@ struct PasswordFieldView: View {
                 ZStack(alignment: .leading) {
                 SecureField("", text: $text)
                     .padding()
-                    .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
+                    .background(activeDarkModel ? .black : Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
                     .clipShape(.rect(cornerRadius: 8))
                     .padding()
                     .autocorrectionDisabled(true)
@@ -45,7 +48,7 @@ struct PasswordFieldView: View {
                     ZStack(alignment: .leading) {
                         TextField("", text: $text)
                             .padding()
-                            .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
+                            .background(activeDarkModel ? .black : Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
                             .clipShape(.rect(cornerRadius: 8))
                             .padding()
                             .autocorrectionDisabled(true)
@@ -58,6 +61,7 @@ struct PasswordFieldView: View {
                             .padding()
                             .offset(x: 10)
                             .offset(y: (isFocused || !text.isEmpty) ? -40 : 0)
+                            .foregroundStyle(isFocused && activeDarkModel ? .white : .secondary)
                             .foregroundStyle(isFocused ? .black : .secondary)
                             .animation(.spring, value: isFocused)
                     }
@@ -75,6 +79,3 @@ struct PasswordFieldView: View {
     }
 }
 
-#Preview {
-    PasswordFieldView("Пароль", text: .constant("123"))
-}

@@ -28,6 +28,8 @@ struct LogInView: View {
     private let locale = Locale.current
     @Environment(\.colorScheme) private var scheme
     @State private var isViewed = false
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     
     var body: some View {
@@ -59,13 +61,13 @@ struct LogInView: View {
                     } label: {
                         ZStack {
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(.black)
+                                .fill(activeDarkModel ? .white : .black)
                             HStack {
                                 Image("Yandex")
                                     .resizable()
                                     .frame(width: 25, height: 25)
                                 Text("Войти с Яндекс ID")
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(activeDarkModel ? .black : .white)
                                     .bold()
                             }
                         }
@@ -194,7 +196,7 @@ struct LogInView: View {
                         }
                     }, label: {
                         Text("Забыли пароль?").bold()
-                            .foregroundStyle(Color(uiColor: .darkGray))
+                            .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .darkGray))
                     })
                     .padding()
                 }

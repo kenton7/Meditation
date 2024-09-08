@@ -36,11 +36,17 @@ struct ProfileScreen: View {
     @State private var aboutUsPressed = false
     @State private var isRemindersPressed = false
     @State private var userName = ""
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
+    @State private var buttonRect: CGRect = .zero
+    @State private var currentStateImage: UIImage?
+    @State private var previousStateImage: UIImage?
+    @State private var maskAnimation: Bool = false
     let fileManagerService: IFileManagerSerivce = FileManagerSerivce()
-    @State private var path = NavigationPath()
+    @EnvironmentObject private var emailService: EmailService
     
     var body: some View {
-        NavigationStack(path: $path) {
+        NavigationStack {
             VStack {
                 Spacer()
                 List {
@@ -113,9 +119,9 @@ struct ProfileScreen: View {
                     
                     Section("Помощь") {
                         Button(action: {
-                            openMail(emailTo: "serotonika.app@gmail.com",
-                                     subject: "Серотоника",
-                                     body: "Версия: \(Bundle.main.appVersion), сборка: \(Bundle.main.appBuild)")
+                            emailService.openMail(emailTo: "serotonika.app@gmail.com",
+                                                  subject: "Серотоника",
+                                                  body: "Версия: \(Bundle.main.appVersion), сборка: \(Bundle.main.appBuild)")
                         }, label: {
                             HStack {
                                 Image("email")
@@ -160,7 +166,7 @@ struct ProfileScreen: View {
                         }
                     })
                 }
-                .foregroundStyle(.black)
+                .foregroundStyle(toogleDarkMode ? .white : .black)
                 
 //                VStack {
 //                     Text("Версия: \(Bundle.main.appVersion)")
@@ -173,6 +179,7 @@ struct ProfileScreen: View {
             }
             .navigationTitle(userName)
         }
+        .tint(activeDarkModel ? .white : .black)
         .onAppear {
             if let userName = Auth.auth().currentUser?.displayName {
                 self.userName = userName
@@ -180,15 +187,95 @@ struct ProfileScreen: View {
                 self.userName = yandexViewModel.userName ?? ""
             }
         }
-    }
-    
-    func openMail(emailTo: String, subject: String, body: String) {
-        if let url = URL(string: "mailto:\(emailTo)?subject=\(subject.fixToBrowserString())&body=\(body)"),
-           UIApplication.shared.canOpenURL(url)
-        {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
-        } else {
-            print("error email")
+        .createImages(toogleDarkMode: toogleDarkMode,
+                      currentImage: $currentStateImage,
+                      previousImage: $previousStateImage,
+                      activateDarkMode: $activeDarkModel)
+        .overlay {
+            GeometryReader(content: { geometry in
+                let size = geometry.size
+                if let previousStateImage, let currentStateImage {
+                    ZStack {
+                        Image(uiImage: previousStateImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: size.width, height: size.height)
+                        
+                        Image(uiImage: currentStateImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: size.width, height: size.height)
+                            .mask(alignment: .topLeading) {
+                                Circle()
+                                    .frame(width: buttonRect.width * (maskAnimation ? 80 : 1), height: buttonRect.height * (maskAnimation ? 80 : 1), alignment: .bottomLeading)
+                                    .frame(width: buttonRect.width, height: buttonRect.height)
+                                    .offset(x: buttonRect.minX, y: buttonRect.minY)
+                                    .ignoresSafeArea()
+                            }
+                    }
+                    .task {
+                        guard !maskAnimation else { return }
+                        if #available(iOS 17.0, *) {
+                            withAnimation(.easeInOut(duration: 0.9), completionCriteria: .logicallyComplete) {
+                                maskAnimation = true
+                            } completion: {
+                                self.currentStateImage = nil
+                                self.previousStateImage = nil
+                                maskAnimation = false
+                            }
+                        } else {
+                            withAnimation(.easeInOut(duration: 0.9)) {
+                                self.currentStateImage = nil
+                                self.previousStateImage = nil
+                                maskAnimation = false
+                            }
+                        }
+
+                    }
+                }
+            })
+            .mask({
+                Rectangle()
+                    .overlay(alignment: .topLeading) {
+                        Circle()
+                            .frame(width: buttonRect.width, height: buttonRect.height)
+                            .offset(x: buttonRect.minX, y: buttonRect.minY)
+                            .blendMode(.destinationOut)
+                    }
+            })
+            .ignoresSafeArea()
         }
+        .overlay(alignment: .topTrailing) {
+            if #available(iOS 17.0, *) {
+                Button(action: {
+                    toogleDarkMode.toggle()
+                }, label: {
+                    Image(systemName: toogleDarkMode ? "sun.max.fill" : "moon.fill")
+                        .font(.title2)
+                        .foregroundStyle(toogleDarkMode ? .white : .primary)
+                        .symbolEffect(.bounce, value: toogleDarkMode)
+                        .frame(width: 40, height: 40)
+                })
+                .rect { rect in
+                    buttonRect = rect
+                }
+                .padding(10)
+            } else {
+                Button(action: {
+                    toogleDarkMode.toggle()
+                }, label: {
+                    Image(systemName: toogleDarkMode ? "sun.max.fill" : "moon.fill")
+                        .font(.title2)
+                        .foregroundStyle(.primary)
+                        .frame(width: 40, height: 40)
+                })
+                .rect { rect in
+                    buttonRect = rect
+                }
+                .padding(10)
+                .disabled(currentStateImage != nil || previousStateImage != nil || maskAnimation)
+            }
+        }
+        .preferredColorScheme(activeDarkModel ? .dark : .light)
     }
 }

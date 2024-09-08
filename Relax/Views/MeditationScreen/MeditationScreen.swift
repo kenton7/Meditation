@@ -28,20 +28,9 @@ struct MeditationScreen: View {
         .padding(.bottom)
         .refreshable {
             Task {
-                //await meditationsVM.getCourses(isDaily: false)
                 await meditationsVM.getCoursesNew(isDaily: false, path: .allCourses)
                 await meditationsVM.getCoursesNew(isDaily: false, path: .emergencyMeditations)
-                await MainActor.run {
-                    //emergencyVM.fetchEmergencyMeditations()
-                    //meditationsVM.getCoursesNew(isDaily: false, path: .emergencyMeditations)
-                }
             }
-//            meditationsVM.filteredStories.removeAll()
-//            emergencyVM.emergencyMeditations.removeAll()
-//            emergencyVM.fetchEmergencyMeditations()
-//            Task.detached {
-//                await meditationsVM.getCourses(isDaily: false)
-//            }
         }
         .onAppear {
             isShowing = true
@@ -56,21 +45,23 @@ struct MeditationScreen: View {
 struct MeditationHeaderView: View {
     
     @Binding var isShowing: Bool
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     var body: some View {
         VStack {
             Text("Медитации")
                 .padding()
-                .foregroundStyle(.black)
+                .foregroundStyle(activeDarkModel ? .white : .black)
                 .font(.system(.title, design: .rounded, weight: .bold))
                 .offset(y: isShowing ? 0 : -1000)
                 .animation(.bouncy, value: isShowing)
             Text("Погрузитесь в мир осознанности и внутреннего спокойствия с нашими подробными уроками медитации, созданными для всех уровней подготовки.")
                 .padding()
-                .foregroundStyle(Color(uiColor: .init(red: 160/255,
-                                                      green: 163/255,
-                                                      blue: 177/255,
-                                                      alpha: 1)))
+                .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 160/255,
+                                                                                 green: 163/255,
+                                                                                 blue: 177/255,
+                                                                                 alpha: 1)))
                 .font(.system(.headline, design: .rounded, weight: .light))
                 .multilineTextAlignment(.center)
                 .offset(x: isShowing ? 0 : -1000)
@@ -87,7 +78,8 @@ struct EmergencyHelp: View {
     @EnvironmentObject private var coursesViewModel: CoursesViewModel
     @State private var isSelected = false
     @State var selectedCourse: CourseAndPlaylistOfDayModel?
-    
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     @Binding var isShowing: Bool
     
     var body: some View {
@@ -95,10 +87,10 @@ struct EmergencyHelp: View {
             VStack {
                 Text("Если помощь нужна здесь и сейчас")
                     .padding()
-                    .foregroundStyle(Color(uiColor: .init(red: 160/255,
-                                                          green: 163/255,
-                                                          blue: 177/255,
-                                                          alpha: 1)))
+                    .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 160/255,
+                                                                                     green: 163/255,
+                                                                                     blue: 177/255,
+                                                                                     alpha: 1)))
                     .font(.system(.headline, design: .rounded, weight: .light))
                     .multilineTextAlignment(.center)
                 
@@ -121,7 +113,7 @@ struct EmergencyHelp: View {
                                     .clipShape(.rect(cornerRadius: 16))
                                     .padding(.horizontal)
                                 Text(emergencyLesson.name)
-                                    .foregroundStyle(.black)
+                                    .foregroundStyle(activeDarkModel ? .white : .black)
                                     .font(.system(size: 15, design: .rounded)).bold()
                             }
                         })
@@ -148,7 +140,8 @@ struct AllMeditationsView: View {
     @EnvironmentObject var meditationsViewModel: CoursesViewModel
     @State private var isSelected = false
     @State var selectedCourse: CourseAndPlaylistOfDayModel?
-    
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     @Binding var isShowing: Bool
     
     var body: some View {
@@ -156,10 +149,10 @@ struct AllMeditationsView: View {
             VStack {
                 Text("Все медитации")
                     .padding()
-                    .foregroundStyle(Color(uiColor: .init(red: 160/255,
-                                                          green: 163/255,
-                                                          blue: 177/255,
-                                                          alpha: 1)))
+                    .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 160/255,
+                                                                                     green: 163/255,
+                                                                                     blue: 177/255,
+                                                                                     alpha: 1)))
                     .font(.system(.headline, design: .rounded, weight: .light))
                     .multilineTextAlignment(.center)
                 
@@ -198,7 +191,7 @@ struct AllMeditationsView: View {
                                                                          style: .continuous))
                                                         .overlay {
                                                             Text(course.name)
-                                                                .foregroundStyle(.white)
+                                                                .foregroundStyle(activeDarkModel ? .white : .black)
                                                                 .font(.system(size: 14,
                                                                               weight: .bold,
                                                                               design: .rounded))

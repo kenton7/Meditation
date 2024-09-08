@@ -17,16 +17,18 @@ struct WelcomeScreen: View {
     @EnvironmentObject var yandexViewModel: YandexAuthorization
     @State private var isLogOut = false
     @State private var isGetStartedTapped = false
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(uiColor: .init(red: 140/255, green: 150/255, blue: 255/255, alpha: 1)).ignoresSafeArea()
+                activeDarkModel ? Color.black.ignoresSafeArea() : Color(uiColor: .init(red: 140/255, green: 150/255, blue: 255/255, alpha: 1)).ignoresSafeArea()
                 VStack {
                     Text("Серотоника")
                         .padding()
                         .font(.system(.title2, design: .rounded)).bold()
-                        .foregroundStyle(.white)
+                        .foregroundStyle(activeDarkModel ? .white : .black)
                     
                     Spacer()
                     

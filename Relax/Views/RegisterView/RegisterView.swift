@@ -33,12 +33,15 @@ struct RegisterView: View {
     //@EnvironmentObject private var signInWithAppleVM: SignInWithAppleVM
     private let locale = Locale.current
     @Environment(\.colorScheme) private var scheme
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     var body: some View {
         NavigationStack {
             ZStack {
                 VStack {
-                    Image("LoginBackground").ignoresSafeArea()
+                    Image("LoginBackground")
+                        .ignoresSafeArea()
                     Spacer()
                 }
                 VStack {
@@ -57,7 +60,6 @@ struct RegisterView: View {
                                 try YandexLoginSDK.shared.authorize(with: rootViewController,
                                                                     customValues: nil,
                                                                     authorizationStrategy: .default)
-                                //isRegistered = true
                             } catch {
                                 print("Ошибка запуска авторизации: \(error.localizedDescription)")
                                 isRegistration = false
@@ -66,13 +68,13 @@ struct RegisterView: View {
                     } label: {
                         ZStack {
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(.black)
+                                .fill(activeDarkModel ? .white : .black)
                             HStack {
                                 Image("Yandex")
                                     .resizable()
                                     .frame(width: 25, height: 25)
                                 Text("Войти с Яндекс ID")
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(activeDarkModel ? .black : .white)
                                     .bold()
                             }
                         }
@@ -148,7 +150,7 @@ struct RegisterView: View {
                     
                     TextField("Как Вас зовут?", text: $name)
                         .padding()
-                        .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
+                        .background(activeDarkModel ? .black : Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
                         .clipShape(.rect(cornerRadius: 8))
                         .padding()
                         .autocorrectionDisabled(true)
@@ -211,7 +213,7 @@ struct RegisterView: View {
                                 }
                             }, label: {
                                 RoundedRectangle(cornerRadius: 5, style: RoundedCornerStyle.continuous)
-                                    .stroke(Color(uiColor: .black), lineWidth: 1)
+                                    .stroke(activeDarkModel ? .white : .black, lineWidth: 1)
                                     .frame(width: 20, height: 20)
                                     .overlay {
                                         Image(systemName: "checkmark")
@@ -220,7 +222,6 @@ struct RegisterView: View {
                             })
                             .padding(.trailing, 1)
                         }
-                        //.padding(.vertical)
                     }
                     .padding(.horizontal)
                     

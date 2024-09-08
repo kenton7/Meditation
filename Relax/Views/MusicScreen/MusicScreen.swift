@@ -41,20 +41,22 @@ struct MusicScreen: View {
 struct MusicHeaderView: View {
     
     @Binding var isShowing: Bool
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     var body: some View {
         VStack {
             Text("Музыка")
                 .padding()
-                .foregroundStyle(.black)
+                .foregroundStyle(activeDarkModel ? .white : .black)
                 .font(.system(.title, design: .rounded, weight: .bold))
             
             Text("Насладитесь успокаивающей музыкой, которая поможет вам снять стресс и найти внутреннее спокойствие.")
                 .padding()
-                .foregroundStyle(Color(uiColor: .init(red: 160/255,
-                                                      green: 163/255,
-                                                      blue: 177/255,
-                                                      alpha: 1)))
+                .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 160/255,
+                                                                                 green: 163/255,
+                                                                                 blue: 177/255,
+                                                                                 alpha: 1)))
                 .font(.system(.headline, design: .rounded, weight: .light))
                 .multilineTextAlignment(.center)
             Spacer()
@@ -71,6 +73,8 @@ struct AllMusicPlaylists: View {
     @State private var isSelected = false
     @State var selectedPlaylist: CourseAndPlaylistOfDayModel?
     @Binding var isShowing: Bool
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     var body: some View {
         NavigationStack {
@@ -96,15 +100,12 @@ struct AllMusicPlaylists: View {
                                     .frame(width: 200, height: 150)
                                 
                                 Text(file.name)
-                                    .foregroundStyle(.black)
+                                    .foregroundStyle(activeDarkModel ? .white : .black)
                                     .font(.system(size: 17, design: .rounded)).bold()
                                 
                                 Text("\(file.duration) мин.")
                                     .padding(.horizontal, 10)
-                                    .foregroundStyle(Color(uiColor: .init(red: 152/255,
-                                                                          green: 161/255,
-                                                                          blue: 189/255,
-                                                                          alpha: 1)))
+                                    .foregroundStyle(Color(uiColor: .secondaryTextColor))
                                     .font(.system(size: 13, weight: .bold, design: .rounded))
                                     .multilineTextAlignment(.leading)
                                 Spacer()

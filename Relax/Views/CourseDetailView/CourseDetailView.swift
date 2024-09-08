@@ -31,6 +31,8 @@ struct CourseDetailView: View {
     @State private var lessons = [Lesson]()
     @State private var isDownloaded = false
     @State private var isPressedDownloadWithoutPremium = false
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     var body: some View {
         NavigationStack {
@@ -85,7 +87,7 @@ struct CourseDetailView: View {
             HStack {
                 Text(course.name)
                     .padding(.horizontal)
-                    .foregroundStyle(course.type == .story ? .white : Color(uiColor: .init(red: 63/255,
+                    .foregroundStyle(course.type == .story || activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
                                                                                            green: 65/255,
                                                                                            blue: 78/255,
                                                                                            alpha: 1)))
@@ -98,7 +100,6 @@ struct CourseDetailView: View {
                         Spacer()
                         Button(action: {
                             withAnimation {
-                                //isLiked.toggle()
                                 databaseViewModel.isLiked.toggle()
                             }
                             if databaseViewModel.isLiked {
@@ -117,7 +118,7 @@ struct CourseDetailView: View {
                         }, label: {
                             Image(systemName: databaseViewModel.isLiked ? "heart.fill" : "heart")
                                 .bold()
-                                .foregroundColor(course.type == .story ? .white : Color(uiColor: .init(red: 63/255,
+                                .foregroundColor(course.type == .story || activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
                                                                                                        green: 65/255,
                                                                                                        blue: 78/255,
                                                                                                        alpha: 1)))
@@ -125,7 +126,7 @@ struct CourseDetailView: View {
                                 .background(.clear)
                                 .overlay(
                                     Circle()
-                                        .stroke(course.type == .story ? .white : Color(uiColor: .init(red: 63/255,
+                                        .stroke(course.type == .story || activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
                                                                                                       green: 65/255,
                                                                                                       blue: 78/255,
                                                                                                       alpha: 1)),
@@ -155,12 +156,12 @@ struct CourseDetailView: View {
                             }, label: {
                                 Image(systemName: "arrow.down")
                                     .bold()
-                                    .foregroundStyle(course.type == .story ? .white : .black)
+                                    .foregroundStyle(course.type == .story || activeDarkModel ? .white : .black)
                                     .frame(width: 50, height: 50)
                                     .background(.clear)
                                     .overlay {
                                         Circle()
-                                            .stroke(course.type == .story ? .white : Color(uiColor: .init(red: 63/255,
+                                            .stroke(course.type == .story || activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
                                                                                                           green: 65/255,
                                                                                                           blue: 78/255,
                                                                                                           alpha: 1)),
@@ -190,10 +191,10 @@ struct CourseDetailView: View {
             HStack {
                 Text(course.description)
                     .padding()
-                    .foregroundStyle(Color(uiColor: .init(red: 161/255,
-                                                          green: 164/255,
-                                                          blue: 178/255,
-                                                          alpha: 1)))
+                    .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 161/255,
+                                                                                     green: 164/255,
+                                                                                     blue: 178/255,
+                                                                                     alpha: 1)))
                     .font(.system(.callout, design: .rounded, weight: .light))
                     .multilineTextAlignment(.leading)
                 Spacer()
@@ -210,10 +211,10 @@ struct CourseDetailView: View {
                     
                     Text("\(databaseViewModel.likes) нравится")
                         .font(.system(size: 14, design: .rounded)).bold()
-                        .foregroundStyle(Color(uiColor: .init(red: 161/255,
-                                                              green: 164/255,
-                                                              blue: 178/255,
-                                                              alpha: 1)))
+                        .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 161/255,
+                                                                                         green: 164/255,
+                                                                                         blue: 178/255,
+                                                                                         alpha: 1)))
                 }
                 
                 HStack {
@@ -226,10 +227,10 @@ struct CourseDetailView: View {
                                                               alpha: 1)))
                     Text("\(databaseViewModel.listeners) слушали")
                         .font(.system(size: 14, design: .rounded)).bold()
-                        .foregroundStyle(Color(uiColor: .init(red: 161/255,
-                                                              green: 164/255,
-                                                              blue: 178/255,
-                                                              alpha: 1)))
+                        .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 161/255,
+                                                                                         green: 164/255,
+                                                                                         blue: 178/255,
+                                                                                         alpha: 1)))
                 }
             }
             .padding()
@@ -238,7 +239,7 @@ struct CourseDetailView: View {
                 VStack {
                     HStack {
                         Text("Выберите голос")
-                            .foregroundStyle(course.type == .story ? .white : Color(uiColor: .init(red: 63/255,
+                            .foregroundStyle(course.type == .story || activeDarkModel ? .white : Color(uiColor: .init(red: 63/255,
                                                                                                    green: 65/255,
                                                                                                    blue: 78/255,
                                                                                                    alpha: 1)))

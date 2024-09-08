@@ -25,14 +25,6 @@ struct UserLikedPlaylistsScreen: View {
                 } else {
                     ScrollView {
                         VStack {
-//                            Text("Медитации")
-//                                .padding()
-//                                .foregroundStyle(Color(uiColor: .init(red: 160/255,
-//                                                                      green: 163/255,
-//                                                                      blue: 177/255,
-//                                                                      alpha: 1)))
-//                                .font(.system(.headline, design: .rounded, weight: .light))
-//                                .multilineTextAlignment(.center)
                             LazyVGrid(columns: [GridItem(.flexible()),
                                                 GridItem(.flexible())],
                                       spacing: 20,
@@ -79,33 +71,6 @@ struct UserLikedPlaylistsScreen: View {
                                     })
                                 }
                             })
-//                            
-//                            Text("Истории на ночь")
-//                                .padding()
-//                                .foregroundStyle(Color(uiColor: .init(red: 160/255,
-//                                                                      green: 163/255,
-//                                                                      blue: 177/255,
-//                                                                      alpha: 1)))
-//                                .font(.system(.headline, design: .rounded, weight: .light))
-//                                .multilineTextAlignment(.center)
-//                            LikedNightStoriesView(isSelected: $isSelected,
-//                                                  isLoading: $isLoading,
-//                                                  isShowing: $isShowing,
-//                                                  selectedStory: $selectedCourse)
-//                            
-//                            Text("Музыка")
-//                                .padding()
-//                                .foregroundStyle(Color(uiColor: .init(red: 160/255,
-//                                                                      green: 163/255,
-//                                                                      blue: 177/255,
-//                                                                      alpha: 1)))
-//                                .font(.system(.headline, design: .rounded, weight: .light))
-//                                .multilineTextAlignment(.center)
-//                            
-//                            LikedMusicView(isSelected: $isSelected,
-//                                           isLoading: $isLoading,
-//                                           isShowing: $isShowing,
-//                                           selectedPlaylist: $selectedCourse)
                         }
                         .padding(.bottom)
                         

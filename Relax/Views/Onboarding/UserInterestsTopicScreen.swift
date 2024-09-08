@@ -18,6 +18,8 @@ struct UserInterestsTopicScreen: View {
     private let topicDataService = CoreDataService.shared
     @StateObject private var coursesVM = CoursesViewModel()
     @EnvironmentObject var yandexViewModel: YandexAuthorization
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     private let firebaseUser = Auth.auth().currentUser
     
@@ -28,16 +30,14 @@ struct UserInterestsTopicScreen: View {
         
         NavigationStack {
             ZStack {
-                //VStack {
                     Image("TopicsBackground").ignoresSafeArea()
-                //}
                 ScrollView {
                     VStack {
                         HStack {
                             Text("Что вам по душе?")
                                 .padding(.top)
                                 .padding(.horizontal)
-                                .foregroundStyle(Color(uiColor: .init(red: 63/255, green: 65/255, blue: 78/255, alpha: 1)))
+                                .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 63/255, green: 65/255, blue: 78/255, alpha: 1)))
                                 .font(.system(.title2, design: .rounded, weight: .bold))
                                 .multilineTextAlignment(.leading)
                             Spacer()
@@ -47,7 +47,7 @@ struct UserInterestsTopicScreen: View {
                         HStack {
                             Text("Выберите темы, \nна которых вы хотели бы сфокусироваться:")
                                 .padding(.horizontal)
-                                .foregroundStyle(Color(uiColor: .init(red: 161/255, green: 164/255, blue: 178/255, alpha: 1)))
+                                .foregroundStyle(activeDarkModel ? .white : Color(uiColor: .init(red: 161/255, green: 164/255, blue: 178/255, alpha: 1)))
                             Spacer()
                         }
                         .padding(.horizontal)

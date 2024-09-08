@@ -26,6 +26,12 @@ struct LessonsView: View {
     @State private var isPressedWithoutPremium = false
     @State private var isErrorWhenPlaying = false
     
+    @State private var config: PlayerConfig = .init()
+    @StateObject private var config2 = PlayerConfig2.shared
+    
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
+    
     var body: some View {
         NavigationStack {
             VStack {
@@ -36,6 +42,11 @@ struct LessonsView: View {
                                 isPressedWithoutPremium = false
                                 url = isFemale ? file.audioFemaleURL : file.audioMaleURL
                                 self.lesson = file
+                                //self.config.selectedContentItem = file
+                                self.config2.selectedContentItem = file
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    config2.showMiniPlayer = true
+                                }
                                 if viewModel.isPlaying(urlString: url) {
                                     viewModel.pause()
                                 } else {
@@ -85,6 +96,10 @@ struct LessonsView: View {
                                                        course: course)
                                     //databaseViewModel.updateListeners(course: course, type: course.type)
                                     self.lesson = file
+                                    self.config2.selectedContentItem = file
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        config2.showMiniPlayer = true
+                                    }
                                 } else {
                                     isErrorWhenPlaying = true
                                 }
@@ -103,7 +118,7 @@ struct LessonsView: View {
                                     HStack {
                                         Text(file.name).bold()
                                             .padding(.vertical, 2)
-                                            .foregroundStyle(course.type == .story ? .white : .black)
+                                            .foregroundStyle(course.type == .story || activeDarkModel ? .white : .black)
                                             .multilineTextAlignment(.leading)
                                         Spacer()
                                     }
@@ -132,6 +147,13 @@ struct LessonsView: View {
                     }
                     Divider()
                 }
+                
+//                GeometryReader {
+//                    let size = $0.size
+//                    if config.showMiniPlayer {
+//                        MiniPlayerView(size: size, config: $config)
+//                    }
+//                }
             }
         }
         .sheet(isPresented: $isPressedWithoutPremium, content: {

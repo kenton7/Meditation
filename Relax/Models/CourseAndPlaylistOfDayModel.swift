@@ -14,7 +14,7 @@ enum Types: String, Codable {
     case emergency = "СРОЧНАЯ ПОМОЩЬ"
 }
 
-struct CourseAndPlaylistOfDayModel: Identifiable, Codable {
+struct CourseAndPlaylistOfDayModel: Identifiable, Codable, Equatable {
     var id: String
     var name: String
     var imageURL: String
@@ -31,13 +31,13 @@ struct CourseAndPlaylistOfDayModel: Identifiable, Codable {
     //var lessons: [Lesson]
 }
 
-struct ButtonColor: Codable {
+struct ButtonColor: Codable, Equatable {
     var red: Int
     var green: Int
     var blue: Int
 }
 
-struct Lesson: Codable {
+struct Lesson: Codable, Equatable {
     var audioMaleURL: String
     var audioFemaleURL: String
     var name: String

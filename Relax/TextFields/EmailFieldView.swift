@@ -13,6 +13,8 @@ struct EmailFieldView: View {
     @State private var isEmailEditing = false
     private var title: String
     @FocusState private var isFocused: Bool
+    @AppStorage("toogleDarkMode") private var toogleDarkMode = false
+    @AppStorage("activeDarkModel") private var activeDarkModel = false
     
     init(_ title: String, email: Binding<String>) {
         self.title = title
@@ -23,7 +25,7 @@ struct EmailFieldView: View {
         ZStack(alignment: .leading) {
         TextField("", text: $email)
             .padding()
-            .background(Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
+            .background(activeDarkModel ? .black : Color(uiColor: .init(red: 242/255, green: 243/255, blue: 247/255, alpha: 1)))
             .clipShape(.rect(cornerRadius: 8))
             .padding()
             .keyboardType(.emailAddress)
@@ -50,6 +52,7 @@ struct EmailFieldView: View {
                 .padding()
                 .offset(x: 10)
                 .offset(y: (isFocused || !email.isEmpty) ? -40 : 0)
+                .foregroundStyle(isFocused && activeDarkModel ? .white : .secondary)
                 .foregroundStyle(isFocused ? .black : .secondary)
                 .animation(.spring, value: isFocused)
         }
